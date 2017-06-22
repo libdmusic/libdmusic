@@ -11,7 +11,8 @@ include_directories(include)
 file(GLOB LIB_SRC
   "src/*.cpp"
   "src/*.h"
-  "include/dmusic/*.h")
+  "include/dmusic/*.h"
+  "include/dmusic/dls/*.h")
 
 add_library(dmusic STATIC ${LIB_SRC})
 
