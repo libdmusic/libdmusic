@@ -34,6 +34,7 @@ namespace DirectMusic {
 
         class Info {
         public:
+            Info() {}
             Info(Chunk& c);
             const std::string& getArchivalLocation();
             const std::string& getArtist();

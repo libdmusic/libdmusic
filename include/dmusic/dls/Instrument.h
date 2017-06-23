@@ -19,15 +19,17 @@ namespace DirectMusic {
         class Region {
         public:
             Region(DirectMusic::Riff::Chunk& c);
-            const RGNRANGE getKeyRange() const;
-            const RGNRANGE getVelocityRange() const;
-            const std::uint16_t getSynthesisFlags() const;
-            const std::uint16_t getKeyGroup() const;
+            const RegionHeader& getRegionHeader() const;
+            const WaveLink& getWaveLink() const;
+            const Wavesample& getWavesample() const;
             const std::vector<Articulator> getArticulators() const;
+            const std::vector<WavesampleLoop> getWavesampleLoops() const;
         private:
-            RGNRANGE m_rangeKey, m_rangeVelocity;
-            std::uint16_t m_fusOptions, m_usKeyGroup;
+            RegionHeader m_rgnHeader;
+            WaveLink m_waveLink;
+            Wavesample m_wavesample;
             std::vector<Articulator> m_articulators;
+            std::vector<WavesampleLoop> m_loops;
         };
 
         class Instrument {
@@ -35,15 +37,17 @@ namespace DirectMusic {
             Instrument(DirectMusic::Riff::Chunk& c);
             const std::vector<Region>& getRegions() const;
             const std::vector<Articulator>& getArticulators() const;
-            const Info& getInfo() const;
-            const Guid& getGuid() const;
+            const std::uint32_t getMidiBank() const;
+            const std::uint32_t getMidiProgram() const;
+            const DirectMusic::Riff::Info& getInfo() const;
+            const DirectMusic::GUID& getGuid() const;
 
         private:
-            Guid m_dlsid;
-            std::uint64_t m_midiBank, m_midiProgram;
+            DirectMusic::GUID m_dlsid;
+            std::uint32_t m_midiBank, m_midiProgram;
             std::vector<Region> m_regions;
             std::vector<Articulator> m_articulators;
-            Info m_info;
+            DirectMusic::Riff::Info m_info;
         };
     }
 }

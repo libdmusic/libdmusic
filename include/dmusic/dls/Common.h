@@ -20,11 +20,19 @@ namespace DirectMusic {
             // Bits 0-6 are defined as PC value and
             //  bits 7-31 are reserved and should be written to zero.
             std::uint32_t ulInstrument;
-        }
+        };
 
         struct RGNRANGE {
             std::uint16_t usLow; /* Low Value of Range */
             std::uint16_t usHigh; /* High Value of Range*/
+        };
+
+        struct InstrumentHeader {
+            // Specifies the count of regions for this instrument.
+            std::uint32_t cRegions;
+
+            // Specifies the MIDI locale for this instrument.
+            MIDILOCALE Locale;
         };
 
         struct RegionHeader {
@@ -106,6 +114,82 @@ namespace DirectMusic {
             std::uint32_t ulLoopLength;
         };
 
+        struct Wavesample {
+            // Specifies the size of the structure in bytes.
+            // This size does not include the loop records.
+            // This field is needed to distinguish the amount of data in the structure versus
+            //  the list of loops and allow for additions to this structure in the future.
+            // This cannot be determined from the chunk size.
+            std::uint32_t cbSize;
+
+            // Specifies the MIDI note which will replay the sample at original pitch.
+            // This value ranges from 0 to 127 (a value of 60 represents Middle C, as defined in MIDI 1.0).
+            std::uint16_t usUnityNote;
+
+            // Specifies the tuning offset from the usUnityNote in 16 bit relative pitch.
+            std::int16_t sFineTune;
+
+            // Specifies the attenuation to be applied to this sample in 32 bit relative gain.
+            std::int32_t lAttenuation;
+
+            // Specifies flag options for the digital audio sample.
+            std::uint32_t fulOptions;
+
+            // Specifies the number (count) of <wavesample-loop> records that are contained in the <wsmp-ck> chunk.
+            // The <wavesample-loop> records are stored immediately following the cSampleLoops data field.
+            // One shot sounds will have the cSampleLoops field set to 0.
+            // Looped sounds will have the cSampleLoops field set to 1.
+            // Values greater than 1 are not yet defined.
+            std::uint32_t cSampleLoops;
+        };
+
+        struct ArticulatorHeader {
+            std::uint32_t cbSize;
+            std::uint32_t cConnectionBlocks;
+        };
+
+        struct WaveFormat {
+            // A number indicating the WAVE format category of the file.
+            // The content of the <format-specific-fields> portion of the fmt chunk,
+            //  and the interpretation of the waveform data, depend on this value.
+            // DLS Level 1 only supports WAVE_FORMAT_PCM(0x0001) Microsoft Pulse Code Modulation(PCM) format
+            std::uint16_t wFormatTag;
+
+            // The number of channels represented in the waveform data,
+            //  such as 1 for mono or 2 for stereo.DLS Level 1 supports only mono data(value = "1").
+            std::uint16_t wChannels;
+
+            // The sampling rate (in samples per second) at which each channel should be played.
+            std::uint32_t dwSamplesPerSec;
+
+            // The average number of bytes per second at which the waveform data should transferred.
+            // Playback software can estimate the buffer size using this value.
+            std::uint32_t dwAvgBytesPerSec;
+
+            // The block alignment (in bytes) of the waveform data.
+            // Playback software needs to process a multiple of
+            //  wBlockAlign bytes of data at a time, so the value of
+            //  wBlockAlign can be used for buffer alignment.
+            std::uint16_t wBlockAlign;
+
+            // Specifies the number of bits of data used to represent each sample of each channel.
+            // If there are multiple channels, the sample size is the same for each channel.
+            // DLS level 1 supports only 8 or 16 bit samples.
+            std::uint16_t wBitsPerSample;
+        };
+
+        struct PoolTable {
+            // Specifies the size of the structure in bytes.
+            // This size does not include the poolcue records.
+            // This field is needed to distinguish the amount of data in the structure versus
+            //  the list of cues and allow for additions to this structure in the future.
+            // This cannot be determined from the chunk size.
+            std::uint32_t cbSize;
+
+            // Specifies the number (count) of <poolcue> records that are contained in the <ptbl-ck> chunk.
+            // The <poolcue> records are stored immediately following the cCues data field.
+            std::uint32_t cCues;
+        };
         #pragma pack(pop)
     }
 }
