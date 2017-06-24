@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Common.h"
 #include "../Guid.h"
 #include "../Riff.h"

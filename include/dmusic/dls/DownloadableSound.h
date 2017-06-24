@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Common.h"
 #include "Instrument.h"
 #include "../Guid.h"
@@ -35,6 +37,8 @@ namespace DirectMusic {
             GUID m_dlsid;
             std::vector<Instrument> m_instruments;
             DirectMusic::Riff::Info m_info;
+            std::vector<std::uint32_t> m_poolOffsets;
+            std::vector<Wave> m_wavePool;
         };
     }
 }

@@ -5,24 +5,25 @@ using namespace DirectMusic::Riff;
 using namespace DirectMusic::DLS;
 
 Instrument::Instrument(Chunk& c) {
-    if (c.getId().compare("LIST") != 0 || c.getListId().compare("ins ") != 0)
+    if (c.getId() != "LIST" || c.getListId() != "ins ")
         throw DirectMusic::InvalidChunkException("LIST ins", c.getId() + " " + c.getListId());
 
     for (Chunk subchunk : c.getSubchunks()) {
-        if (!subchunk.getId().compare("dlid")) {
+        std::string id = subchunk.getId();
+        if (id == "dlid") {
             m_dlsid = *((GUID*)subchunk.getData().data());
-        } else if (!subchunk.getId().compare("insh")) {
+        } else if (id == "insh") {
             InstrumentHeader *header = (InstrumentHeader*)subchunk.getData().data();
             m_midiBank = header->Locale.ulBank;
             m_midiProgram = header->Locale.ulInstrument;
-        } else if (!subchunk.getId().compare("LIST")) {
-            if (!subchunk.getListId().compare("INFO")) {
+        } else if (id == "LIST") {
+            if (subchunk.getListId() == "INFO") {
                 m_info = Info(subchunk);
-            } else if (!subchunk.getId().compare("lrgn")) {
+            } else if (subchunk.getListId() == "lrgn") {
                 for (Chunk rgn : subchunk.getSubchunks()) {
                     m_regions.push_back(Region(rgn));
                 }
-            } else if (!subchunk.getId().compare("lart")) {
+            } else if (subchunk.getListId() == "lart") {
                 for (Chunk art : subchunk.getSubchunks()) {
                     m_articulators.push_back(Articulator(art));
                 }

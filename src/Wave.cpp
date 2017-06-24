@@ -6,16 +6,16 @@ using namespace DirectMusic::Riff;
 using namespace DirectMusic::DLS;
 
 Wave::Wave(Chunk& c) {
-    if (c.getId().compare("LIST") != 0 || c.getListId().compare("wave") != 0)
+    if (c.getId() != "LIST" || c.getListId() != "wave")
         throw DirectMusic::InvalidChunkException("LIST wave", c.getId() + " " + c.getListId());
 
     for (Chunk subchunk : c.getSubchunks()) {
         std::string id = subchunk.getId();
-        if (!id.compare("dlid")) {
+        if (id == "dlid") {
             m_dlsid = *((GUID*)subchunk.getData().data());
-        } else if (!id.compare("fmt ")) {
+        } else if (id == "fmt ") {
             m_fmt = *((WaveFormat*)subchunk.getData().data());
-        } else if (!id.compare("wsmp")) {
+        } else if (id == "wsmp") {
             m_wavesample = *((Wavesample*)subchunk.getData().data());
             if (m_wavesample.cSampleLoops > 0) {
                 WavesampleLoop *loops = (WavesampleLoop*)(subchunk.getData().data() + m_wavesample.cbSize);
@@ -23,9 +23,9 @@ Wave::Wave(Chunk& c) {
                     m_loops.push_back(loops[i]);
                 }
             }
-        } else if (!id.compare("LIST") && !subchunk.getListId().compare("INFO")) {
+        } else if (id == "LIST" && subchunk.getListId() == "INFO") {
             m_info = Info(subchunk);
-        } else if (!id.compare("data")) {
+        } else if (id == "data") {
             m_wavedata = subchunk.getData();
         }
     }

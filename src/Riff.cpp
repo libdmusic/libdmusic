@@ -4,29 +4,32 @@
 
 using namespace DirectMusic::Riff;
 
-Chunk::Chunk(const std::vector<std::uint8_t>& buffer, std::uint32_t offset) {
-    const uint8_t *bufferData = buffer.data();
-    std::uint32_t position = offset;
-    m_id = std::string((const char *)(bufferData + position), 4);
-    position += 4;
-    std::uint32_t len = (std::uint32_t)*(bufferData + position);
-    position += 4;
+struct ChunkHeader {
+    char id[4];
+    std::uint32_t size;
+};
+
+Chunk::Chunk(const std::uint8_t* buffer) {
+    ChunkHeader *header = (ChunkHeader*)buffer;
+    m_id = std::string(header->id, 4);
+    buffer += sizeof(ChunkHeader);
+    m_data = std::vector<std::uint8_t>(buffer, buffer + header->size);
 
     // A RIFF chunk only contains subchunks if its ID is "RIFF" or "LIST"
-    if (!m_id.compare("RIFF") || !m_id.compare("LIST")) {
-        m_listId = std::string((const char *)(bufferData + position), 4);
-        position += 4;
-        m_data = std::vector<std::uint8_t>(bufferData + position, bufferData + position + len);
-        uint32_t suboffset = 0;
+    if (m_id == "RIFF" || m_id == "LIST") {
+        m_listId = std::string((const char *)buffer, 4);
+        buffer += 4;
+        std::uint32_t count = 0;
 
         // len includes the listId FOURCC, we must exclude it in this calculation
-        while (suboffset < len - 4) {
-            Chunk subchunk(m_data, suboffset);
+        while (count < header->size - 4) {
+            Chunk subchunk(buffer);
             m_subchunks.push_back(subchunk);
-            suboffset += subchunk.m_data.size() + 8;
+            //if (subchunk.m_data.size() % 2 != 0) suboffset++;
+            count += subchunk.m_data.size() + 8;
+            buffer += subchunk.m_data.size() + 8;
+            //if (!subchunk.getSubchunks().empty()) suboffset += 4;
         }
-    } else {
-        m_data = std::vector<std::uint8_t>(bufferData + position, bufferData + position + len);
     }
 }
 
@@ -47,7 +50,7 @@ const std::vector<Chunk>& Chunk::getSubchunks() const {
 }
 
 Info::Info(Chunk& c) {
-    if (c.getId().compare("LIST") != 0 || c.getListId().compare("INFO") != 0)
+    if (c.getId() != "LIST" || c.getListId() != "INFO")
         throw DirectMusic::InvalidChunkException("LIST INFO", c.getId() + " " + c.getListId());
     for(Chunk subchunk : c.getSubchunks()) {
         std::vector<std::uint8_t> data = subchunk.getData();

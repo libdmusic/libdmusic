@@ -5,7 +5,7 @@ using namespace DirectMusic::Riff;
 using namespace DirectMusic::DLS;
 
 Articulator::Articulator(Chunk& c) {
-    if (c.getId().compare("art1") != 0)
+    if (c.getId() != "art1")
         throw DirectMusic::InvalidChunkException("art1", c.getId());
 
     ArticulatorHeader *header = (ArticulatorHeader*)c.getData().data();

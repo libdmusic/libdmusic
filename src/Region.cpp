@@ -5,23 +5,21 @@ using namespace DirectMusic::Riff;
 using namespace DirectMusic::DLS;
 
 Region::Region(Chunk& c) {
-    if (c.getId().compare("LIST") != 0 || c.getListId().compare("rgn ") != 0)
+    if (c.getId() != "LIST" || c.getListId() != "rgn ")
         throw DirectMusic::InvalidChunkException("LIST rgn", c.getId() + " " + c.getListId());
 
     for(Chunk subchunk: c.getSubchunks()) {
-        if(!subchunk.getId().compare("rgnh")) {
-            RegionHeader *header = (RegionHeader*)subchunk.getData().data();
-            m_rgnHeader = *header;
-        } else if(!subchunk.getId().compare("LIST") && !subchunk.getListId().compare("lart")) {
+        std::string id = subchunk.getId();
+        if(id == "rgnh") {
+            m_rgnHeader = *(RegionHeader*)subchunk.getData().data();
+        } else if(id == "LIST" && subchunk.getListId() == "lart") {
             for (Chunk art1ck : subchunk.getSubchunks()) {
                 m_articulators.push_back(Articulator(art1ck));
             }
-        } else if (!subchunk.getId().compare("wlnk")) {
-            WaveLink *wlnk = (WaveLink*)subchunk.getData().data();
-            m_waveLink = *wlnk;
-        } else if (!subchunk.getId().compare("wsmp")) {
-            Wavesample *wsmp = (Wavesample*)subchunk.getData().data();
-            m_wavesample = *wsmp;
+        } else if (id == "wlnk") {
+            m_waveLink = *(WaveLink*)subchunk.getData().data();
+        } else if (id == "wsmp") {
+            m_wavesample = *(Wavesample*)subchunk.getData().data();
             if (m_wavesample.cSampleLoops > 0) {
                 WavesampleLoop *loops = (WavesampleLoop*)(subchunk.getData().data() + m_wavesample.cbSize);
                 for (int i = 0; i < m_wavesample.cSampleLoops; i++) {

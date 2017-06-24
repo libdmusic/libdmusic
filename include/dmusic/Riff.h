@@ -10,7 +10,7 @@ namespace DirectMusic {
         // Represents a RIFF chunk, which may or may not contain other subchunks
         class Chunk final {
         public:
-            Chunk(const std::vector<std::uint8_t>& buffer, std::uint32_t offset);
+            Chunk(const std::uint8_t* buf);
 
             // Returns the raw data content of the chunk
             const std::vector<std::uint8_t>& getData() const;
