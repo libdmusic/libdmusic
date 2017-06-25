@@ -20,15 +20,17 @@ Chunk::Chunk(const std::uint8_t* buffer) {
         m_listId = std::string((const char *)buffer, 4);
         buffer += 4;
         std::uint32_t count = 0;
-
+        if (m_listId == "INFO") {
+            buffer = buffer;
+        }
         // len includes the listId FOURCC, we must exclude it in this calculation
         while (count < header->size - 4) {
             Chunk subchunk(buffer);
             m_subchunks.push_back(subchunk);
-            //if (subchunk.m_data.size() % 2 != 0) suboffset++;
-            count += subchunk.m_data.size() + 8;
-            buffer += subchunk.m_data.size() + 8;
-            //if (!subchunk.getSubchunks().empty()) suboffset += 4;
+            int size = subchunk.m_data.size();
+            if (size % 2 == 1) size++;
+            count += size + 8;
+            buffer += size + 8;
         }
     }
 }
@@ -54,74 +56,92 @@ Info::Info(Chunk& c) {
         throw DirectMusic::InvalidChunkException("LIST INFO", c.getId() + " " + c.getListId());
     for(Chunk subchunk : c.getSubchunks()) {
         std::vector<std::uint8_t> data = subchunk.getData();
-        m_kvpairs[subchunk.getId()] = std::string((const char *)data.data(), data.size());
+        std::string id = subchunk.getId();
+        std::string value = std::string((const char *)data.data(), data.size());
+        if (id == "IARL") m_iarl = value;
+        if (id == "IART") m_iart = value;
+        if (id == "ICMS") m_icms = value;
+        if (id == "ICMT") m_icmt = value;
+        if (id == "ICOP") m_icop = value;
+        if (id == "ICRD") m_icrd = value;
+        if (id == "IENG") m_ieng = value;
+        if (id == "IGNR") m_ignr = value;
+        if (id == "IKEY") m_ikey = value;
+        if (id == "IMED") m_imed = value;
+        if (id == "INAM") m_inam = value;
+        if (id == "IPRD") m_iprd = value;
+        if (id == "ISBJ") m_isbj = value;
+        if (id == "ISFT") m_isft = value;
+        if (id == "ISRC") m_isrc = value;
+        if (id == "ISRF") m_isrf = value;
+        if (id == "ITCH") m_itch = value;
     }
 }
 
-const std::string& Info::getArchivalLocation() {
-    return m_kvpairs["IARL"];
+const std::string& Info::getArchivalLocation() const {
+    return m_iarl;
 }
 
-const std::string& Info::getArtist() {
-    return m_kvpairs["IART"];
+const std::string& Info::getArtist() const {
+    return m_iart;
 }
 
-const std::string& Info::getCommission() {
-    return m_kvpairs["ICMS"];
+const std::string& Info::getCommission() const {
+    return m_icms;
 }
 
-const std::string& Info::getComments() {
-    return m_kvpairs["ICMT"];
+const std::string& Info::getComments() const {
+    return m_icmt;
 }
 
-const std::string& Info::getCopyright() {
-    return m_kvpairs["ICOP"];
+const std::string& Info::getCopyright() const {
+    return m_icop;
 }
 
-const std::string& Info::getCreationDate() {
-    return m_kvpairs["ICRD"];
+const std::string& Info::getCreationDate() const {
+    return m_icrd;
 }
 
-const std::string& Info::getEngineer() {
-    return m_kvpairs["IENG"];
+const std::string& Info::getEngineer() const {
+    return m_ieng;
 }
 
-const std::string& Info::getGenre() {
-    return m_kvpairs["IGNR"];
+const std::string& Info::getGenre() const {
+    return m_ignr;
 }
 
-const std::string& Info::getKeywords() {
-    return m_kvpairs["IKEY"];
+const std::string& Info::getKeywords() const {
+    return m_ikey;
 }
 
-const std::string& Info::getMedium() {
-    return m_kvpairs["IMED"];
+const std::string& Info::getMedium() const {
+    return m_imed;
 }
 
-const std::string& Info::getName() {
-    return m_kvpairs["INAM"];
+const std::string& Info::getName() const {
+    return m_inam;
 }
 
-const std::string& Info::getProduct() {
-    return m_kvpairs["IPRD"];
+const std::string& Info::getProduct() const {
+    return m_iprd;
 }
 
-const std::string& Info::getSubject() {
-    return m_kvpairs["ISBJ"];
+const std::string& Info::getSubject() const {
+    return m_isbj;
 }
 
-const std::string& Info::getSoftware() {
-    return m_kvpairs["ISFT"];
+const std::string& Info::getSoftware() const {
+    return m_isft;
 }
 
-const std::string& Info::getSource() {
-    return m_kvpairs["ISRC"];
+const std::string& Info::getSource() const {
+    return m_isrc;
 }
 
-const std::string& Info::getSourceForm() {
-    return m_kvpairs["ISRF"];
+const std::string& Info::getSourceForm() const {
+    return m_isrf;
 }
 
-const std::string& Info::getTechnician() {
-    return m_kvpairs["ITCH"];
+const std::string& Info::getTechnician() const {
+    return m_itch;
 }

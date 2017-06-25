@@ -40,3 +40,23 @@ DownloadableSound::DownloadableSound(Chunk& c) {
         }
     }
 }
+
+const std::vector<Instrument>& DownloadableSound::getInstruments() const {
+    return m_instruments;
+}
+
+const std::vector<std::uint32_t>& DownloadableSound::getPoolOffsets() const {
+    return m_poolOffsets;
+}
+
+const std::vector<Wave>& DownloadableSound::getWavePool() const {
+    return m_wavePool;
+}
+
+Info& DownloadableSound::getInfo() {
+    return m_info;
+}
+
+const GUID& DownloadableSound::getGuid() const {
+    return m_dlsid;
+}

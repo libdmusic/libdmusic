@@ -31,6 +31,11 @@ namespace DirectMusic {
         class DownloadableSound {
         public:
             DownloadableSound(DirectMusic::Riff::Chunk& c);
+            const std::vector<Instrument>& getInstruments() const;
+            const std::vector<std::uint32_t>& getPoolOffsets() const;
+            const std::vector<Wave>& getWavePool() const;
+            DirectMusic::Riff::Info& getInfo();
+            const GUID& getGuid() const;
 
         private:
             std::uint64_t m_version;

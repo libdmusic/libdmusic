@@ -1,5 +1,7 @@
 #include <dmusic/dls/DownloadableSound.h>
 #include <dmusic/Exceptions.h>
+#include <iostream>
+#include <fstream>
 
 using namespace DirectMusic;
 using namespace DirectMusic::Riff;

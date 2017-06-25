@@ -4,7 +4,7 @@ project (dmusic)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-option(DMUSIC_BUILD_TESTBED "Build testbed" ON)
+option(DMUSIC_BUILD_UTILS "Build various conversion utilities" ON)
 
 include_directories(include)
 
@@ -16,11 +16,6 @@ file(GLOB LIB_SRC
 
 add_library(dmusic STATIC ${LIB_SRC})
 
-if (DMUSIC_BUILD_TESTBED)
-  file(GLOB TESTBED_SRC
-    "testbed/*.cpp"
-    "testbed/*.h")
-
-  add_executable(testbed ${TESTBED_SRC})
-  target_link_libraries (testbed dmusic)
-endif (DMUSIC_BUILD_TESTBED)
+if (DMUSIC_BUILD_UTILS)
+  add_subdirectory(utils)
+endif ()

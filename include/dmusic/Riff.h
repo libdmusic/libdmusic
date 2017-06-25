@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <iostream>
 
 namespace DirectMusic {
     namespace Riff {
@@ -36,26 +37,29 @@ namespace DirectMusic {
         public:
             Info() {}
             Info(Chunk& c);
-            const std::string& getArchivalLocation();
-            const std::string& getArtist();
-            const std::string& getCommission();
-            const std::string& getComments();
-            const std::string& getCopyright();
-            const std::string& getCreationDate();
-            const std::string& getEngineer();
-            const std::string& getGenre();
-            const std::string& getKeywords();
-            const std::string& getMedium();
-            const std::string& getName();
-            const std::string& getProduct();
-            const std::string& getSubject();
-            const std::string& getSoftware();
-            const std::string& getSource();
-            const std::string& getSourceForm();
-            const std::string& getTechnician();
+            const std::string& getArchivalLocation() const;
+            const std::string& getArtist() const;
+            const std::string& getCommission() const;
+            const std::string& getComments() const;
+            const std::string& getCopyright() const;
+            const std::string& getCreationDate() const;
+            const std::string& getEngineer() const;
+            const std::string& getGenre() const;
+            const std::string& getKeywords() const;
+            const std::string& getMedium() const;
+            const std::string& getName() const;
+            const std::string& getProduct() const;
+            const std::string& getSubject() const;
+            const std::string& getSoftware() const;
+            const std::string& getSource() const;
+            const std::string& getSourceForm() const;
+            const std::string& getTechnician() const;
 
         private:
-            std::map<std::string, std::string> m_kvpairs;
+            std::string m_iarl, m_iart, m_icms, m_icmt,
+                m_icop, m_icrd, m_ieng, m_ignr, m_ikey,
+                m_imed, m_inam, m_iprd, m_isbj, m_isft,
+                m_isrc, m_isrf, m_itch;
         };
     }
 }

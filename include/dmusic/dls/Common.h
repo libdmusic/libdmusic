@@ -2,6 +2,22 @@
 
 #include <cstdint>
 
+#define F_INSTRUMENT_DRUMS         0x80000000
+
+#define F_RGN_OPTION_SELFNONEXCLUSIVE  0x0001
+
+#define WAVELINK_CHANNEL_LEFT      0x0001l
+#define WAVELINK_CHANNEL_RIGHT     0x0002l
+
+#define F_WAVELINK_PHASE_MASTER    0x0001
+
+#define POOL_CUE_NULL              0xffffffffl
+
+#define F_WSMP_NO_TRUNCATION       0x0001l
+#define F_WSMP_NO_COMPRESSION      0x0002l
+
+#define WLOOP_TYPE_FORWARD         0
+
 namespace DirectMusic {
     namespace DLS {
         #pragma pack(push, 1)
@@ -57,18 +73,68 @@ namespace DirectMusic {
             std::uint16_t usKeyGroup;
         };
 
+        enum class ArticulatorSource : std::uint16_t {
+            /* Generic Sources */
+            None = 0x0000,
+            LFO = 0x0001,
+            KeyOnVelocity = 0x0002,
+            KeyNumber = 0x0003,
+            EG1 = 0x0004,
+            EG2 = 0x0005,
+            PitchWheel = 0x0006,
+
+            /* Midi Controllers 0-127 */
+            ModWheel = 0x0081,
+            ChannelVolume = 0x0087,
+            Pan = 0x008a,
+            Expression = 0x008b
+        };
+
+        enum class ArticulatorDestination : std::uint16_t {
+            /* Generic Destinations */
+            None = 0x0000,
+            Attenuation = 0x0001,
+            Pitch = 0x0003,
+            Pan = 0x0004,
+
+            /* LFO Destinations */
+            LFOFrequency = 0x0104,
+            LFOStartDelay = 0x0105,
+
+            /* EG1 Destinations */
+            EG1AttachTime = 0x0206,
+            EG1DecayTime = 0x0207,
+            EG1ReleaseTime = 0x0209,
+            EG1SustainLevel = 0x020a,
+
+            /* EG2 Destinations */
+            EG2AttachTime = 0x030a,
+            EG2DecayTime = 0x030b,
+            EG2ReleaseTime = 0x030d,
+            EG2SustainLevel = 0x030e
+        };
+
+        enum class ArticulatorTransform : std::uint16_t {
+            None = 0x0000,
+            Concave = 0x0001
+        };
+
+        enum class ArticulatorControl : std::uint16_t {
+            ModWheel = 0x0081
+        };
+
         struct ConnectionBlock {
             // Specifies the source for the connection
-            std::uint16_t usSource;
+            ArticulatorSource usSource;
 
             // Specifies the control for the connection
-            std::uint16_t usControl;
+            ArticulatorControl usControl;
 
             // Specifies the destination for the connection
-            std::uint16_t usDestination;
+            ArticulatorDestination usDestination;
 
             // Specifies the transform for the connection
-            std::uint16_t usTransform;
+            ArticulatorTransform usTransform;
 
             // Specifies the scaling value used for the connection
             std::int32_t lScale;
