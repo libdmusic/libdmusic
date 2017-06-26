@@ -209,6 +209,92 @@ namespace DirectMusic {
             std::uint32_t cSampleLoops;
         };
 
+        struct Sampler {
+            // The manufacturer field specifies the MIDI Manufacturer's Association (MMA) Manufacturer code
+            //  for the sampler intended to receive this file's waveform.
+            // Each manufacturer of a MIDI product is assigned a unique ID which identifies the company.
+            // If no particular manufacturer is to be specified, a value of 0 should be used.
+            // The value is stored with some extra information to enable translation to the value used in a
+            //  MIDI System Exclusive transmission to the sampler.
+            // The high byte indicates the number of low order bytes(1 or 3) that are valid for the manufacturer code.
+            // For example, the value for Digidesign will be 0x01000013 (0x13) and the value for Microsoft will be
+            //  0x30000041 (0x00, 0x00, 0x41).
+            std::uint32_t manufacturer;
+
+            // The product field specifies the MIDI model ID defined by the manufacturer corresponding to the Manufacturer field.
+            // Contact the manufacturer of the sampler to get the model ID.
+            // If no particular manufacturer's product is to be specified, a value of 0 should be used.
+            std::uint32_t product;
+
+            // The sample period specifies the duration of time that passes during the playback of one sample in nanoseconds
+            // (normally equal to 1 / Samplers Per Second, where Samples Per Second is the value found in the format chunk).
+            std::uint32_t samplePeriod;
+
+            // The MIDI unity note value has the same meaning as the instrument chunk's MIDI Unshifted Note field which specifies
+            //  the musical note at which the sample will be played at it's original sample rate
+            //  (the sample rate specified in the format chunk).
+            std::uint32_t midiUnityNote;
+
+            // The MIDI pitch fraction specifies the fraction of a semitone up from the specified MIDI unity note field.
+            // A value of 0x80000000 means 1/2 semitone (50 cents) and a value of 0x00000000 means no fine tuning between semitones.
+            std::uint32_t midiPitchFraction;
+
+            // The SMPTE format specifies the Society of Motion Pictures and Television E time format used in the following SMPTE Offset field.
+            // If a value of 0 is set, SMPTE Offset should also be set to 0.
+            std::uint32_t smpteFormat;
+
+            // The SMPTE Offset value specifies the time offset to be used for the synchronization / calibration to the first sample in the waveform.
+            // This value uses a format of 0xhhmmssff where hh is a signed value that specifies the number of hours (-23 to 23),
+            //  mm is an unsigned value that specifies the number of minutes (0 to 59), ss is an unsigned value that specifies
+            //  the number of seconds (0 to 59) and ff is an unsigned value that specifies the number of frames (0 to -1).
+            std::uint32_t smpteOffset;
+
+            // The sample loops field specifies the number Sample Loop definitions in the following list.
+            // This value may be set to 0 meaning that no sample loops follow.
+            std::uint32_t numSampleLoops;
+
+            // The sampler data value specifies the number of bytes that will follow this chunk (including the entire sample loop list).
+            // This value is greater than 0 when an application needs to save additional information.
+            // This value is reflected in this chunks data size value.
+            std::uint32_t samplerDataLength;
+        };
+
+        enum class SamplerLoopType : std::uint32_t {
+            Forward = 0,
+            Alternating = 1,
+            Backward = 2
+        };
+
+        struct SamplerLoop {
+            // The Cue Point ID specifies the unique ID that corresponds to one of the defined cue points in the cue point list.
+            // Furthermore, this ID corresponds to any labels defined in the associated data list chunk which allows text labels
+            //  to be assigned to the various sample loops.
+            std::uint32_t cuePointID;
+
+            // The type field defines how the waveform samples will be looped.
+            SamplerLoopType type;
+
+            // The start value specifies the byte offset into the waveform data of the first sample to be played in the loop.
+            std::uint32_t start;
+
+            // The end value specifies the byte offset into the waveform data of the last sample to be played in the loop.
+            std::uint32_t end;
+
+            // The fractional value specifies a fraction of a sample at which to loop.
+            // This allows a loop to be fine tuned at a resolution greater than one sample.
+            // The value can range from 0x00000000 to 0xFFFFFFFF.
+            // A value of 0 means no fraction, a value of 0x80000000 means 1/2 of a sample length.
+            // 0xFFFFFFFF is the smallest fraction of a sample that can be represented.
+            std::uint32_t fraction;
+
+            // The play count value determines the number of times to play the loop.
+            // A value of 0 specifies an infinite sustain loop.
+            // An infinite sustain loop will continue looping until some external force interrupts playback,
+            //  such as the musician releasing the key that triggered the wave's playback.
+            // All other values specify an absolute number of times to loop.
+            std::uint32_t playCount;
+        };
+
         struct ArticulatorHeader {
             std::uint32_t cbSize;
             std::uint32_t cConnectionBlocks;

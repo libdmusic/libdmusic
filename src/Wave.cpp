@@ -7,7 +7,7 @@ using namespace DirectMusic;
 using namespace DirectMusic::Riff;
 using namespace DirectMusic::DLS;
 
-Wave::Wave(Chunk& c) {
+Wave::Wave(Chunk& c) : m_containsSampler(false) {
     if (c.getId() != "LIST" || c.getListId() != "wave")
         throw DirectMusic::InvalidChunkException("LIST wave", c.getId() + " " + c.getListId());
 
@@ -25,6 +25,15 @@ Wave::Wave(Chunk& c) {
                     m_loops.push_back(loops[i]);
                 }
             }
+        } else if(id == "smpl") {
+            m_sampler = *((Sampler*)subchunk.getData().data());
+            if (m_sampler.numSampleLoops > 0) {
+                SamplerLoop *loops = (SamplerLoop*)(subchunk.getData().data() + sizeof(Sampler));
+                for (int i = 0; i < m_sampler.numSampleLoops; i++) {
+                    m_samplerLoops.push_back(loops[i]);
+                }
+            }
+            m_containsSampler = true;
         } else if (id == "LIST" && subchunk.getListId() == "INFO") {
             m_info = Info(subchunk);
         } else if (id == "data") {
@@ -49,10 +58,22 @@ const Wavesample& Wave::getWavesample() const {
     return m_wavesample;
 }
 
+const Sampler& Wave::getSampler() const {
+    return m_sampler;
+}
+
 const std::vector<uint8_t>& Wave::getWavedata() const {
     return m_wavedata;
 }
 
 const std::vector<WavesampleLoop>& Wave::getWavesampleLoops() const {
     return m_loops;
+}
+
+const std::vector<SamplerLoop>& Wave::getSamplerLoops() const {
+    return m_samplerLoops;
+}
+
+const bool Wave::containsSampler() const {
+    return m_containsSampler;
 }
