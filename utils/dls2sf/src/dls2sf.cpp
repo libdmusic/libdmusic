@@ -10,34 +10,17 @@
 using namespace DirectMusic;
 using namespace sf2cute;
 
-template <typename T>
-T swap_endian(T u) {
-    static_assert (CHAR_BIT == 8, "CHAR_BIT != 8");
-
-    union {
-        T u;
-        unsigned char u8[sizeof(T)];
-    } source, dest;
-
-    source.u = u;
-
-    for (size_t k = 0; k < sizeof(T); k++)
-        dest.u8[k] = source.u8[sizeof(T) - k - 1];
-
-    return dest.u;
-}
-
-std::vector<std::int16_t> convert(std::vector<std::uint8_t> in) {
+static std::vector<std::int16_t> convert(std::vector<std::uint8_t> in) {
     std::vector<std::int16_t> vec(in.size() / 2);
     std::int16_t *buf = (std::int16_t*)in.data();
 
     for (int i = 0; i < vec.size(); i++) {
-        vec[i] = /*swap_endian*/(buf[i]);
+        vec[i] = buf[i];
     }
     return vec;
 }
 
-Riff::Chunk loadChunk(std::string path) {
+static Riff::Chunk loadChunk(std::string path) {
     std::ifstream inputStream(path, std::ios::binary | std::ios::ate);
     if (!inputStream.is_open()) {
         throw "Couldn't open file";
@@ -48,6 +31,29 @@ Riff::Chunk loadChunk(std::string path) {
     inputStream.close();
     Riff::Chunk ch(buffer.data());
     return ch;
+}
+
+static void createModulators(const std::vector<DLS::ConnectionBlock> cblocks, std::vector<SFModulatorItem> mods) {
+    for (DLS::ConnectionBlock block : cblocks) {
+        SFModulator source;
+        SFGenerator dest;
+        SFControllerType type =
+            block.usTransform == DLS::ArticulatorTransform::Concave ?
+                SFControllerType::kConcave :
+                SFControllerType::kLinear;
+
+        switch (block.usSource) {
+        case DLS::ArticulatorSource::None:
+            source = SFModulator(SFGeneralController::kNoController, SFControllerDirection::kIncrease, SFControllerPolarity::kUnipolar, type);
+            break;
+        case DLS::ArticulatorSource::ChannelVolume:
+            source = SFModulator(SFMidiController::kChannelVolume, SFControllerDirection::kIncrease, SFControllerPolarity::kUnipolar, type);
+            break;
+        case DLS::ArticulatorSource::EG1:
+            //source = SFModulator(
+            break;
+       }
+    }
 }
 
 int main(int argc, char **argv) {
@@ -82,18 +88,18 @@ int main(int argc, char **argv) {
         std::uint32_t startLoop, endLoop;
 
         if (wavsmpl.cSampleLoops == 0) {
-            startLoop = data.size() - 1;
-            endLoop = data.size();
+            startLoop = data.size() - 2;
+            endLoop = data.size() - 1;
         } else {
             auto waveLoop = wav.getWavesampleLoops()[0];
             startLoop = waveLoop.ulLoopStart;
-            endLoop = waveLoop.ulLoopLength;
+            endLoop = waveLoop.ulLoopStart + waveLoop.ulLoopLength;
         }
 
         samples.push_back(sf2.NewSample(name,
             convert(data),
             startLoop, endLoop,
-            fmt.dwSamplesPerSec * 2,
+            fmt.dwSamplesPerSec,
             wavsmpl.usUnityNote,
             wavsmpl.sFineTune));
     }
@@ -111,14 +117,22 @@ int main(int argc, char **argv) {
             auto wavesample = reg.getWavesample();
             std::vector<SFGeneratorItem> genItems;
             std::vector<SFModulatorItem> modItems;
+            std::shared_ptr<SFSample> sample;
             genItems.push_back(SFGeneratorItem(SFGenerator::kKeyRange, RangesType(hdr.RangeKey.usLow, hdr.RangeKey.usHigh)));
             genItems.push_back(SFGeneratorItem(SFGenerator::kVelRange, RangesType(hdr.RangeVelocity.usLow, hdr.RangeVelocity.usHigh)));
             if (wavesample.cSampleLoops == 0) {
+                sample = sf2.NewSample(*samples[wavelink.ulTableIndex]);
+                sample->set_start_loop(sample->data().size() - 2);
+                sample->set_end_loop(sample->data().size() - 1);
                 genItems.push_back(SFGeneratorItem(SFGenerator::kSampleModes, std::uint16_t(SampleMode::kNoLoop)));
             } else {
+                auto loop = reg.getWavesampleLoops()[0];
+                sample = sf2.NewSample(*samples[wavelink.ulTableIndex]);
+                sample->set_start_loop(loop.ulLoopStart);
+                sample->set_end_loop(loop.ulLoopStart + loop.ulLoopLength);
                 genItems.push_back(SFGeneratorItem(SFGenerator::kSampleModes, std::uint16_t(SampleMode::kLoopContinuously)));
             }
-            SFInstrumentZone zone(samples[wavelink.ulTableIndex], genItems, modItems);
+            SFInstrumentZone zone(sample, genItems, modItems);
             zones.push_back(zone);
         }
         auto instrument = sf2.NewInstrument(instr.getInfo().getName(), zones);
@@ -129,6 +143,7 @@ int main(int argc, char **argv) {
         }));
         std::cout << "Done.\n";
     }
+    std::cout << instruments.size() << " instruments converted.\n";
 
     std::ofstream ofs(outputFile, std::ios::binary);
     sf2.Write(ofs);
