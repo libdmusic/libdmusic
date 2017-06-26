@@ -42,6 +42,23 @@ Wave::Wave(Chunk& c) : m_containsSampler(false) {
     }
 }
 
+void Wave::writeToStream(std::ostream& stream) const {
+    int dataSize = m_wavedata.size();
+    int totalSize = sizeof(WaveFormat) + 20 + dataSize + (sizeof(WaveFormat) % 2) + (m_wavedata.size() % 2);
+    int fmtSize = sizeof(WaveFormat);
+    stream.write("RIFF", 4);
+    stream.write((const char*)(&totalSize), 4);
+    stream.write("WAVE", 4);
+    stream.write("fmt ", 4);
+    stream.write((const char*)&fmtSize, 4);
+    stream.write((const char*)&m_fmt, sizeof(WaveFormat));
+    if (sizeof(WaveFormat) % 2 == 1) stream.write("\0", 1);
+    stream.write("data", 4);
+    stream.write((const char*)&dataSize, 4);
+    stream.write((const char*)m_wavedata.data(), m_wavedata.size());
+    if (m_wavedata.size() % 2 == 1) stream.write("\0", 1);
+}
+
 const GUID& Wave::getGuid() const {
     return m_dlsid;
 }

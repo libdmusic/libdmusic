@@ -57,7 +57,7 @@ Info::Info(Chunk& c) {
     for(Chunk subchunk : c.getSubchunks()) {
         std::vector<std::uint8_t> data = subchunk.getData();
         std::string id = subchunk.getId();
-        std::string value = std::string((const char *)data.data(), data.size());
+        std::string value = std::string((const char *)data.data());
         if (id == "IARL") m_iarl = value;
         if (id == "IART") m_iart = value;
         if (id == "ICMS") m_icms = value;
