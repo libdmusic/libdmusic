@@ -52,7 +52,7 @@ static void createModulators(const std::vector<DLS::ConnectionBlock> cblocks, st
         case DLS::ArticulatorSource::EG1:
             //source = SFModulator(
             break;
-       }
+        }
     }
 }
 
@@ -77,15 +77,17 @@ int main(int argc, char **argv) {
     sf2.set_copyright(info.getCopyright());
     sf2.set_engineers(info.getEngineer());
     sf2.set_creation_date(info.getCreationDate());
-    
+
     std::cout << "Loading samples... ";
     std::vector<std::shared_ptr<SFSample>> samples;
     for (const DLS::Wave& wav : dls.getWavePool()) {
         std::string name = wav.getInfo().getName();
         auto fmt = wav.getWaveformat();
         auto wavsmpl = wav.getWavesample();
+        auto sampler = wav.getSampler();
         auto data = wav.getWavedata();
         std::uint32_t startLoop, endLoop;
+        std::uint32_t midiNote, fineTune;
 
         if (wavsmpl.cSampleLoops == 0) {
             startLoop = data.size() - 2;
@@ -95,13 +97,15 @@ int main(int argc, char **argv) {
             startLoop = waveLoop.ulLoopStart;
             endLoop = waveLoop.ulLoopStart + waveLoop.ulLoopLength;
         }
+        midiNote = wavsmpl.usUnityNote;
+        fineTune = wavsmpl.sFineTune;
 
         samples.push_back(sf2.NewSample(name,
             convert(data),
             startLoop, endLoop,
             fmt.dwSamplesPerSec,
-            wavsmpl.usUnityNote,
-            wavsmpl.sFineTune));
+            midiNote,
+            fineTune));
     }
     std::cout << "Done: " << samples.size() << " samples loaded.\n";
 
@@ -132,6 +136,8 @@ int main(int argc, char **argv) {
                 sample->set_end_loop(loop.ulLoopStart + loop.ulLoopLength);
                 genItems.push_back(SFGeneratorItem(SFGenerator::kSampleModes, std::uint16_t(SampleMode::kLoopContinuously)));
             }
+            sample->set_original_key(wavesample.usUnityNote);
+            sample->set_correction(wavesample.sFineTune);
             SFInstrumentZone zone(sample, genItems, modItems);
             zones.push_back(zone);
         }
@@ -145,8 +151,10 @@ int main(int argc, char **argv) {
     }
     std::cout << instruments.size() << " instruments converted.\n";
 
+    std::cout << "Writing output file... ";
     std::ofstream ofs(outputFile, std::ios::binary);
     sf2.Write(ofs);
     ofs.close();
+    std::cout << "Done.\n";
     return 0;
 }
