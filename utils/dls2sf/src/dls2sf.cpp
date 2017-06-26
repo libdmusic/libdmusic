@@ -147,7 +147,7 @@ int main(int argc, char **argv) {
             std::vector<SFPresetZone>{
             SFPresetZone(instrument)
         }));
-        std::cout << "Done.\n";
+        std::cout << "Done: " << zones.size() << " zones loaded.\n";
     }
     std::cout << instruments.size() << " instruments converted.\n";
 
