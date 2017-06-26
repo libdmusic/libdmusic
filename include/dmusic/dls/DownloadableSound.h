@@ -6,6 +6,7 @@
 #include "../Riff.h"
 #include <cstdint>
 #include <vector>
+#include <ostream>
 
 namespace DirectMusic {
     namespace DLS {
@@ -21,6 +22,8 @@ namespace DirectMusic {
             const std::vector<WavesampleLoop>& getWavesampleLoops() const;
             const std::vector<SamplerLoop>& getSamplerLoops() const;
             const bool containsSampler() const;
+
+            void writeToStream(std::ostream& stream) const;
 
         private:
             GUID m_dlsid;

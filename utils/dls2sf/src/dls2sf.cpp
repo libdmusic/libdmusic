@@ -6,11 +6,15 @@
 #include <dmusic/dls/DownloadableSound.h>
 #include <sf2cute.hpp>
 #include <climits>
+extern "C" {
+    #include <adpcm-lib.h>
+}
 
 using namespace DirectMusic;
 using namespace sf2cute;
 
-static std::vector<std::int16_t> convert(std::vector<std::uint8_t> in) {
+// Converts a byte vector to a short vector
+static std::vector<std::int16_t> convert(const std::vector<std::uint8_t> in) {
     std::vector<std::int16_t> vec(in.size() / 2);
     std::int16_t *buf = (std::int16_t*)in.data();
 
@@ -18,6 +22,13 @@ static std::vector<std::int16_t> convert(std::vector<std::uint8_t> in) {
         vec[i] = buf[i];
     }
     return vec;
+}
+
+// Decodes ADPCM data to PCM data
+static std::vector<std::int16_t> decode(const std::vector<std::uint8_t> in) {
+    std::vector<std::int16_t> out(in.size() * 2);
+    int i = adpcm_decode_block(out.data(), in.data(), in.size(), 1);
+    return out;
 }
 
 static Riff::Chunk loadChunk(std::string path) {
@@ -82,16 +93,35 @@ int main(int argc, char **argv) {
     std::vector<std::shared_ptr<SFSample>> samples;
     for (const DLS::Wave& wav : dls.getWavePool()) {
         std::string name = wav.getInfo().getName();
+        
+        std::vector<std::int16_t> audioData;
+
         auto fmt = wav.getWaveformat();
+        if (fmt.wFormatTag == DLS::WaveFormatTag::PCM) {
+            audioData = convert(wav.getWavedata());
+        } else if (fmt.wFormatTag == DLS::WaveFormatTag::ADPCM) {
+
+            std::string path;
+            path.append(name);
+            path.append(".wav");
+            std::cout << "Found ADPCM encoded sample. Saving it as " << path << "\n";
+            std::ofstream st(path, std::ios::binary);
+            wav.writeToStream(st);
+            st.close();
+
+            audioData = decode(wav.getWavedata());
+        } else {
+            std::cerr << "Unsupported audio format.\n";
+            return 1;
+        }
         auto wavsmpl = wav.getWavesample();
         auto sampler = wav.getSampler();
-        auto data = wav.getWavedata();
         std::uint32_t startLoop, endLoop;
         std::uint32_t midiNote, fineTune;
 
         if (wavsmpl.cSampleLoops == 0) {
-            startLoop = data.size() - 2;
-            endLoop = data.size() - 1;
+            startLoop = audioData.size() - 2;
+            endLoop = audioData.size() - 1;
         } else {
             auto waveLoop = wav.getWavesampleLoops()[0];
             startLoop = waveLoop.ulLoopStart;
@@ -101,7 +131,7 @@ int main(int argc, char **argv) {
         fineTune = wavsmpl.sFineTune;
 
         samples.push_back(sf2.NewSample(name,
-            convert(data),
+            audioData,
             startLoop, endLoop,
             fmt.dwSamplesPerSec,
             midiNote,
@@ -122,8 +152,26 @@ int main(int argc, char **argv) {
             std::vector<SFGeneratorItem> genItems;
             std::vector<SFModulatorItem> modItems;
             std::shared_ptr<SFSample> sample;
-            genItems.push_back(SFGeneratorItem(SFGenerator::kKeyRange, RangesType(hdr.RangeKey.usLow, hdr.RangeKey.usHigh)));
-            genItems.push_back(SFGeneratorItem(SFGenerator::kVelRange, RangesType(hdr.RangeVelocity.usLow, hdr.RangeVelocity.usHigh)));
+            std::uint16_t keyrangeLow, keyrangeHigh, velrangeLow, velrangeHigh;
+
+            if (hdr.RangeKey.usHigh - hdr.RangeKey.usLow <= 0) {
+                keyrangeLow = 0;
+                keyrangeHigh = 127;
+            } else {
+                keyrangeLow = hdr.RangeKey.usLow;
+                keyrangeHigh = hdr.RangeKey.usHigh;
+            }
+
+            if (hdr.RangeVelocity.usHigh - hdr.RangeVelocity.usLow <= 0) {
+                velrangeLow = 0;
+                velrangeHigh = 127;
+            } else {
+                velrangeLow = hdr.RangeVelocity.usLow;
+                velrangeHigh = hdr.RangeVelocity.usHigh;
+            }
+
+            genItems.push_back(SFGeneratorItem(SFGenerator::kKeyRange, RangesType(keyrangeLow, keyrangeHigh)));
+            genItems.push_back(SFGeneratorItem(SFGenerator::kVelRange, RangesType(velrangeLow, velrangeHigh)));
             if (wavesample.cSampleLoops == 0) {
                 sample = sf2.NewSample(*samples[wavelink.ulTableIndex]);
                 sample->set_start_loop(sample->data().size() - 2);
