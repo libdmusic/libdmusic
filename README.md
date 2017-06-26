@@ -10,6 +10,8 @@ Roadmap
 - Realtime DLS level 2 playback
 - `.sgt` and `.sty` files loading
 
+For now, the `dls2sf` utility does not support DLS articulators, so the envelopes will sound weird. Converting articulators is difficult because DLS level 1 (and especially level 2) specify many modulating sources and destinations which are not supported by the SoundFont 2 specification. In the long run, I hope to be able to implement a custom renderer that doesn't require DLS to SF conversion.
+
 Compiling
 ---------
 
