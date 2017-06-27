@@ -6,9 +6,7 @@
 #include <dmusic/dls/DownloadableSound.h>
 #include <sf2cute.hpp>
 #include <climits>
-extern "C" {
-    #include <adpcm-lib.h>
-}
+#include "decode.h"
 
 using namespace DirectMusic;
 using namespace sf2cute;
@@ -22,13 +20,6 @@ static std::vector<std::int16_t> convert(const std::vector<std::uint8_t> in) {
         vec[i] = buf[i];
     }
     return vec;
-}
-
-// Decodes ADPCM data to PCM data
-static std::vector<std::int16_t> decode(const std::vector<std::uint8_t> in) {
-    std::vector<std::int16_t> out(in.size() * 2);
-    int i = adpcm_decode_block(out.data(), in.data(), in.size(), 1);
-    return out;
 }
 
 static Riff::Chunk loadChunk(std::string path) {
@@ -97,21 +88,9 @@ int main(int argc, char **argv) {
         std::vector<std::int16_t> audioData;
 
         auto fmt = wav.getWaveformat();
-        if (fmt.wFormatTag == DLS::WaveFormatTag::PCM) {
-            audioData = convert(wav.getWavedata());
-        } else if (fmt.wFormatTag == DLS::WaveFormatTag::ADPCM) {
-
-            std::string path;
-            path.append(name);
-            path.append(".wav");
-            std::cout << "Found ADPCM encoded sample. Saving it as " << path << "\n";
-            std::ofstream st(path, std::ios::binary);
-            wav.writeToStream(st);
-            st.close();
-
-            audioData = decode(wav.getWavedata());
-        } else {
-            std::cerr << "Unsupported audio format.\n";
+        audioData = decode(wav);
+        if (audioData.empty()) {
+            std::cerr << "Invalid sample format for " << name << std::endl;
             return 1;
         }
         auto wavsmpl = wav.getWavesample();

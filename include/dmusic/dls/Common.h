@@ -310,7 +310,7 @@ namespace DirectMusic {
             ALAW = 0x0006, /* ALAW */
             MULAW = 0x0007, /* MULAW */
             OKI_ADPCM = 0x0010, /* OKI ADPCM */
-            DVI_ADPCM = 0x0011, /* Intel's DVI ADPCM */
+            DVI_ADPCM = 0x0011, /* Intel's DVI ADPCM aka IMA */
             MEDIASPACE_ADPCM = 0x0012, /*Videologic's MediaSpace ADPCM*/
             SIERRA_ADPCM = 0x0013, /* Sierra ADPCM */
             G723_ADPCM = 0x0014, /* G.723 ADPCM */

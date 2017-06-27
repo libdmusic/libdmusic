@@ -4,22 +4,16 @@ project (DLS2SF)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-file(GLOB ADPCM_SRC
-  "lib/adpcm-xq/*.c"
-  "lib/adpcm-xq/*.h")
-
-add_library(adpcm STATIC ${ADPCM_SRC})
-set_target_properties(adpcm PROPERTIES LINKER_LANGUAGE C)
-
 add_subdirectory(lib/sf2cute)
+add_subdirectory(lib/libsndfile)
 
 include_directories(../../include)
 include_directories(lib/sf2cute/include)
-include_directories(lib/adpcm-xq)
+include_directories(lib/libsndfile/src)
 
 file(GLOB SRC
   "src/*.cpp"
   "src/*.h")
 
 add_executable(dls2sf ${SRC})
-target_link_libraries(dls2sf dmusic sf2cute adpcm)
+target_link_libraries(dls2sf dmusic sf2cute sndfile-static)
