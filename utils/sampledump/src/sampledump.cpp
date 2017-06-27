@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
     std::cout << "Done.\nDumping samples... ";
     for (const DLS::Wave& wav : dls.getWavePool()) {
         std::string name = wav.getInfo().getName();
-        std::ofstream ofs(name + ".wav");
+        std::ofstream ofs(name + ".wav", std::ios::binary);
         wav.writeToStream(ofs);
         ofs.close();
     }
