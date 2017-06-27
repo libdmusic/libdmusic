@@ -21,21 +21,19 @@ static Riff::Chunk loadChunk(std::string path) {
 }
 
 int main(int argc, char **argv) {
-    if (argc < 3) {
+    if (argc < 2) {
         std::cerr << "Usage: sampledump <inputfile.dls>" << std::endl;
         return 1;
     }
     std::string inputFile = std::string(argv[1]);
-    std::string outputFile = std::string(argv[2]);
 
     std::cout << "Parsing input file... ";
     Riff::Chunk chunk = loadChunk(inputFile);
-    std::cout << "Done.\n";
-    std::cout << "Loading DLS structure... ";
-    DLS::DownloadableSound dls(chunk);
-    std::cout << "Done.\n";
 
-    std::cout << "Dumping samples... ";
+    std::cout << "Done.\nLoading DLS structure... ";
+    DLS::DownloadableSound dls(chunk);
+
+    std::cout << "Done.\nDumping samples... ";
     for (const DLS::Wave& wav : dls.getWavePool()) {
         std::string name = wav.getInfo().getName();
         std::ofstream ofs(name + ".wav");
