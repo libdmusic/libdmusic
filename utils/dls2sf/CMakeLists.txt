@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required (VERSION 2.8)
 project (DLS2SF)
 
 set(CMAKE_CXX_STANDARD 14)
@@ -16,4 +16,4 @@ file(GLOB SRC
   "src/*.h")
 
 add_executable(dls2sf ${SRC})
-target_link_libraries(dls2sf dmusic sf2cute sndfile-static)
+target_link_libraries(dls2sf dmusic sf2cute sndfile-shared)
