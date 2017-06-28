@@ -15,26 +15,23 @@ namespace DirectMusic {
             Wave(DirectMusic::Riff::Chunk& c);
             const GUID& getGuid() const;
             const DirectMusic::Riff::Info& getInfo() const;
-            const WaveFormat& getWaveformat() const;
+            const WaveFormatEx& getWaveformat() const;
             const Wavesample& getWavesample() const;
             const Sampler& getSampler() const;
             const std::vector<uint8_t>& getWavedata() const;
             const std::vector<WavesampleLoop>& getWavesampleLoops() const;
-            const std::vector<SamplerLoop>& getSamplerLoops() const;
-            const bool containsSampler() const;
 
             void writeToStream(std::ostream& stream) const;
+            std::vector<std::uint8_t> getWaveFile() const;
 
         private:
             GUID m_dlsid;
             DirectMusic::Riff::Info m_info;
-            WaveFormat m_fmt;
+            WaveFormatEx m_fmtex;
+            std::vector<std::uint8_t> m_extraFmtData;
             Wavesample m_wavesample;
-            Sampler m_sampler;
             std::vector<uint8_t> m_wavedata;
             std::vector<WavesampleLoop> m_loops;
-            std::vector<SamplerLoop> m_samplerLoops;
-            bool m_containsSampler;
         };
 
         class DownloadableSound {

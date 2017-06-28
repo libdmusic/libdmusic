@@ -437,6 +437,42 @@ namespace DirectMusic {
             std::uint16_t wBitsPerSample;
         };
 
+        struct WaveFormatEx {
+            // A number indicating the WAVE format category of the file.
+            // The content of the <format-specific-fields> portion of the fmt chunk,
+            //  and the interpretation of the waveform data, depend on this value.
+            // DLS Level 1 only supports WAVE_FORMAT_PCM(0x0001) Microsoft Pulse Code Modulation(PCM) format
+            WaveFormatTag wFormatTag;
+
+            // The number of channels represented in the waveform data,
+            //  such as 1 for mono or 2 for stereo.DLS Level 1 supports only mono data(value = "1").
+            std::uint16_t wChannels;
+
+            // The sampling rate (in samples per second) at which each channel should be played.
+            std::uint32_t dwSamplesPerSec;
+
+            // The average number of bytes per second at which the waveform data should transferred.
+            // Playback software can estimate the buffer size using this value.
+            std::uint32_t dwAvgBytesPerSec;
+
+            // The block alignment (in bytes) of the waveform data.
+            // Playback software needs to process a multiple of
+            //  wBlockAlign bytes of data at a time, so the value of
+            //  wBlockAlign can be used for buffer alignment.
+            std::uint16_t wBlockAlign;
+
+            // Specifies the number of bits of data used to represent each sample of each channel.
+            // If there are multiple channels, the sample size is the same for each channel.
+            // DLS level 1 supports only 8 or 16 bit samples.
+            std::uint16_t wBitsPerSample;
+
+            // Size, in bytes, of extra format information appended to the end of the WAVEFORMATEX structure.
+            // This information can be used by non - PCM formats to store extra attributes for the wFormatTag.
+            // If no extra information is required by the wFormatTag, this member must be set to zero.
+            // For WAVE_FORMAT_PCM formats only, this member is ignored.
+            std::uint16_t cbSize;
+        };
+
         struct PoolTable {
             // Specifies the size of the structure in bytes.
             // This size does not include the poolcue records.

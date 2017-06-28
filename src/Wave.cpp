@@ -7,7 +7,7 @@ using namespace DirectMusic;
 using namespace DirectMusic::Riff;
 using namespace DirectMusic::DLS;
 
-Wave::Wave(Chunk& c) : m_containsSampler(false) {
+Wave::Wave(Chunk& c) {
     if (c.getId() != "LIST" || c.getListId() != "wave")
         throw DirectMusic::InvalidChunkException("LIST wave", c.getId() + " " + c.getListId());
 
@@ -16,7 +16,13 @@ Wave::Wave(Chunk& c) : m_containsSampler(false) {
         if (id == "dlid") {
             m_dlsid = *((GUID*)subchunk.getData().data());
         } else if (id == "fmt ") {
-            m_fmt = *((WaveFormat*)subchunk.getData().data());
+            m_fmtex = *((WaveFormatEx*)subchunk.getData().data());
+            if (m_fmtex.cbSize > 0 && subchunk.getData().size() > sizeof(WaveFormat)) {
+                const std::uint8_t *extraData = subchunk.getData().data() + sizeof(WaveFormatEx);
+                m_extraFmtData = std::vector<std::uint8_t>(extraData, extraData + m_fmtex.cbSize);
+            } else {
+                m_fmtex.cbSize = 0;
+            }
         } else if (id == "wsmp") {
             m_wavesample = *((Wavesample*)subchunk.getData().data());
             if (m_wavesample.cSampleLoops > 0) {
@@ -25,15 +31,6 @@ Wave::Wave(Chunk& c) : m_containsSampler(false) {
                     m_loops.push_back(loops[i]);
                 }
             }
-        } else if(id == "smpl") {
-            m_sampler = *((Sampler*)subchunk.getData().data());
-            if (m_sampler.numSampleLoops > 0) {
-                SamplerLoop *loops = (SamplerLoop*)(subchunk.getData().data() + sizeof(Sampler));
-                for (int i = 0; i < m_sampler.numSampleLoops; i++) {
-                    m_samplerLoops.push_back(loops[i]);
-                }
-            }
-            m_containsSampler = true;
         } else if (id == "LIST" && subchunk.getListId() == "INFO") {
             m_info = Info(subchunk);
         } else if (id == "data") {
@@ -42,21 +39,62 @@ Wave::Wave(Chunk& c) : m_containsSampler(false) {
     }
 }
 
-void Wave::writeToStream(std::ostream& stream) const {
+std::vector<std::uint8_t> Wave::getWaveFile() const {
     int dataSize = m_wavedata.size();
-    int totalSize = sizeof(WaveFormat) + 20 + dataSize + (sizeof(WaveFormat) % 2) + (m_wavedata.size() % 2);
-    int fmtSize = sizeof(WaveFormat);
-    stream.write("RIFF", 4);
-    stream.write((const char*)(&totalSize), 4);
-    stream.write("WAVE", 4);
-    stream.write("fmt ", 4);
-    stream.write((const char*)&fmtSize, 4);
-    stream.write((const char*)&m_fmt, sizeof(WaveFormat));
-    if (sizeof(WaveFormat) % 2 == 1) stream.write("\0", 1);
-    stream.write("data", 4);
-    stream.write((const char*)&dataSize, 4);
-    stream.write((const char*)m_wavedata.data(), m_wavedata.size());
-    if (m_wavedata.size() % 2 == 1) stream.write("\0", 1);
+    int totalSize = sizeof(WaveFormatEx) + m_extraFmtData.size() + dataSize + ((sizeof(WaveFormat) + m_extraFmtData.size()) % 2) + (m_wavedata.size() % 2) + 30;
+    int fmtSize = sizeof(WaveFormatEx) + m_extraFmtData.size();
+    int factSize = 4;
+    int factData = 1;
+    int zero = 0;
+
+    std::vector<std::uint8_t> output(totalSize + 8);
+    std::uint8_t *data = output.data();
+
+    memcpy(data, "RIFF", 4);
+    data += 4;
+
+    memcpy(data, (const char*)(&totalSize), 4);
+    data += 4;
+
+    memcpy(data, "WAVE", 4);
+    data += 4;
+
+    memcpy(data, "fmt ", 4);
+    data += 4;
+    memcpy(data, (const char*)(&fmtSize), 4);
+    data += 4;
+    memcpy(data, (const char*)(&m_fmtex), sizeof(WaveFormatEx));
+    data += sizeof(WaveFormatEx);
+    if (m_extraFmtData.size() > 0) {
+        memcpy(data, m_extraFmtData.data(), m_extraFmtData.size());
+        data += m_extraFmtData.size();
+    }
+    data += (sizeof(WaveFormatEx) + m_extraFmtData.size()) % 2;
+
+    memcpy(data, "data", 4);
+    data += 4;
+
+    memcpy(data, (const char*)(&dataSize), 4);
+    data += 4;
+
+    memcpy(data, (const char*)(m_wavedata.data()), m_wavedata.size());
+    data += m_wavedata.size();
+
+    data += m_wavedata.size() % 2;
+
+    memcpy(data, "fact", 4);
+    data += 4;
+    memcpy(data, (const char*)(&factSize), 4);
+    data += 4;
+    memcpy(data, (const char*)(&factData), 4);
+    data += 4;
+
+    return output;
+}
+
+void Wave::writeToStream(std::ostream& stream) const {
+    auto wavefile = getWaveFile();
+    stream.write((const char*)wavefile.data(), wavefile.size());
 }
 
 const GUID& Wave::getGuid() const {
@@ -67,16 +105,12 @@ const DirectMusic::Riff::Info& Wave::getInfo() const {
     return m_info;
 }
 
-const WaveFormat& Wave::getWaveformat() const {
-    return m_fmt;
+const WaveFormatEx& Wave::getWaveformat() const {
+    return m_fmtex;
 }
 
 const Wavesample& Wave::getWavesample() const {
     return m_wavesample;
-}
-
-const Sampler& Wave::getSampler() const {
-    return m_sampler;
 }
 
 const std::vector<uint8_t>& Wave::getWavedata() const {
@@ -85,12 +119,4 @@ const std::vector<uint8_t>& Wave::getWavedata() const {
 
 const std::vector<WavesampleLoop>& Wave::getWavesampleLoops() const {
     return m_loops;
-}
-
-const std::vector<SamplerLoop>& Wave::getSamplerLoops() const {
-    return m_samplerLoops;
-}
-
-const bool Wave::containsSampler() const {
-    return m_containsSampler;
 }

@@ -94,7 +94,6 @@ int main(int argc, char **argv) {
             return 1;
         }
         auto wavsmpl = wav.getWavesample();
-        auto sampler = wav.getSampler();
         std::uint32_t startLoop, endLoop;
         std::uint32_t midiNote, fineTune;
 
