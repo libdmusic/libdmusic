@@ -5,6 +5,12 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_subdirectory(lib/sf2cute)
+
+set(BUILD_PROGRAMS OFF CACHE STRING "" FORCE)
+set(BUILD_EXAMPLES OFF CACHE STRING "" FORCE)
+set(BUILD_TESTING OFF CACHE STRING "" FORCE)
+set(BUILD_STATIC_LIBS OFF CACHE STRING "" FORCE)
+set(BUILD_SHARED_LIBS ON CACHE STRING "" FORCE)
 add_subdirectory(lib/libsndfile)
 
 include_directories(../../include)

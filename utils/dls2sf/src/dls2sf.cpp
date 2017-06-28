@@ -11,17 +11,6 @@
 using namespace DirectMusic;
 using namespace sf2cute;
 
-// Converts a byte vector to a short vector
-static std::vector<std::int16_t> convert(const std::vector<std::uint8_t> in) {
-    std::vector<std::int16_t> vec(in.size() / 2);
-    std::int16_t *buf = (std::int16_t*)in.data();
-
-    for (int i = 0; i < vec.size(); i++) {
-        vec[i] = buf[i];
-    }
-    return vec;
-}
-
 static Riff::Chunk loadChunk(std::string path) {
     std::ifstream inputStream(path, std::ios::binary | std::ios::ate);
     if (!inputStream.is_open()) {
@@ -35,32 +24,9 @@ static Riff::Chunk loadChunk(std::string path) {
     return ch;
 }
 
-static void createModulators(const std::vector<DLS::ConnectionBlock> cblocks, std::vector<SFModulatorItem> mods) {
-    for (DLS::ConnectionBlock block : cblocks) {
-        SFModulator source;
-        SFGenerator dest;
-        SFControllerType type =
-            block.usTransform == DLS::ArticulatorTransform::Concave ?
-                SFControllerType::kConcave :
-                SFControllerType::kLinear;
-
-        switch (block.usSource) {
-        case DLS::ArticulatorSource::None:
-            source = SFModulator(SFGeneralController::kNoController, SFControllerDirection::kIncrease, SFControllerPolarity::kUnipolar, type);
-            break;
-        case DLS::ArticulatorSource::ChannelVolume:
-            source = SFModulator(SFMidiController::kChannelVolume, SFControllerDirection::kIncrease, SFControllerPolarity::kUnipolar, type);
-            break;
-        case DLS::ArticulatorSource::EG1:
-            //source = SFModulator(
-            break;
-        }
-    }
-}
-
 int main(int argc, char **argv) {
     if (argc < 3) {
-        std::cerr << "Usage: dls2sf [inputfile.dls] [outputfile.sf2]" << std::endl;
+        std::cerr << "Usage: dls2sf <inputfile> <outputfile>" << std::endl;
         return 1;
     }
     std::string inputFile = std::string(argv[1]);
@@ -68,8 +34,7 @@ int main(int argc, char **argv) {
 
     std::cout << "Parsing input file... ";
     Riff::Chunk chunk = loadChunk(inputFile);
-    std::cout << "Done.\n";
-    std::cout << "Loading DLS structure... ";
+    std::cout << "Done.\nLoading DLS structure... ";
     DLS::DownloadableSound dls(chunk);
     std::cout << "Done.\n";
     SoundFont sf2;

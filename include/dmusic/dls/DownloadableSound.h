@@ -17,11 +17,13 @@ namespace DirectMusic {
             const DirectMusic::Riff::Info& getInfo() const;
             const WaveFormatEx& getWaveformat() const;
             const Wavesample& getWavesample() const;
-            const Sampler& getSampler() const;
             const std::vector<uint8_t>& getWavedata() const;
             const std::vector<WavesampleLoop>& getWavesampleLoops() const;
 
+            /// Outputs the contents of the sample into a readable WAV container file
             void writeToStream(std::ostream& stream) const;
+
+            /// Returns the contents of the sample as a WAV container
             std::vector<std::uint8_t> getWaveFile() const;
 
         private:

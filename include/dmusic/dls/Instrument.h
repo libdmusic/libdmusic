@@ -9,6 +9,10 @@
 
 namespace DirectMusic {
     namespace DLS {
+        /** \brief An Articulator modifies the playback of a wave file in a Downloadable Instrument
+         *
+         * See Downloadable Sounds Level 1, Version 1.1b - Chapter 1 p. ARTICULATION MODULES AND CONNECTIONS
+         */
         class Articulator {
         public:
             Articulator(DirectMusic::Riff::Chunk& c);
@@ -18,6 +22,7 @@ namespace DirectMusic {
             std::vector<ConnectionBlock> m_connectionBlocks;
         };
 
+        /// A Region specifies a continuous section of notes which refer to the same sample
         class Region {
         public:
             Region(DirectMusic::Riff::Chunk& c);
