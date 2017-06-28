@@ -46,23 +46,30 @@ int main(int argc, char **argv) {
     sf2.set_creation_date(info.getCreationDate());
 
     std::cout << "Loading samples... ";
+    // Each sample may potentially be referenced with a different basenote,
+    // so we keep them here and copy them as needed.
     std::vector<SFSample> samples;
+
     for (const DLS::Wave& wav : dls.getWavePool()) {
         std::string name = wav.getInfo().getName();
-        
-        std::vector<std::int16_t> audioData;
-
         auto fmt = wav.getWaveformat();
-        audioData = decode(wav);
+
+        // DLS lev. 1 only supports PCM16 samples, but
+        // we need to load encoded samples as well, so
+        // we make libsndfile take care of that
+        std::vector<std::int16_t> audioData = decode(wav);
         if (audioData.empty()) {
             std::cerr << "Invalid sample format for " << name << std::endl;
             return 1;
         }
+
         auto wavsmpl = wav.getWavesample();
         std::uint32_t startLoop, endLoop;
         std::uint32_t midiNote, fineTune;
 
         if (wavsmpl.cSampleLoops == 0) {
+            // In case the sample doesn't have loops,
+            // we just loop the last two samples.
             startLoop = audioData.size() - 2;
             endLoop = audioData.size() - 1;
         } else {
@@ -70,6 +77,7 @@ int main(int argc, char **argv) {
             startLoop = waveLoop.ulLoopStart;
             endLoop = waveLoop.ulLoopStart + waveLoop.ulLoopLength;
         }
+
         midiNote = wavsmpl.usUnityNote;
         fineTune = wavsmpl.sFineTune;
 
@@ -78,7 +86,7 @@ int main(int argc, char **argv) {
             startLoop, endLoop,
             fmt.dwSamplesPerSec,
             midiNote,
-            fineTune));
+            fineTune)); // FIXME: we may need to do some work on this
     }
     std::cout << "Done: " << samples.size() << " samples loaded.\n";
 
@@ -98,6 +106,8 @@ int main(int argc, char **argv) {
             std::uint16_t keyrangeLow, keyrangeHigh, velrangeLow, velrangeHigh;
 
             if (hdr.RangeKey.usHigh - hdr.RangeKey.usLow <= 0) {
+                // Sometimes, the range is just 0-0, I assume that means
+                // it spans the entire keyboard
                 keyrangeLow = 0;
                 keyrangeHigh = 127;
             } else {
