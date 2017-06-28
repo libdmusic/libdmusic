@@ -4,7 +4,69 @@
 #include "Guid.h"
 
 namespace DirectMusic {
-    #pragma pack(push, 1)
+    /**
+    * Read an integral type from the given pointer as little endian data
+    * @tparam T Integral type
+    * @param ptr Pointer to the data to convert
+    * @return Integer at *ptr of type T read as little endian
+    */
+    template<typename T>
+    T bigEndianRead(const uint8_t* ptr) {
+        const std::size_t numBytes = sizeof(T);
+        T result = 0;
+
+        for (std::size_t i = 0; i < numBytes; i++) {
+            result |= ptr[i] << (numBytes - i - 1) * 8;
+        }
+
+        return result;
+    }
+
+    /**
+    * Read an integral type from the given pointer as little endian data
+    * @tparam T Integral type
+    * @param ptr Pointer to the data to convert
+    * @return Integer at *ptr of type T read as little endian
+    */
+    template<typename T>
+    T littleEndianRead(const uint8_t* ptr) {
+        const std::size_t numBytes = sizeof(T);
+        T result = 0;
+
+        for (std::size_t i = 0; i < numBytes; i++) {
+            result |= ptr[i] << i * 8;
+        }
+
+        return result;
+    }
+
+    /**
+    * Write an integral type to the given pointer as little endian data
+    * @tparam T Integral type
+    * @param ptr Pointer to write to
+    */
+    template<typename T>
+    void littleEndianWrite(T val, uint8_t* ptr) {
+        const std::size_t numBytes = sizeof(T);
+
+        for (std::size_t i = 0; i < numBytes; i++) {
+            ptr[i] = (val & (0xFF << (i * 8))) >> (i * 8);
+        }
+    }
+
+    /**
+    * Write an integral type to the given pointer as big endian data
+    * @tparam T Integral type
+    * @param ptr Pointer to write to
+    */
+    template<typename T>
+    void bigEndianWrite(T val, uint8_t* ptr) {
+        const std::size_t numBytes = sizeof(T);
+
+        for (std::size_t i = 0; i < numBytes; i++) {
+            ptr[i] = (val & (0xFF << ((numBytes - i - 1) * 8))) >> ((numBytes - i - 1) * 8);
+        }
+    }
 
     // The DMUS_IO_BAND_ITEM_HEADER structure contains information about a band change.
     // Used in the Band Track Form of older files.
@@ -258,6 +320,4 @@ namespace DirectMusic {
         DMUS_TIME_RESOLVE_MARKER = DMUS_SEGF_MARKER,
         DMUS_TIME_RESOLVE_SEGMENTEND = DMUS_SEGF_SEGMENTEND
     };
-
-    #pragma pack(pop)
 }

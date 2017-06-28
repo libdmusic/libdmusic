@@ -80,7 +80,7 @@ std::vector<std::int16_t> decode(const Wave& sample) {
     };
     SNDFILE* file = sf_open_virtual(&virtio, SFM_READ, &sfinfo, &data);
     if (!file) {
-        std::string err(sf_strerror(file));
+        return out;
     }
     std::int16_t smp;
     sf_count_t count;

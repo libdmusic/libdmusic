@@ -29,6 +29,7 @@ int main(int argc, char **argv) {
         std::cerr << "Usage: dls2sf <inputfile> <outputfile>" << std::endl;
         return 1;
     }
+
     std::string inputFile = std::string(argv[1]);
     std::string outputFile = std::string(argv[2]);
 
@@ -58,6 +59,7 @@ int main(int argc, char **argv) {
         // we need to load encoded samples as well, so
         // we make libsndfile take care of that
         std::vector<std::int16_t> audioData = decode(wav);
+
         if (audioData.empty()) {
             std::cerr << "Invalid sample format for " << name << std::endl;
             return 1;

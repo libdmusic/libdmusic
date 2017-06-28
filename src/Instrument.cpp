@@ -13,9 +13,9 @@ Instrument::Instrument(Chunk& c) {
         if (id == "dlid") {
             m_dlsid = *((GUID*)subchunk.getData().data());
         } else if (id == "insh") {
-            InstrumentHeader *header = (InstrumentHeader*)subchunk.getData().data();
-            m_midiBank = header->Locale.ulBank;
-            m_midiProgram = header->Locale.ulInstrument;
+            InstrumentHeader header(subchunk.getData().data());
+            m_midiBank = header.Locale.ulBank;
+            m_midiProgram = header.Locale.ulInstrument;
         } else if (id == "LIST") {
             if (subchunk.getListId() == "INFO") {
                 m_info = Info(subchunk);

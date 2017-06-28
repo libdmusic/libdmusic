@@ -11,19 +11,20 @@ Region::Region(Chunk& c) {
     for(Chunk subchunk: c.getSubchunks()) {
         std::string id = subchunk.getId();
         if(id == "rgnh") {
-            m_rgnHeader = *(RegionHeader*)subchunk.getData().data();
+            m_rgnHeader = RegionHeader(subchunk.getData().data());
         } else if(id == "LIST" && subchunk.getListId() == "lart") {
             for (Chunk art1ck : subchunk.getSubchunks()) {
                 m_articulators.push_back(Articulator(art1ck));
             }
         } else if (id == "wlnk") {
-            m_waveLink = *(WaveLink*)subchunk.getData().data();
+            m_waveLink = WaveLink(subchunk.getData().data());
         } else if (id == "wsmp") {
-            m_wavesample = *(Wavesample*)subchunk.getData().data();
+            m_wavesample = Wavesample(subchunk.getData().data());
             if (m_wavesample.cSampleLoops > 0) {
-                WavesampleLoop *loops = (WavesampleLoop*)(subchunk.getData().data() + m_wavesample.cbSize);
+                const std::uint8_t *data = subchunk.getData().data() + m_wavesample.cbSize;
                 for (int i = 0; i < m_wavesample.cSampleLoops; i++) {
-                    m_loops.push_back(loops[i]);
+                    m_loops.push_back(WavesampleLoop(data));
+                    data += sizeof(WavesampleLoop);
                 }
             }
         }

@@ -8,10 +8,14 @@ Articulator::Articulator(Chunk& c) {
     if (c.getId() != "art1")
         throw DirectMusic::InvalidChunkException("art1", c.getId());
 
-    ArticulatorHeader *header = (ArticulatorHeader*)c.getData().data();
-    ConnectionBlock *blocks = (ConnectionBlock*)(c.getData().data() + header->cbSize);
-    for (int i = 0; i < header->cConnectionBlocks; i++) {
-        m_connectionBlocks.push_back(blocks[i]);
+    const std::uint8_t *data = c.getData().data();
+    ArticulatorHeader header(data);
+    data += header.cbSize;
+    ConnectionBlock block;
+    for (int i = 0; i < header.cConnectionBlocks; i++) {
+        block = ConnectionBlock(data);
+        m_connectionBlocks.push_back(block);
+        data += sizeof(ConnectionBlock);
     }
 }
 

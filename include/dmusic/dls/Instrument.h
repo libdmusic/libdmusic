@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Common.h"
+#include "RiffCommon.h"
 #include "../Guid.h"
 #include "../Riff.h"
 #include <vector>

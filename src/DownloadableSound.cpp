@@ -13,16 +13,18 @@ DownloadableSound::DownloadableSound(Chunk& c) {
     for (Chunk subchunk : c.getSubchunks()) {
         std::string id = subchunk.getId();
         if (id == "vers") {
-            m_version = *((std::uint64_t*)subchunk.getData().data());
+            m_version = littleEndianRead<std::uint64_t>(subchunk.getData().data());
         } else if (id == "dlid") {
-            m_dlsid = *((GUID*)subchunk.getData().data());
+            m_dlsid = *((GUID*)subchunk.getData().data()); // FIXME: This should be read according to endnianness,
+                                                           // but we don't really use this field anyway...
         } else if (id == "colh") {
             //We dynamically build the vector, we don't need the size for now
         } else if (id == "ptbl") {
-            PoolTable *ptable = (PoolTable*)subchunk.getData().data();
-            std::uint32_t *cues = (std::uint32_t*)(subchunk.getData().data() + ptable->cbSize);
-            for (int i = 0; i < ptable->cCues; i++) {
-                m_poolOffsets.push_back(cues[i]);
+            PoolTable ptable(subchunk.getData().data());
+            const std::uint8_t *data = subchunk.getData().data() + ptable.cbSize;
+            for (int i = 0; i < ptable.cCues; i++) {
+                m_poolOffsets.push_back(littleEndianRead<std::uint32_t>(data));
+                data += 4;
             }
         } else if (id == "LIST") {
             std::string listId = subchunk.getListId();
