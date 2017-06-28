@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
     sf2.set_creation_date(info.getCreationDate());
 
     std::cout << "Loading samples... ";
-    std::vector<std::shared_ptr<SFSample>> samples;
+    std::vector<SFSample> samples;
     for (const DLS::Wave& wav : dls.getWavePool()) {
         std::string name = wav.getInfo().getName();
         
@@ -73,7 +73,7 @@ int main(int argc, char **argv) {
         midiNote = wavsmpl.usUnityNote;
         fineTune = wavsmpl.sFineTune;
 
-        samples.push_back(sf2.NewSample(name,
+        samples.push_back(SFSample(name,
             audioData,
             startLoop, endLoop,
             fmt.dwSamplesPerSec,
@@ -116,13 +116,13 @@ int main(int argc, char **argv) {
             genItems.push_back(SFGeneratorItem(SFGenerator::kKeyRange, RangesType(keyrangeLow, keyrangeHigh)));
             genItems.push_back(SFGeneratorItem(SFGenerator::kVelRange, RangesType(velrangeLow, velrangeHigh)));
             if (wavesample.cSampleLoops == 0) {
-                sample = sf2.NewSample(*samples[wavelink.ulTableIndex]);
+                sample = sf2.NewSample(samples[wavelink.ulTableIndex]);
                 sample->set_start_loop(sample->data().size() - 2);
                 sample->set_end_loop(sample->data().size() - 1);
                 genItems.push_back(SFGeneratorItem(SFGenerator::kSampleModes, std::uint16_t(SampleMode::kNoLoop)));
             } else {
                 auto loop = reg.getWavesampleLoops()[0];
-                sample = sf2.NewSample(*samples[wavelink.ulTableIndex]);
+                sample = sf2.NewSample(samples[wavelink.ulTableIndex]);
                 sample->set_start_loop(loop.ulLoopStart);
                 sample->set_end_loop(loop.ulLoopStart + loop.ulLoopLength);
                 genItems.push_back(SFGeneratorItem(SFGenerator::kSampleModes, std::uint16_t(SampleMode::kLoopContinuously)));
