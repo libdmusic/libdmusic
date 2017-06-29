@@ -73,7 +73,7 @@ namespace DirectMusic {
             InstrumentHeader() {}
 
             InstrumentHeader(const std::uint8_t *data)
-                : Locale(MIDILOCALE(data + offsetof(InstrumentHeader, Locale)))
+                : FIELDCONST(InstrumentHeader, Locale, MIDILOCALE)
             {
                 FIELDINIT(InstrumentHeader, cRegions, std::uint32_t);
             }
@@ -103,8 +103,8 @@ namespace DirectMusic {
             RegionHeader() {}
 
             RegionHeader(const std::uint8_t *data)
-                : RangeKey(data + offsetof(RegionHeader, RangeKey)),
-                RangeVelocity(data + offsetof(RegionHeader, RangeVelocity))
+                : FIELDCONST(RegionHeader, RangeKey, RGNRANGE),
+                FIELDCONST(RegionHeader, RangeVelocity, RGNRANGE)
             {
                 FIELDINIT(RegionHeader, fusOptions, std::uint16_t);
                 FIELDINIT(RegionHeader, usKeyGroup, std::uint16_t);
