@@ -1,7 +1,7 @@
 #pragma once
 
-#include "RiffCommon.h"
-#include "../Guid.h"
+#include "DlsCommon.h"
+#include "../Common.h"
 #include "../Riff.h"
 #include <vector>
 #include <string>
@@ -39,6 +39,7 @@ namespace DirectMusic {
             std::vector<WavesampleLoop> m_loops;
         };
 
+        /// An instrument is a collection of samples and articulators organized in regions
         class Instrument {
         public:
             Instrument(DirectMusic::Riff::Chunk& c);

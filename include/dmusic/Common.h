@@ -1,7 +1,12 @@
 #pragma once
 
 #include <cstdint>
-#include "Guid.h"
+
+/// Use this macro to initialize struct fields which are expected to be loaded as little endian data
+#define FIELDINIT(s, f, t) f = DirectMusic::littleEndianRead<t>(data + offsetof(s, f))
+
+/// Use this macro to initialize struct fields which are expected to be loaded as little endian data and need casting
+#define FIELDINITE(s, f, t, c) f = (c) DirectMusic::littleEndianRead<t>(data + offsetof(s, f))
 
 namespace DirectMusic {
     /**
@@ -67,6 +72,22 @@ namespace DirectMusic {
             ptr[i] = (val & (0xFF << ((numBytes - i - 1) * 8))) >> ((numBytes - i - 1) * 8);
         }
     }
+
+    struct GUID {
+        std::uint64_t Data1;
+        std::uint32_t Data2;
+        std::uint32_t Data3;
+        std::uint64_t Data4;
+
+        GUID() {}
+
+        GUID(const std::uint8_t *data) {
+            FIELDINIT(GUID, Data1, std::uint64_t);
+            FIELDINIT(GUID, Data2, std::uint32_t);
+            FIELDINIT(GUID, Data3, std::uint32_t);
+            FIELDINIT(GUID, Data4, std::uint64_t);
+        }
+    };
 
     // The DMUS_IO_BAND_ITEM_HEADER structure contains information about a band change.
     // Used in the Band Track Form of older files.

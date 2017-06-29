@@ -13,7 +13,7 @@ Wave::Wave(Chunk& c) {
     for (Chunk subchunk : c.getSubchunks()) {
         std::string id = subchunk.getId();
         if (id == "dlid") {
-            m_dlsid = *((GUID*)subchunk.getData().data()); // FIXME: load this portably, if needed
+            m_dlsid = GUID(subchunk.getData().data());
         } else if (id == "fmt ") {
             m_fmtex = WaveFormatEx(subchunk.getData().data());
             if (m_fmtex.cbSize > 0 && subchunk.getData().size() > sizeof(WaveFormatEx)) {

@@ -4,9 +4,6 @@
 #include <cstddef>
 #include "../Common.h"
 
-#define FIELDINIT(s, f, t) f = DirectMusic::littleEndianRead<t>(data + offsetof(s, f))
-#define FIELDINITE(s, f, t, c) f = (c) DirectMusic::littleEndianRead<t>(data + offsetof(s, f))
-
 #define F_INSTRUMENT_DRUMS         0x80000000
 
 #define F_RGN_OPTION_SELFNONEXCLUSIVE  0x0001

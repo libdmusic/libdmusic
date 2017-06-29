@@ -1,8 +1,8 @@
 #pragma once
 
-#include "RiffCommon.h"
+#include "DlsCommon.h"
 #include "Instrument.h"
-#include "../Guid.h"
+#include "../Common.h"
 #include "../Riff.h"
 #include <cstdint>
 #include <vector>
@@ -36,8 +36,13 @@ namespace DirectMusic {
             std::vector<WavesampleLoop> m_loops;
         };
 
+        /** \brief A Downloadable Sound is a collection of sampled instruments
+         *
+         * See Downloadable Sounds Level 1, Version 1.1b
+         **/
         class DownloadableSound {
         public:
+            
             DownloadableSound(DirectMusic::Riff::Chunk& c);
             const std::vector<Instrument>& getInstruments() const;
             const std::vector<std::uint32_t>& getPoolOffsets() const;

@@ -15,8 +15,7 @@ DownloadableSound::DownloadableSound(Chunk& c) {
         if (id == "vers") {
             m_version = littleEndianRead<std::uint64_t>(subchunk.getData().data());
         } else if (id == "dlid") {
-            m_dlsid = *((GUID*)subchunk.getData().data()); // FIXME: This should be read according to endnianness,
-                                                           // but we don't really use this field anyway...
+            m_dlsid = GUID(subchunk.getData().data());
         } else if (id == "colh") {
             //We dynamically build the vector, we don't need the size for now
         } else if (id == "ptbl") {

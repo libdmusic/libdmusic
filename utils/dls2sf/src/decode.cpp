@@ -5,6 +5,9 @@
 
 using namespace DirectMusic::DLS;
 
+// All of this is necessary because libsndfile doesn't support
+// loading files from a memory buffer directly, so we must simulate
+// some sort of IO access on the membuffer.
 struct Userdata {
     const std::vector<std::uint8_t> sample;
     int position;
@@ -51,7 +54,7 @@ static sf_count_t seek(sf_count_t offset, int whence, void *userdata) {
 }
 
 static sf_count_t write(const void *ptr, sf_count_t count, void *user_data) {
-    return 0;
+    return 0; // Read-only access
 }
 
 SF_VIRTUAL_IO virtio{
@@ -74,14 +77,9 @@ std::vector<std::int16_t> decode(const Wave& sample) {
 
     std::vector<std::uint8_t> input = sample.getWaveFile();
 
-    Userdata data {
-        input,
-        0
-    };
+    Userdata data { input, 0 };
     SNDFILE* file = sf_open_virtual(&virtio, SFM_READ, &sfinfo, &data);
-    if (!file) {
-        return out;
-    }
+    if (!file) return out;
     std::int16_t smp;
     sf_count_t count;
     while (count = sf_read_short(file, &smp, 1)) {
