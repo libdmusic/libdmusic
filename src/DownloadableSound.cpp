@@ -6,7 +6,7 @@ using namespace DirectMusic;
 using namespace DirectMusic::Riff;
 using namespace DirectMusic::DLS;
 
-DownloadableSound::DownloadableSound(Chunk& c) {
+DownloadableSound::DownloadableSound(const Chunk& c) {
     if (c.getId() != "RIFF" || c.getListId() != "DLS ")
         throw DirectMusic::InvalidChunkException("RIFF DLS", c.getId() + " " + c.getListId());
 
@@ -40,24 +40,4 @@ DownloadableSound::DownloadableSound(Chunk& c) {
             }
         }
     }
-}
-
-const std::vector<Instrument>& DownloadableSound::getInstruments() const {
-    return m_instruments;
-}
-
-const std::vector<std::uint32_t>& DownloadableSound::getPoolOffsets() const {
-    return m_poolOffsets;
-}
-
-const std::vector<Wave>& DownloadableSound::getWavePool() const {
-    return m_wavePool;
-}
-
-Info& DownloadableSound::getInfo() {
-    return m_info;
-}
-
-const GUID& DownloadableSound::getGuid() const {
-    return m_dlsid;
 }

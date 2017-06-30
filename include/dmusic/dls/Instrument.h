@@ -15,8 +15,8 @@ namespace DirectMusic {
          */
         class Articulator {
         public:
-            Articulator(DirectMusic::Riff::Chunk& c);
-            const std::vector<ConnectionBlock>& getConnectionBlocks() const;
+            Articulator(const DirectMusic::Riff::Chunk& c);
+            const std::vector<ConnectionBlock>& getConnectionBlocks() const { return m_connectionBlocks; }
 
         private:
             std::vector<ConnectionBlock> m_connectionBlocks;
@@ -25,12 +25,12 @@ namespace DirectMusic {
         /// A Region specifies a continuous section of notes which refer to the same sample
         class Region {
         public:
-            Region(DirectMusic::Riff::Chunk& c);
-            const RegionHeader& getRegionHeader() const;
-            const WaveLink& getWaveLink() const;
-            const Wavesample& getWavesample() const;
-            const std::vector<Articulator> getArticulators() const;
-            const std::vector<WavesampleLoop> getWavesampleLoops() const;
+            Region(const DirectMusic::Riff::Chunk& c);
+            const RegionHeader& getRegionHeader() const { return m_rgnHeader; }
+            const WaveLink& getWaveLink() const { return m_waveLink; }
+            const Wavesample& getWavesample() const { return m_wavesample; }
+            const std::vector<Articulator> getArticulators() const { return m_articulators; }
+            const std::vector<WavesampleLoop> getWavesampleLoops() const { return m_loops; }
         private:
             RegionHeader m_rgnHeader;
             WaveLink m_waveLink;
@@ -42,13 +42,13 @@ namespace DirectMusic {
         /// An instrument is a collection of samples and articulators organized in regions
         class Instrument {
         public:
-            Instrument(DirectMusic::Riff::Chunk& c);
-            const std::vector<Region>& getRegions() const;
-            const std::vector<Articulator>& getArticulators() const;
-            const std::uint32_t getMidiBank() const;
-            const std::uint32_t getMidiProgram() const;
-            const DirectMusic::Riff::Info& getInfo() const;
-            const DirectMusic::GUID& getGuid() const;
+            Instrument(const DirectMusic::Riff::Chunk& c);
+            const std::vector<Region>& getRegions() const { return m_regions; }
+            const std::vector<Articulator>& getArticulators() const { return m_articulators; }
+            const std::uint32_t getMidiBank() const { return m_midiBank; }
+            const std::uint32_t getMidiProgram() const { return m_midiProgram; }
+            const DirectMusic::Riff::Info& getInfo() const { return m_info; }
+            const DirectMusic::GUID& getGuid() const { return m_dlsid; }
 
         private:
             DirectMusic::GUID m_dlsid;

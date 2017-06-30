@@ -4,7 +4,7 @@
 using namespace DirectMusic::Riff;
 using namespace DirectMusic::DLS;
 
-Region::Region(Chunk& c) {
+Region::Region(const Chunk& c) {
     if (c.getId() != "LIST" || c.getListId() != "rgn ")
         throw DirectMusic::InvalidChunkException("LIST rgn", c.getId() + " " + c.getListId());
 
@@ -29,24 +29,4 @@ Region::Region(Chunk& c) {
             }
         }
     }
-}
-
-const RegionHeader& Region::getRegionHeader() const {
-    return m_rgnHeader;
-}
-
-const WaveLink& Region::getWaveLink() const {
-    return m_waveLink;
-}
-
-const Wavesample& Region::getWavesample() const {
-    return m_wavesample;
-}
-
-const std::vector<Articulator> Region::getArticulators() const {
-    return m_articulators;
-}
-
-const std::vector<WavesampleLoop> Region::getWavesampleLoops() const {
-    return m_loops;
 }

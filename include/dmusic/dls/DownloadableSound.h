@@ -12,13 +12,13 @@ namespace DirectMusic {
     namespace DLS {
         class Wave {
         public:
-            Wave(DirectMusic::Riff::Chunk& c);
-            const GUID& getGuid() const;
-            const DirectMusic::Riff::Info& getInfo() const;
-            const WaveFormatEx& getWaveformat() const;
-            const Wavesample& getWavesample() const;
-            const std::vector<uint8_t>& getWavedata() const;
-            const std::vector<WavesampleLoop>& getWavesampleLoops() const;
+            Wave(const DirectMusic::Riff::Chunk& c);
+            const GUID& getGuid() const { return m_dlsid; }
+            const DirectMusic::Riff::Info& getInfo() const { return m_info; }
+            const WaveFormatEx& getWaveformat() const { return m_fmtex; }
+            const Wavesample& getWavesample() const { return m_wavesample; }
+            const std::vector<uint8_t>& getWavedata() const { return m_wavedata; }
+            const std::vector<WavesampleLoop>& getWavesampleLoops() const { return m_loops; }
 
             /// Outputs the contents of the sample into a readable WAV container file
             void writeToStream(std::ostream& stream) const;
@@ -43,12 +43,12 @@ namespace DirectMusic {
         class DownloadableSound {
         public:
             
-            DownloadableSound(DirectMusic::Riff::Chunk& c);
-            const std::vector<Instrument>& getInstruments() const;
-            const std::vector<std::uint32_t>& getPoolOffsets() const;
-            const std::vector<Wave>& getWavePool() const;
-            DirectMusic::Riff::Info& getInfo();
-            const GUID& getGuid() const;
+            DownloadableSound(const DirectMusic::Riff::Chunk& c);
+            const std::vector<Instrument>& getInstruments() const { return m_instruments; }
+            const std::vector<std::uint32_t>& getPoolOffsets() const { return m_poolOffsets; }
+            const std::vector<Wave>& getWavePool() const { return m_wavePool; }
+            DirectMusic::Riff::Info& getInfo() { return m_info; }
+            const GUID& getGuid() const { return m_dlsid; }
 
         private:
             std::uint64_t m_version;

@@ -6,7 +6,7 @@ using namespace DirectMusic;
 using namespace DirectMusic::Riff;
 using namespace DirectMusic::DLS;
 
-Wave::Wave(Chunk& c) {
+Wave::Wave(const Chunk& c) {
     if (c.getId() != "LIST" || c.getListId() != "wave")
         throw DirectMusic::InvalidChunkException("LIST wave", c.getId() + " " + c.getListId());
 
@@ -90,28 +90,4 @@ std::vector<std::uint8_t> Wave::getWaveFile() const {
 void Wave::writeToStream(std::ostream& stream) const {
     auto wavefile = getWaveFile();
     stream.write((const char*)wavefile.data(), wavefile.size());
-}
-
-const GUID& Wave::getGuid() const {
-    return m_dlsid;
-}
-
-const DirectMusic::Riff::Info& Wave::getInfo() const {
-    return m_info;
-}
-
-const WaveFormatEx& Wave::getWaveformat() const {
-    return m_fmtex;
-}
-
-const Wavesample& Wave::getWavesample() const {
-    return m_wavesample;
-}
-
-const std::vector<uint8_t>& Wave::getWavedata() const {
-    return m_wavedata;
-}
-
-const std::vector<WavesampleLoop>& Wave::getWavesampleLoops() const {
-    return m_loops;
 }

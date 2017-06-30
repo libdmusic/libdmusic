@@ -4,7 +4,7 @@
 using namespace DirectMusic::Riff;
 using namespace DirectMusic::DLS;
 
-Instrument::Instrument(Chunk& c) {
+Instrument::Instrument(const Chunk& c) {
     if (c.getId() != "LIST" || c.getListId() != "ins ")
         throw DirectMusic::InvalidChunkException("LIST ins", c.getId() + " " + c.getListId());
 
@@ -30,28 +30,4 @@ Instrument::Instrument(Chunk& c) {
             }
         }
     }
-}
-
-const std::vector<Region>& Instrument::getRegions() const {
-    return m_regions;
-}
-
-const std::vector<Articulator>& Instrument::getArticulators() const {
-    return m_articulators;
-}
-
-const std::uint32_t Instrument::getMidiBank() const {
-    return m_midiBank;
-}
-
-const std::uint32_t Instrument::getMidiProgram() const {
-    return m_midiBank;
-}
-
-const Info& Instrument::getInfo() const {
-    return m_info;
-}
-
-const DirectMusic::GUID& Instrument::getGuid() const {
-    return m_dlsid;
 }

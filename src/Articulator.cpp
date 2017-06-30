@@ -4,7 +4,7 @@
 using namespace DirectMusic::Riff;
 using namespace DirectMusic::DLS;
 
-Articulator::Articulator(Chunk& c) {
+Articulator::Articulator(const Chunk& c) {
     if (c.getId() != "art1")
         throw DirectMusic::InvalidChunkException("art1", c.getId());
 
@@ -17,8 +17,4 @@ Articulator::Articulator(Chunk& c) {
         m_connectionBlocks.push_back(block);
         data += sizeof(ConnectionBlock);
     }
-}
-
-const std::vector<ConnectionBlock>& Articulator::getConnectionBlocks() const {
-    return m_connectionBlocks;
 }
