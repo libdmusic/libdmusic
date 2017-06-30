@@ -4,6 +4,21 @@
 #include "Common.h"
 
 namespace DirectMusic {
+    /// The DMUS_IO_TIMESIG structure contains information about the time signature of a segment.
+    /// Used in the DMUS_IO_STYLE, DMUS_IO_VERSION, and DMUS_IO_PATTERN structures.
+    struct DMUS_IO_TIMESIG {
+        /// Beats per measure (top of time signature).
+        std::uint8_t bBeatsPerMeasure;
+
+        /// Note that receives the beat (bottom of the time signature),
+        /// where 1 is a whole note, 2 is a half note, 4 is a quarter note, and so on.
+        /// Zero is a 256th note.
+        std::uint8_t bBeat;
+
+        /// Grids (subdivisions) per beat.
+        std::uint16_t wGridsPerBeat;
+    };
+
     /// The DMUS_IO_BAND_ITEM_HEADER structure contains information about a band change.
     /// Used in the Band Track Form of older files.
     /// It has been superseded by DMUS_IO_BAND_ITEM_HEADER2
@@ -43,7 +58,7 @@ namespace DirectMusic {
     /// Used in the Chord Track List.
     struct DMUS_IO_CHORD {
         /// Name of the chord.
-        char wszName[16];
+        std::uint16_t wszName[16];
 
         /// Time of the chord.
         std::uint32_t mtTime;
@@ -67,13 +82,19 @@ namespace DirectMusic {
         /// Replaces the run-time pointer to this.
         /// Each chord entry is tagged with a unique connection identifier.
         std::uint16_t wConnectionID;
+
+        DMUS_IO_CHORDENTRY() {}
+        DMUS_IO_CHORDENTRY(const std::uint8_t *data) {
+            FIELDINIT(DMUS_IO_CHORDENTRY, dwFlags, std::uint32_t);
+            FIELDINIT(DMUS_IO_CHORDENTRY, wConnectionID, std::uint16_t);
+        }
     };
 
     /// The DMUS_IO_CHORDMAP structure contains information about a chordmap.
     /// Used in the Chordmap Form.
     struct DMUS_IO_CHORDMAP {
         /// Name of the chordmap, used in the object description when the chordmap is loaded.
-        char wszLoadName[20];
+        std::uint16_t wszLoadName[20];
 
         /// Scale associated with the chordmap.
         /// Each of the lower 24 bits represents a semitone,
@@ -225,7 +246,8 @@ namespace DirectMusic {
         /// CC number if this is a control change type.
         std::uint8_t bCCData;
 
-        /// Set to DMUS_CURVE_RESET if the nResetValue must be set when an invalidation occurs because of a transition.
+        /// Set to DMUS_CURVE_RESET if the nResetValue must be set when an
+        /// invalidation occurs because of a transition.
         /// If 0, the curve stays permanently at the new value. All other bits are reserved.
         std::uint8_t bFlags;
 
@@ -411,7 +433,8 @@ namespace DirectMusic {
         /// Reserved for future use.
         std::uint8_t bPriority;
 
-        /// Can be 0, meaning that matching variations play sequentially, or one of the members of the DMUS_VARIATIONT_TYPES enumeration.
+        /// Can be 0, meaning that matching variations play sequentially, or one
+        /// of the members of the DMUS_VARIATIONT_TYPES enumeration.
         std::uint8_t bRandomVariation;
 
         /// Padding for alignment; value not used.
@@ -449,7 +472,8 @@ namespace DirectMusic {
         std::uint32_t dwFlags;
     };
 
-    /// The DMUS_IO_PCHANNELTOBUFFER_HEADER structure defines a range of performance channels and the buffers they connect to.
+    /// The DMUS_IO_PCHANNELTOBUFFER_HEADER structure defines a range of
+    /// performance channels and the buffers they connect to.
     /// Used in the port configuration list of an Audiopath Form.
     struct DMUS_IO_PCHANNELTOBUFFER_HEADER {
         /// First performance channel.
@@ -487,7 +511,8 @@ namespace DirectMusic {
         std::uint32_t dwFlags;
     };
 
-    /// The DMUS_IO_REFERENCE structure contains information about a reference to another object that might be stored in another file.
+    /// The DMUS_IO_REFERENCE structure contains information about a reference
+    /// to another object that might be stored in another file.
     /// Used in the Reference List chunk.
     struct DMUS_IO_REFERENCE {
         /// Class identifier.
@@ -556,7 +581,8 @@ namespace DirectMusic {
         std::uint64_t rtPlayStart;
     };
 
-    /// The DMUS_IO_SEGMENT_ITEM_HEADER structure contains information about a segment referenced in the Segment Trigger Track List.
+    /// The DMUS_IO_SEGMENT_ITEM_HEADER structure contains information about
+    /// a segment referenced in the Segment Trigger Track List.
     struct DMUS_IO_SEGMENT_ITEM_HEADER {
         /// Time in the music with which the event is associated.
         std::uint32_t lTimeLogical;
@@ -627,36 +653,389 @@ namespace DirectMusic {
         double dblTempo;
     };
 
-    /// The DMUS_IO_TIMESIG structure contains information about the time signature of a segment.
-    /// Used in the DMUS_IO_STYLE, DMUS_IO_VERSION, and DMUS_IO_PATTERN structures.
-    struct DMUS_IO_TIMESIG {
+    /// The DMUS_IO_STYLE_ANTICIPATION structure describes a resolution anticipation.
+    /// Used in the Style Form.
+    struct DMUS_IO_STYLE_ANTICIPATION {
+        /// Offset within the part, in grids, at which the event is to play.
+        std::uint32_t mtGridStart;
+
+        /// Variations, where each bit set specifies a valid variation.
+        std::uint32_t dwVariation;
+
+        /// Offset of the time from mtGridStart.
+        std::uint16_t nTimeOffset;
+
+        /// Range by which to randomize time.
+        std::uint8_t bTimeRange;
+    };
+
+    /// The DMUS_IO_STYLECURVE structure contains information about a curve in a style.
+    /// Used in the Style Form.
+    struct DMUS_IO_STYLECURVE {
+        /// Offset, in grids, at which the curve occurs.
+        std::uint32_t mtGridStart;
+
+        /// Variations that this curve belongs to.
+        /// Each bit corresponds to one of 32 variations.
+        std::uint32_t dwVariation;
+
+        /// Duration of the curve.
+        std::uint32_t mtDuration;
+
+        /// Time after the curve is finished during which a reset can occur.
+        std::uint32_t mtResetDuration;
+
+        /// Offset from mtGridStart at which the curve occurs.
+        std::uint16_t nTimeOffset;
+
+        /// Start value.
+        std::uint16_t nStartValue;
+
+        /// End value.
+        std::uint16_t nEndValue;
+
+        /// Reset value, set upon a flush or invalidation during the time specified by mtResetDuration.
+        std::uint16_t nResetValue;
+
+        /// Type of curve. See DMUS_IO_CURVE_ITEM.
+        std::uint8_t bEventType;
+
+        /// Shape of curve. See DMUS_IO_CURVE_ITEM.
+        std::uint8_t bCurveShape;
+
+        /// CC number if this is a control change type.
+        std::uint8_t bCCData;
+
+        /// Set to DMUS_CURVE_RESET if the nResetValue must be set when an invalidation
+        /// occurs because of a transition.
+        /// If 0, the curve stays permanently at the new value.
+        /// All other bits are reserved.
+        std::uint8_t bFlags;
+
+        /// RPN or NRPN parameter number.
+        std::uint16_t wParamType;
+
+        /// Merge index. Supported for mod wheel, reverb send, chorus send,
+        /// pitch bend, volume, and expression controllers.
+        std::uint16_t wMergeIndex;
+    };
+
+    /// The DMUS_IO_STYLEMARKER structure contains information about a marker in a style.
+    /// Used in the Style Form.
+    struct DMUS_IO_STYLEMARKER {
+        /// Offset, in grids, at which the marker occurs.
+        std::uint32_t mtGridStart;
+
+        /// Variations that this marker belongs to.
+        /// Each bit corresponds to one of 32 variations.
+        std::uint32_t dwVariation;
+
+        /// Flags that specify behavior of the marker.
+        /// If zero, the behavior is as it was in DirectX version 7.0.
+        std::uint16_t wMarkerFlags;
+    };
+
+    /// The DMUS_IO_STYLENOTE structure contains information about a note in a style.
+    /// Used in the Style Form.
+    struct DMUS_IO_STYLENOTE {
+        /// Offset, in grids, at which the note occurs.
+        std::uint32_t mtGridStart;
+
+        /// Variations that this note belongs to.
+        /// Each bit corresponds to one of 32 variations.
+        std::uint32_t dwVariation;
+
+        /// Duration of the note.
+        std::uint32_t mtDuration;
+
+        /// Time after mtGridStart at which the event occurs.
+        std::uint16_t nTimeOffset;
+
+        /// Position in the scale.
+        std::uint16_t wMusicValue;
+
+        /// Note velocity.
+        std::uint8_t bVelocity;
+
+        /// Range within which to randomize start time.
+        std::uint8_t bTimeRange;
+
+        /// Range within which to randomize duration.
+        std::uint8_t bDurRange;
+
+        /// Range within which to randomize velocity.
+        std::uint8_t bVelRange;
+
+        /// Identifier of inversion group to which this note belongs.
+        std::uint8_t bInversionID;
+
+        /// Flags to override the play mode of the part.
+        /// For a list of values, see DMUS_PLAYMODE_FLAGS.
+        std::uint8_t bPlayModeFlags;
+
+        /// Flags. See DMUS_NOTEF_FLAGS.
+        std::uint8_t bNoteFlags;
+    };
+
+    /// The DMUS_IO_STYLEPART structure contains information about a musical part.
+    /// Used in the Style Form.
+    struct DMUS_IO_STYLEPART {
+        /// DMUS_IO_TIMESIG structure containing a time signature to override the style's default time signature.
+        DMUS_IO_TIMESIG timeSig;
+
+        /// Each element corresponds to one of 32 possible variations.
+        /// The flags set in each element indicate which types of chord are supported by that variation.
+        /// One of the mode masks is also set to indicate whether the variations are in DirectMusic or IMA mode.
+        std::uint32_t dwVariationChoices[32];
+
+        /// Unique identifier of the part.
+        GUID guidPartID;
+
+        /// Length of the part, in measures.
+        std::uint16_t wNbrMeasures;
+
+        /// Flags to define the play mode. For a list of values, see DMUS_PLAYMODE_FLAGS.
+        std::uint8_t bPlayModeFlags;
+
+        /// Upper limit of inversion.
+        std::uint8_t bInvertUpper;
+
+        /// Lower limit of inversion.
+        std::uint8_t bInvertLower;
+
+        /// Unused.
+        std::uint8_t bPad[3];
+
+        /// Flags that specify the behavior of the part.
+        std::uint16_t dwFlags;
+    };
+
+    /// The DMUS_IO_STYLERESOLUTION structure describes a style resolution.
+    /// Used in the Style Form.
+    struct DMUS_IO_STYLERESOLUTION {
+        /// Variations, where each bit specifies a valid variation.
+        std::uint32_t dwVariation;
+
+        /// Position in scale.
+        std::uint16_t wMusicValue;
+
+        /// Inversion group to which this note belongs.
+        std::uint8_t bInversionID;
+
+        /// Play mode flags. See DMUS_PLAYMODE_FLAGS.
+        std::uint8_t bPlayModeFlags;
+    };
+
+    /// The DMUS_IO_SUBCHORD structure contains information about a subchord.
+    /// Used in the Chord Track List.
+    struct DMUS_IO_SUBCHORD {
+        /// Notes in the subchord.
+        /// Each of the lower 24 bits represents a semitone, starting with the
+        /// root at the least significant bit, and the bit is set if the note is in the chord.
+        std::uint32_t dwChordPattern;
+
+        /// Notes in the scale. Each of the lower 24 bits represents a semitone,
+        /// starting with the root at the least significant bit, and the bit is
+        /// set if the note is in the scale.
+        std::uint32_t dwScalePattern;
+
+        /// Points in the scale at which inversions can occur.
+        /// Bits that are off signify that the notes in the interval cannot be inverted.
+        /// Thus, the pattern 100001111111 indicates that inversions are allowed
+        /// anywhere except between the fifth and seventh degrees of a major scale.
+        std::uint32_t dwInversionPoints;
+
+        /// Which levels are supported by this subchord.
+        /// Certain instruments can be assigned different levels
+        /// (such as to play only the lower subchords of a chord),
+        /// and this value is a way of mapping subchords to those levels.
+        std::uint32_t dwLevels;
+
+        /// Root of the subchord, where 0 is the lowest C in the range and 23 is the top B.
+        std::uint8_t bChordRoot;
+
+        /// Root of the scale, where 0 is the lowest C in the range and 23 is the top B.
+        std::uint8_t bScaleRoot;
+    };
+
+    /// The DMUS_IO_SYSEX_ITEM structure contains information about a system exclusive MIDI message.
+    /// Used in the Sysex Track Chunk.
+    struct DMUS_IO_SYSEX_ITEM {
+        /// Time of the message.
+        std::uint32_t mtTime;
+
+        /// Performance channel of the event.
+        std::uint32_t dwPChannel;
+
+        /// Length of the data, in bytes.
+        std::uint32_t dwSysExLength;
+    };
+
+    /// The DMUS_IO_TIMESIGNATURE_ITEM structure contains information about a time signature change.
+    /// Used in the Time Signature Track List.
+    struct DMUS_IO_TIMESIGNATURE_ITEM {
+        /// Time of the event.
+        std::uint32_t lTime;
+
         /// Beats per measure (top of time signature).
         std::uint8_t bBeatsPerMeasure;
 
-        /// Note that receives the beat (bottom of the time signature),
-        /// where 1 is a whole note, 2 is a half note, 4 is a quarter note, and so on.
-        /// Zero is a 256th note.
+        /// Note that receives the beat (bottom of the time signature), where 1 is a whole note,
+        /// 2 is a half note, 4 is a quarter note, and so on. Zero is a 256th note.
         std::uint8_t bBeat;
 
         /// Grids (subdivisions) per beat.
         std::uint16_t wGridsPerBeat;
     };
 
-    struct DMUS_IO_VERSION {
-        std::uint32_t dwVersionMS;
-        std::uint32_t dwVersionLS;
+    /// The DMUS_IO_TOOL_HEADER structure contains information about a tool.
+    /// Used in the Tool Form.
+    struct DMUS_IO_TOOL_HEADER {
+        /// Class identifier of the tool.
+        GUID guidClassID;
+
+        /// Position in the graph.
+        std::int32_t lIndex;
+
+        /// Number of items in the dwPChannels array.
+        std::uint32_t cPChannels;
+
+        /// Identifier of tool's data chunk.
+        /// If this value is 0, it is assumed that the chunk is of type LIST,
+        /// so fccType is valid and must be nonzero.
+        char ckid[4];
+
+        /// List type. If this value is 0, ckid is valid and must be nonzero.
+        char fccType[4];
+
+        /// Array of performance channels for which the tool is valid.
+        std::uint32_t dwPChannels[1];
     };
 
+    /// The DMUS_IO_TRACK_EXTRAS_HEADER structure is used in the Track Form.
+    struct DMUS_IO_TRACK_EXTRAS_HEADER {
+        /// Flags for control tracks.
+        std::uint32_t dwFlags;
+
+        /// Priority for composition.
+        std::uint32_t dwPriority;
+    };
+
+    /// The DMUS_IO_TRACK_HEADER structure contains information about a track.
+    /// Used in the Track Form.
     struct DMUS_IO_TRACK_HEADER {
+        /// Class identifier of the track.
         GUID guidClassID;
+
+        /// Position in the track list.
         std::uint32_t dwPosition;
+
+        /// Group bits for the track.
         std::uint32_t dwGroup;
+
+        /// Identifier of the track's data chunk.
+        /// If this value is 0, it is assumed that the chunk is of type LIST,
+        /// so fccType is valid and must be nonzero.
         char ckid[4];
+
+        /// List type. If this value is 0, ckid is valid and must be nonzero.
         char fccType[4];
     };
 
-    struct DMUS_IO_TRACK_EXTRAS_HEADER {
+    /// The DMUS_IO_VALID_START structure contains information about a valid
+    /// start point in a segment that is to be cued to a rhythm.
+    // Used in the Marker Track List.
+    struct DMUS_IO_VALID_START {
+        /// Time of the start point.
+        std::uint32_t mtTime;
+    };
+
+    /// The DMUS_IO_VERSION structure contains the version number of the data.
+    /// Used in the version subchunk of various chunks.
+    struct DMUS_IO_VERSION {
+        /// High-order 32 bits of the version number.
+        std::uint32_t dwVersionMS;
+
+        /// Low-order 32 bits of the version number.
+        std::uint32_t dwVersionLS;
+    };
+
+    /// The DMUS_IO_WAVE_HEADER structure describes streaming characteristics of a wave.
+    /// It is used in the Wave Header Chunk of a WAV file.
+    struct DMUS_IO_WAVE_HEADER {
+        /// Time to read ahead in a streaming wave.
+        std::int64_t rtReadAhead;
         std::uint32_t dwFlags;
-        std::uint32_t dwPriority;
+    };
+
+    /// The DMUS_IO_WAVE_ITEM_HEADER structure contains data for a wave sound in a Wave Track List.
+    struct DMUS_IO_WAVE_ITEM_HEADER {
+        /// Gain, in hundredths of a decibel. Must be a negative value.
+        std::int32_t lVolume;
+
+        /// Pitch offset, in hundredths of a semitone.
+        std::int32_t lPitch;
+
+        /// Variation flags. One bit is set for each variation this wave belongs to.
+        std::uint32_t dwVariations;
+
+        /// Start time, in reference time if the track is in clock time format; otherwise in music time.
+        std::int64_t rtTime;
+
+        /// Distance into wave to start playback, in reference time.
+        std::int64_t rtStartOffset;
+
+        /// Not used.
+        std::int64_t rtReserved;
+
+        /// Duration, in reference time if the track is in clock time format; otherwise in music time.
+        std::int64_t rtDuration;
+
+        /// Musical boundary where this belongs. Ignored if the track is in clock time format.
+        std::uint32_t mtLogicalTime;
+
+        /// Start point for a looping wave.
+        std::uint32_t dwLoopStart;
+
+        /// End point for a looping wave.
+        std::uint32_t dwLoopEnd;
+        std::uint32_t dwFlags;
+
+        /// Amount by which volume can be randomized, in hundredths of a decibel.
+        std::uint16_t wVolumeRange;
+
+        /// Amount by which pitch can be randomized, in hundredths of a semitone.
+        std::uint16_t wPitchRange;
+    };
+
+    /// The DMUS_IO_WAVE_PART_HEADER structure contains data for a Wave Track List.
+    struct DMUS_IO_WAVE_PART_HEADER {
+        /// Gain, in hundredths of a decibel, to apply to all waves in this wave part.
+        /// This must be a negative value.
+        std::int32_t lVolume;
+
+        /// Performance channel of the part.
+        std::uint32_t dwVariations;
+
+        /// Performance channel of the part.
+        std::uint32_t dwPChannel;
+
+        /// Variation lock identifier. Parts with the same value in this member always play the same variation.
+        /// A value of 0 means that the part plays its variations independently of all other parts.
+        std::uint32_t dwLockToPart;
+
+        /// Flags for managing how variations are chosen, in the lower four bits.
+        /// See DMUS_VARIATIONT_TYPES.
+        std::uint32_t dwFlags;
+
+        /// Index for distinguishing multiple parts on the same performance channel.
+        std::uint32_t dwIndex;
+    };
+
+    /// The DMUS_IO_WAVE_TRACK_HEADER structure contains data for a wave track in a Wave Track List.
+    struct DMUS_IO_WAVE_TRACK_HEADER {
+        /// Gain, hundredths of a decibel, to be applied to all waves.
+        std::int32_t lVolume;
+        std::uint32_t dwFlags;
     };
 }
