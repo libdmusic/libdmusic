@@ -103,6 +103,12 @@ namespace DirectMusic {
         std::uint32_t dwScalePattern;
 
         std::uint32_t dwFlags;
+
+        DMUS_IO_CHORDMAP() {}
+        DMUS_IO_CHORDMAP(const std::uint8_t *data) {
+            FIELDINIT(DMUS_IO_CHORDMAP, dwScalePattern, std::uint32_t);
+            FIELDINIT(DMUS_IO_CHORDMAP, dwFlags, std::uint32_t);
+        }
     };
 
     /// The DMUS_IO_CHORDMAP_SIGNPOST structure contains information about a signpost chord in a chordmap.
@@ -119,6 +125,12 @@ namespace DirectMusic {
         /// This value can be SPOST_CADENCE1 (first cadence), SPOST_CADENCE2 (second cadence), or
         ///  a combination of these two flags.
         std::uint32_t dwFlags;
+
+        DMUS_IO_CHORDMAP_SIGNPOST() {}
+        DMUS_IO_CHORDMAP_SIGNPOST(const std::uint8_t *data) {
+            FIELDINIT(DMUS_IO_CHORDMAP_SIGNPOST, dwChords, std::uint32_t);
+            FIELDINIT(DMUS_IO_CHORDMAP_SIGNPOST, dwFlags, std::uint32_t);
+        }
     };
 
     /// The DMUS_IO_CHORDMAP_SUBCHORD structure contains information about a subchord.
@@ -356,6 +368,15 @@ namespace DirectMusic {
 
         /// Refers to the wConnectionID member of a DMUS_IO_CHORDENTRY structure.
         std::uint16_t wConnectionID;
+
+        DMUS_IO_NEXTCHORD() {}
+        DMUS_IO_NEXTCHORD(const std::uint8_t *data) {
+            FIELDINIT(DMUS_IO_NEXTCHORD, dwFlags, std::uint32_t);
+            FIELDINIT(DMUS_IO_NEXTCHORD, nWeight, std::uint16_t);
+            FIELDINIT(DMUS_IO_NEXTCHORD, wMinBeats, std::uint16_t);
+            FIELDINIT(DMUS_IO_NEXTCHORD, wMaxBeats, std::uint16_t);
+            FIELDINIT(DMUS_IO_NEXTCHORD, wConnectionID, std::uint16_t);
+        }
     };
 
     /// The DMUS_IO_PARAMCONTROLTRACK_CURVEINFO structure is used in a Parameter Control Track List.
@@ -520,6 +541,13 @@ namespace DirectMusic {
 
         /// Flags to indicate which data chunks for the reference are present.
         std::uint32_t dwValidData;
+
+        DMUS_IO_REFERENCE() {}
+        DMUS_IO_REFERENCE(const std::uint8_t *data)
+            : FIELDCONST(DMUS_IO_REFERENCE, guidClassID, GUID)
+        {
+            FIELDINIT(DMUS_IO_REFERENCE, dwValidData, std::uint32_t);
+        }
     };
 
     /// The DMUS_IO_SCRIPT_HEADER structure is used in the Script Form.
@@ -958,6 +986,12 @@ namespace DirectMusic {
 
         /// Low-order 32 bits of the version number.
         std::uint32_t dwVersionLS;
+
+        DMUS_IO_VERSION() {}
+        DMUS_IO_VERSION(const std::uint8_t *data) {
+            FIELDINIT(DMUS_IO_VERSION, dwVersionMS, std::uint32_t);
+            FIELDINIT(DMUS_IO_VERSION, dwVersionLS, std::uint32_t);
+        }
     };
 
     /// The DMUS_IO_WAVE_HEADER structure describes streaming characteristics of a wave.

@@ -14,6 +14,7 @@ include_directories(include)
 
 file(GLOB LIB_SRC
   "src/*.cpp"
+  "src/Forms/*.cpp"
   "src/*.h"
   "include/dmusic/*.h"
   "include/dmusic/dls/*.h")
