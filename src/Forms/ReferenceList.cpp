@@ -14,7 +14,7 @@ ReferenceList::ReferenceList(const Chunk& c) {
         if(id == "refh") {
             m_header = DMUS_IO_REFERENCE(subchunk.getData().data());
         } else if(id == "guid") {
-            m_guid = GUID(subchunk);
+            m_guid = GUID(subchunk.getData().data());
         } else if(id == "date") {
             // Let's ignore it for now...
         } else if(id == "name") {

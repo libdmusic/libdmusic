@@ -63,6 +63,9 @@ namespace DirectMusic {
         DMUS_IO_VERSION m_version;
     };
 
+    /// The reference list chunk contains information about a reference to an object in another file.
+    /// For example, a band object might contain a reference to a DLS collection in a separate file.
+    /// This subchunk is used in many different chunks.
     class ReferenceList {
     public:
         ReferenceList(const DirectMusic::Riff::Chunk& chunk);
@@ -85,12 +88,12 @@ namespace DirectMusic {
     public:
         BandInstrument(const DirectMusic::Riff::Chunk& chunk);
         const DMUS_IO_INSTRUMENT& getHeader() const { return m_header; }
-        const std::shared_ptr<ReferenceList> getReference() const { return m_reference; }
+        const std::shared_ptr<ReferenceList>& getReference() const { return m_reference; }
 
     private:
         DMUS_IO_INSTRUMENT m_header;
         std::shared_ptr<ReferenceList> m_reference;
-    }:
+    };
 
     class BandForm {
     public:
@@ -105,5 +108,45 @@ namespace DirectMusic {
         DMUS_IO_VERSION m_version;
         DirectMusic::Riff::Unfo m_unfo;
         std::vector<BandInstrument> m_instruments;
+    };
+
+    class SubtrackForm {};
+
+    /// The track form contains information about a single track.
+    /// It can be embedded in a Segment Form or stored in its own file.
+    class TrackForm {
+    public:
+        TrackForm(const DirectMusic::Riff::Chunk& chunk);
+        const GUID& getGuid() const { return m_guid; }
+        const DMUS_IO_VERSION& getVersion() const { return m_version; }
+        const DirectMusic::Riff::Unfo& getInfo() const { return m_unfo; }
+        const DMUS_IO_TRACK_HEADER& getHeader() const { return m_header; }
+        const std::shared_ptr<DMUS_IO_TRACK_EXTRAS_HEADER>& getTrackFlags() const { return m_flags; }
+        const SubtrackForm& getData() const { return m_data; }
+
+    private:
+        GUID m_guid;
+        DMUS_IO_VERSION m_version;
+        DirectMusic::Riff::Unfo m_unfo;
+        DMUS_IO_TRACK_HEADER m_header;
+        std::shared_ptr<DMUS_IO_TRACK_EXTRAS_HEADER> m_flags;
+        SubtrackForm m_data;
+    };
+
+    class SegmentForm {
+    public:
+        SegmentForm(const DirectMusic::Riff::Chunk& chunk);
+        const GUID& getGuid() const { return m_guid; }
+        const DMUS_IO_VERSION& getVersion() const { return m_version; }
+        const DirectMusic::Riff::Unfo& getInfo() const { return m_unfo; }
+        const DMUS_IO_SEGMENT_HEADER& getHeader() const { return m_header; }
+        const std::vector<TrackForm>& getTracks() const { return m_tracks; }
+
+    private:
+        GUID m_guid;
+        DMUS_IO_VERSION m_version;
+        DirectMusic::Riff::Unfo m_unfo;
+        DMUS_IO_SEGMENT_HEADER m_header;
+        std::vector<TrackForm> m_tracks;
     };
 }

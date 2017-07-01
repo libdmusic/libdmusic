@@ -167,6 +167,17 @@ namespace DirectMusic {
         /// Each part in a style is assigned a level, and this chord is used
         ///  only for parts whose levels are contained in this member.
         std::uint32_t dwLevels;
+
+        DMUS_IO_CHORDMAP_SUBCHORD() {}
+        DMUS_IO_CHORDMAP_SUBCHORD(const std::uint8_t *data) {
+            FIELDINIT(DMUS_IO_CHORDMAP_SUBCHORD, dwChordPattern, std::uint32_t);
+            FIELDINIT(DMUS_IO_CHORDMAP_SUBCHORD, dwScalePattern, std::uint32_t);
+            FIELDINIT(DMUS_IO_CHORDMAP_SUBCHORD, dwInvertPattern, std::uint32_t);
+            FIELDINIT(DMUS_IO_CHORDMAP_SUBCHORD, bChordRoot, std::uint8_t);
+            FIELDINIT(DMUS_IO_CHORDMAP_SUBCHORD, bScaleRoot, std::uint8_t);
+            FIELDINIT(DMUS_IO_CHORDMAP_SUBCHORD, wCFlags, std::uint16_t);
+            FIELDINIT(DMUS_IO_CHORDMAP_SUBCHORD, dwLevels, std::uint32_t);
+        }
     };
 
 
@@ -624,6 +635,20 @@ namespace DirectMusic {
 
         /// Start point in clock time.
         std::uint64_t rtPlayStart;
+        DMUS_IO_SEGMENT_HEADER() {}
+        DMUS_IO_SEGMENT_HEADER(const std::uint8_t *data) {
+            FIELDINIT(DMUS_IO_SEGMENT_HEADER, dwRepeats, std::uint32_t);
+            FIELDINIT(DMUS_IO_SEGMENT_HEADER, mtLength, std::uint32_t);
+            FIELDINIT(DMUS_IO_SEGMENT_HEADER, mtPlayStart, std::uint32_t);
+            FIELDINIT(DMUS_IO_SEGMENT_HEADER, mtLoopStart, std::uint32_t);
+            FIELDINIT(DMUS_IO_SEGMENT_HEADER, mtLoopEnd, std::uint32_t);
+            FIELDINIT(DMUS_IO_SEGMENT_HEADER, dwResolution, std::uint32_t);
+            FIELDINIT(DMUS_IO_SEGMENT_HEADER, rtLength, std::uint64_t);
+            FIELDINIT(DMUS_IO_SEGMENT_HEADER, dwFlags, std::uint32_t);
+            FIELDINIT(DMUS_IO_SEGMENT_HEADER, dwReserved, std::uint32_t);
+            FIELDINIT(DMUS_IO_SEGMENT_HEADER, rtLoopStart, std::uint64_t);
+            FIELDINIT(DMUS_IO_SEGMENT_HEADER, rtLoopEnd, std::uint32_t);
+        }
     };
 
     /// The DMUS_IO_SEGMENT_ITEM_HEADER structure contains information about
@@ -964,6 +989,12 @@ namespace DirectMusic {
 
         /// Priority for composition.
         std::uint32_t dwPriority;
+
+        DMUS_IO_TRACK_EXTRAS_HEADER() {}
+        DMUS_IO_TRACK_EXTRAS_HEADER(const std::uint8_t *data) {
+            FIELDINIT(DMUS_IO_TRACK_EXTRAS_HEADER, dwFlags, std::uint32_t);
+            FIELDINIT(DMUS_IO_TRACK_EXTRAS_HEADER, dwPriority, std::uint32_t);
+        }
     };
 
     /// The DMUS_IO_TRACK_HEADER structure contains information about a track.
@@ -985,6 +1016,16 @@ namespace DirectMusic {
 
         /// List type. If this value is 0, ckid is valid and must be nonzero.
         char fccType[4];
+
+        DMUS_IO_TRACK_HEADER() {}
+        DMUS_IO_TRACK_HEADER(const std::uint8_t *data)
+            : FIELDCONST(DMUS_IO_TRACK_HEADER, guidClassID, GUID)
+        {
+            FIELDINIT(DMUS_IO_TRACK_HEADER, dwPosition, std::uint32_t);
+            FIELDINIT(DMUS_IO_TRACK_HEADER, dwGroup, std::uint32_t);
+            READFOURCC(DMUS_IO_TRACK_HEADER, ckid);
+            READFOURCC(DMUS_IO_TRACK_HEADER, fccType);
+        }
     };
 
     /// The DMUS_IO_VALID_START structure contains information about a valid

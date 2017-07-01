@@ -26,7 +26,7 @@ BandForm::BandForm(const Chunk& c) {
     for(Chunk subchunk : c.getSubchunks()) {
         std::string id = subchunk.getId();
         if(id == "guid") {
-            m_guid = GUID(subchunk);
+            m_guid = GUID(subchunk.getData().data());
         } else if(id == "vers") {
             m_version = DMUS_IO_VERSION(subchunk.getData().data());
         } else if(id == "LIST") {

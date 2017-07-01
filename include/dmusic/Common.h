@@ -12,6 +12,9 @@
 /// Use this macro to initialize struct fields in constructors that need to load little endian data
 #define FIELDCONST(s, f, t) f(t(data + offsetof(s, f)))
 
+/// Use this macro to read a FourCC into a char array
+#define READFOURCC(s, f) memcpy(f, data + offsetof(s, f), 4)
+
 namespace DirectMusic {
     /**
     * Read an integral type from the given pointer as little endian data
