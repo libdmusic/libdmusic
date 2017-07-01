@@ -4,6 +4,7 @@
 #include <vector>
 #include <tuple>
 #include <string>
+#include <memory>
 #include "Riff.h"
 #include "Structs.h"
 
@@ -78,5 +79,31 @@ namespace DirectMusic {
         GUID m_guid;
         std::wstring m_name, m_file, m_category;
         DMUS_IO_VERSION m_version;
+    };
+
+    class BandInstrument {
+    public:
+        BandInstrument(const DirectMusic::Riff::Chunk& chunk);
+        const DMUS_IO_INSTRUMENT& getHeader() const { return m_header; }
+        const std::shared_ptr<ReferenceList> getReference() const { return m_reference; }
+
+    private:
+        DMUS_IO_INSTRUMENT m_header;
+        std::shared_ptr<ReferenceList> m_reference;
+    }:
+
+    class BandForm {
+    public:
+        BandForm(const DirectMusic::Riff::Chunk& chunk);
+        const GUID& getGuid() const { return m_guid; }
+        const DMUS_IO_VERSION& getVersion() const { return m_version; }
+        const DirectMusic::Riff::Unfo& getInfo() const { return m_unfo; }
+        const std::vector<BandInstrument>& getInstruments() const { return m_instruments; }
+
+    private:
+        GUID m_guid;
+        DMUS_IO_VERSION m_version;
+        DirectMusic::Riff::Unfo m_unfo;
+        std::vector<BandInstrument> m_instruments;
     };
 }

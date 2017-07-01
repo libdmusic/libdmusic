@@ -302,6 +302,23 @@ namespace DirectMusic {
 
         /// Number of semitones shifted by pitch bend.
         std::uint16_t nPitchBendRange;
+
+        DMUS_IO_INSTRUMENT() {}
+        DMUS_IO_INSTRUMENT(const std::uint8_t *data) {
+            FIELDINIT(DMUS_IO_INSTRUMENT, dwPatch, std::uint32_t);
+            FIELDINIT(DMUS_IO_INSTRUMENT, dwAssignPatch, std::uint32_t);
+            dwNoteRanges[0] = littleEndianRead<std::uint32_t>(data + offsetof(DMUS_IO_INSTRUMENT, dwNoteRanges));
+            dwNoteRanges[1] = littleEndianRead<std::uint32_t>(data + 4 + offsetof(DMUS_IO_INSTRUMENT, dwNoteRanges));
+            dwNoteRanges[2] = littleEndianRead<std::uint32_t>(data + 8 + offsetof(DMUS_IO_INSTRUMENT, dwNoteRanges));
+            dwNoteRanges[3] = littleEndianRead<std::uint32_t>(data + 12 + offsetof(DMUS_IO_INSTRUMENT, dwNoteRanges));
+            FIELDINIT(DMUS_IO_INSTRUMENT, dwPChannel, std::uint32_t);
+            FIELDINIT(DMUS_IO_INSTRUMENT, dwFlags, std::uint32_t);
+            FIELDINIT(DMUS_IO_INSTRUMENT, bPan, std::uint8_t);
+            FIELDINIT(DMUS_IO_INSTRUMENT, bVolume, std::uint8_t);
+            FIELDINIT(DMUS_IO_INSTRUMENT, nTranspose, std::uint16_t);
+            FIELDINIT(DMUS_IO_INSTRUMENT, dwChannelPriority, std::uint32_t);
+            FIELDINIT(DMUS_IO_INSTRUMENT, nPitchBendRange, std::uint16_t);
+        }
     };
 
     /// The DMUS_IO_LYRICSTRACK_EVENTHEADER structure is used in a Lyrics Track List.
