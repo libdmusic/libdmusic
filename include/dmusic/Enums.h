@@ -40,7 +40,6 @@ namespace DirectMusic {
         DMUS_COMMANDT_ENDANDINTRO = 5
     };
 
-
     /// The DMUS_CURVE_FLAGS enumerated type is used in the bFlags member of the DMUS_CURVE_PMSG structure.
     enum DMUS_CURVE_FLAGS {
         /// The value of DMUS_CURVE_PMSG.nResetValue must be set when the time is reached
