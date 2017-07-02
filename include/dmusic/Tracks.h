@@ -7,16 +7,13 @@ namespace DirectMusic {
     typedef std::tuple<DMUS_IO_BAND_ITEM_HEADER2, BandForm> BandItem;
 
     class BandTrack
-        : public SubtrackForm
-    {
+        : public SubtrackForm {
     public:
         BandTrack(const DirectMusic::Riff::Chunk& chunk);
         const DMUS_IO_BAND_TRACK_HEADER& getHeader() const { return m_header; }
         const GUID& getGuid() const { return m_guid; }
         const DMUS_IO_VERSION& getVersion() const { return m_version; }
         const DirectMusic::Riff::Unfo& getInfo() const { return m_unfo; }
-        const std::uint32_t getPhysicalTime() const { return m_physTime; }
-        const std::uint32_t getLogicalTime() const { return m_logicTime; }
         const std::vector<BandItem>& getBands() const { return m_bands; }
 
     private:
@@ -24,13 +21,11 @@ namespace DirectMusic {
         GUID m_guid;
         DMUS_IO_VERSION m_version;
         DirectMusic::Riff::Unfo m_unfo;
-        std::uint32_t m_physTime, m_logicTime;
         std::vector<BandItem> m_bands;
     };
 
     class ChordTrack
-        : public SubtrackForm
-    {
+        : public SubtrackForm {
     public:
         ChordTrack(const DirectMusic::Riff::Chunk& chunk);
         const std::uint32_t getHeader() const { return m_header; }
@@ -46,8 +41,7 @@ namespace DirectMusic {
     typedef std::tuple<std::uint32_t, ReferenceList> Chordmap;
 
     class ChordmapTrack
-        : public SubtrackForm
-    {
+        : public SubtrackForm {
     public:
         ChordmapTrack(const DirectMusic::Riff::Chunk& chunk);
         const std::vector<Chordmap>& getChordmaps() const { return m_chordmaps; }
@@ -57,8 +51,7 @@ namespace DirectMusic {
     };
 
     class CommandTrack
-        : public SubtrackForm
-    {
+        : public SubtrackForm {
     public:
         CommandTrack(const DirectMusic::Riff::Chunk& chunk);
         const std::vector<DMUS_IO_COMMAND>& getCommands() const { return m_commands; }
@@ -70,8 +63,7 @@ namespace DirectMusic {
     typedef std::tuple<DMUS_IO_LYRICSTRACK_EVENTHEADER, std::wstring> LyricsEvent;
 
     class LyricsTrack
-        : public SubtrackForm
-    {
+        : public SubtrackForm {
     public:
         LyricsTrack(const DirectMusic::Riff::Chunk& chunk);
         const std::vector<LyricsEvent>& getLyrics() const { return m_lyrics; }
@@ -81,8 +73,7 @@ namespace DirectMusic {
     };
 
     class MarkerTrack
-        : public SubtrackForm
-    {
+        : public SubtrackForm {
     public:
         MarkerTrack(const DirectMusic::Riff::Chunk& chunk);
         const std::vector<DMUS_IO_VALID_START>& getValidStartPoints() const { return m_validStarts; }
@@ -94,8 +85,7 @@ namespace DirectMusic {
     };
 
     class MuteTrack
-        : public SubtrackForm
-    {
+        : public SubtrackForm {
     public:
         MuteTrack(const DirectMusic::Riff::Chunk& chunk);
         const DMUS_IO_MUTE& getData() const { return m_mute; }
@@ -105,35 +95,98 @@ namespace DirectMusic {
     };
 
     class ParameterControlTrack
-        : public SubtrackForm {};
+        : public SubtrackForm {
+    public:
+        ParameterControlTrack(const DirectMusic::Riff::Chunk& chunk) {};
+    };
 
     class PatternTrack
-        : public SubtrackForm {};
+        : public SubtrackForm {
+    public:
+        PatternTrack(const DirectMusic::Riff::Chunk& chunk);
+        const DMUS_IO_STYLE& getStyleHeader() const { return m_style; }
+        const Pattern& getPattern() const { return m_pattern; }
+
+    private:
+        DMUS_IO_STYLE m_style;
+        Pattern m_pattern;
+    };
 
     class ScriptTrack
-        : public SubtrackForm {};
+        : public SubtrackForm {
+    public:
+        ScriptTrack(const DirectMusic::Riff::Chunk& chunk) {};
+    };
 
     class SegmentTriggerTrack
-        : public SubtrackForm {};
+        : public SubtrackForm {
+    public:
+        SegmentTriggerTrack(const DirectMusic::Riff::Chunk& chunk) {};
+    };
 
     class SequenceTrack
-        : public SubtrackForm {};
+        : public SubtrackForm {
+    public:
+        SequenceTrack(const DirectMusic::Riff::Chunk& chunk);
+        const std::vector<DMUS_IO_SEQ_ITEM>& getSequenceItems() const { return m_seqItems; }
+        const std::vector<DMUS_IO_CURVE_ITEM>& getCurveItems() const { return m_curveItems; }
+
+    private:
+        std::vector<DMUS_IO_SEQ_ITEM> m_seqItems;
+        std::vector<DMUS_IO_CURVE_ITEM> m_curveItems;
+    };
 
     class SignpostTrack
-        : public SubtrackForm {};
+        : public SubtrackForm {
+    public:
+        SignpostTrack(const DirectMusic::Riff::Chunk& chunk);
+        const std::vector<DMUS_IO_SIGNPOST>& getSignposts() const { return m_signposts; }
+
+    private:
+        std::vector<DMUS_IO_SIGNPOST> m_signposts;
+    };
+
+    typedef std::tuple<std::uint16_t, ReferenceList> StyleReference;
 
     class StyleTrack
-        : public SubtrackForm {};
+        : public SubtrackForm {
+    public:
+        StyleTrack(const DirectMusic::Riff::Chunk& chunk);
+        const std::vector<StyleReference> getStyles() const { return m_styles; }
+
+    private:
+        std::vector<StyleReference> m_styles;
+    };
 
     class SysexTrack
-        : public SubtrackForm {};
+        : public SubtrackForm {
+    public:
+        SysexTrack(const DirectMusic::Riff::Chunk& chunk) {};
+    };
 
     class TempoTrack
-        : public SubtrackForm {};
+        : public SubtrackForm {
+    public:
+        TempoTrack(const DirectMusic::Riff::Chunk& chunk);
+        const std::vector<DMUS_IO_TEMPO_ITEM>& getItems() const { return m_items; }
+
+    private:
+        std::vector<DMUS_IO_TEMPO_ITEM> m_items;
+    };
 
     class TimeSignatureTrack
-        : public SubtrackForm {};
+        : public SubtrackForm {
+    public:
+        TimeSignatureTrack(const DirectMusic::Riff::Chunk& chunk);
+        const std::vector<DMUS_IO_TIMESIGNATURE_ITEM>& getItems() const { return m_items; }
+
+    private:
+        std::vector<DMUS_IO_TIMESIGNATURE_ITEM> m_items;
+    };
 
     class WaveTrack
-        : public SubtrackForm {};
+        : public SubtrackForm {
+    public:
+        WaveTrack(const DirectMusic::Riff::Chunk& chunk) {};
+    };
 }

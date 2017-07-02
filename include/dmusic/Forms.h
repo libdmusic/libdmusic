@@ -149,4 +149,71 @@ namespace DirectMusic {
         DMUS_IO_SEGMENT_HEADER m_header;
         std::vector<TrackForm> m_tracks;
     };
+
+    class StylePart {
+    public:
+        StylePart(const DirectMusic::Riff::Chunk& chunk);
+        const DirectMusic::Riff::Unfo& getInfo() const { return m_unfo; }
+        const DMUS_IO_STYLEPART& getHeader() const { return m_header; }
+        const std::vector<DMUS_IO_STYLENOTE>& getNotes() const { return m_notes; }
+        const std::vector<DMUS_IO_STYLECURVE>& getCurves() const { return m_curves; }
+        const std::vector<DMUS_IO_STYLEMARKER>& getMarkers() const { return m_markers; }
+        const std::vector<DMUS_IO_STYLERESOLUTION>& getResolutions() const { return m_resolutions; }
+        const std::vector<DMUS_IO_STYLE_ANTICIPATION>& getAnticipations() const { return m_anticipations; }
+
+    private:
+        DirectMusic::Riff::Unfo m_unfo;
+        DMUS_IO_STYLEPART m_header;
+        std::vector<DMUS_IO_STYLENOTE> m_notes;
+        std::vector<DMUS_IO_STYLECURVE> m_curves;
+        std::vector<DMUS_IO_STYLEMARKER> m_markers;
+        std::vector<DMUS_IO_STYLERESOLUTION> m_resolutions;
+        std::vector<DMUS_IO_STYLE_ANTICIPATION> m_anticipations;
+    };
+
+    class Pattern {
+    public:
+        Pattern(const DirectMusic::Riff::Chunk& chunk);
+        const DMUS_IO_PATTERN& getHeader() const { return m_header; }
+        const DirectMusic::Riff::Unfo& getInfo() const { return m_unfo; }
+        const std::vector<std::uint16_t>& getRhythms() const { return m_rhythms; }
+        const std::shared_ptr<DMUS_IO_MOTIFSETTINGS>& getMotifSettings() const { return m_motifSettings; }
+        const std::shared_ptr<BandForm>& getBand() const { return m_band; }
+        const DMUS_IO_PARTREF& getPartReference() const { return m_partref; }
+
+        /// Only used in Pattern Tracks
+        const std::vector<StylePart> getParts() const { return m_parts; }
+
+    private:
+        DMUS_IO_PATTERN m_header;
+        DirectMusic::Riff::Unfo m_unfo;
+        std::vector<std::uint16_t> m_rhythms;
+        std::shared_ptr<DMUS_IO_MOTIFSETTINGS> m_motifSettings;
+        std::shared_ptr<BandForm> m_band;
+        DMUS_IO_PARTREF m_partref;
+        std::vector<StylePart> m_parts;
+    };
+
+    class StyleForm {
+    public:
+        StyleForm(const DirectMusic::Riff::Chunk& chunk);
+        const GUID& getGuid() const { return m_guid; }
+        const DMUS_IO_VERSION& getVersion() const { return m_version; }
+        const DirectMusic::Riff::Unfo& getInfo() const { return m_unfo; }
+        const DMUS_IO_STYLE& getHeader() const { return m_header; }
+        const std::vector<StylePart>& getParts() const { return m_parts; }
+        const std::vector<Pattern>& getPatterns() const { return m_patterns; }
+        const std::vector<BandForm>& getBands() const { return m_bands; }
+        const std::vector<ReferenceList>& getChordmapReferences() const { return m_references; }
+
+    private:
+        GUID m_guid;
+        DMUS_IO_VERSION m_version;
+        DirectMusic::Riff::Unfo m_unfo;
+        DMUS_IO_STYLE m_header;
+        std::vector<StylePart> m_parts;
+        std::vector<Pattern> m_patterns;
+        std::vector<BandForm> m_bands;
+        std::vector<ReferenceList> m_references;
+    };
 }

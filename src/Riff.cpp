@@ -10,7 +10,7 @@ struct ChunkHeader {
     std::uint32_t size;
 
     ChunkHeader(const std::uint8_t *data) {
-        memcpy(id, data, 4);
+        READFOURCC(ChunkHeader, id);
         FIELDINIT(ChunkHeader, size, std::uint32_t);
     }
 };

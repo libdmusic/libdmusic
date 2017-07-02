@@ -5,7 +5,9 @@
 using namespace DirectMusic;
 using namespace DirectMusic::Riff;
 
-BandInstrument::BandInstrument(const Chunk& c) {
+BandInstrument::BandInstrument(const Chunk& c)
+    : m_reference(nullptr)
+{
     if (c.getId() != "LIST" || c.getListId() != "lbin")
         throw DirectMusic::InvalidChunkException("LIST lbin", c.getId() + " " + c.getListId());
 

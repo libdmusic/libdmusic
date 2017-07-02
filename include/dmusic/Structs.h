@@ -25,6 +25,11 @@ namespace DirectMusic {
     struct DMUS_IO_BAND_ITEM_HEADER {
         /// Time of the band change.
         std::uint32_t lBandTime;
+
+        DMUS_IO_BAND_ITEM_HEADER() {}
+        DMUS_IO_BAND_ITEM_HEADER(const std::uint8_t *data) {
+            FIELDINIT(DMUS_IO_BAND_ITEM_HEADER, lBandTime, std::uint32_t);
+        }
     };
 
     /// The DMUS_IO_BAND_ITEM_HEADER2 structure contains information about a band change.
@@ -35,6 +40,12 @@ namespace DirectMusic {
 
         /// Precise time when band change will take effect. Should be close to logical time.
         std::uint32_t lBandTimePhysical;
+
+        DMUS_IO_BAND_ITEM_HEADER2() {}
+        DMUS_IO_BAND_ITEM_HEADER2(const std::uint8_t *data) {
+            FIELDINIT(DMUS_IO_BAND_ITEM_HEADER2, lBandTimeLogical, std::uint32_t);
+            FIELDINIT(DMUS_IO_BAND_ITEM_HEADER2, lBandTimePhysical, std::uint32_t);
+        }
     };
 
     /// The DMUS_IO_BAND_TRACK_HEADER structure contains information about the default behavior of a band track.
@@ -42,6 +53,11 @@ namespace DirectMusic {
     struct DMUS_IO_BAND_TRACK_HEADER {
         /// Flag for automatic downloading of instruments when a segment is played.
         std::uint32_t bAutoDownload;
+
+        DMUS_IO_BAND_TRACK_HEADER() {}
+        DMUS_IO_BAND_TRACK_HEADER(const std::uint8_t *data) {
+            FIELDINIT(DMUS_IO_BAND_TRACK_HEADER, bAutoDownload, std::uint32_t);
+        }
     };
 
     /// The DMUS_IO_BUFFER_ATTRIBUTES_HEADER structure describes attributes of a DirectSound buffer.
@@ -70,6 +86,17 @@ namespace DirectMusic {
         std::uint8_t bBeat;
 
         std::uint8_t bFlags;
+
+        DMUS_IO_CHORD() {}
+        DMUS_IO_CHORD(const std::uint8_t *data) {
+            for (int i = 0; i < 16; i++) {
+                wszName[i] = littleEndianRead<std::uint16_t>(data + 2 * i);
+            }
+            FIELDINIT(DMUS_IO_CHORD, mtTime, std::uint32_t);
+            FIELDINIT(DMUS_IO_CHORD, wMeasure, std::uint16_t);
+            FIELDINIT(DMUS_IO_CHORD, bBeat, std::uint8_t);
+            FIELDINIT(DMUS_IO_CHORD, bFlags, std::uint8_t);
+        }
     };
 
     /// The DMUS_IO_CHORDENTRY structure contains information about a chord entry.
@@ -207,6 +234,11 @@ namespace DirectMusic {
 
         /// Flag that specifies how patterns are selected for repetition. See DMUS_PATTERNT_TYPES.
         std::uint8_t bRepeatMode;
+
+        DMUS_IO_COMMAND() {}
+        DMUS_IO_COMMAND(const std::uint8_t *data) {
+
+        }
     };
 
     /// The DMUS_IO_CONTAINED_OBJECT_HEADER structure is used before each object in a Container Form.
@@ -345,6 +377,14 @@ namespace DirectMusic {
 
         /// Precise time when the event will be triggered. This should be close to logical time.
         std::uint32_t lTimePhysical;
+
+        DMUS_IO_LYRICSTRACK_EVENTHEADER() {}
+        DMUS_IO_LYRICSTRACK_EVENTHEADER(const std::uint8_t *data) {
+            FIELDINIT(DMUS_IO_LYRICSTRACK_EVENTHEADER, dwFlags, std::uint32_t);
+            FIELDINIT(DMUS_IO_LYRICSTRACK_EVENTHEADER, dwTimingFlags, std::uint32_t);
+            FIELDINIT(DMUS_IO_LYRICSTRACK_EVENTHEADER, lTimeLogical, std::uint32_t);
+            FIELDINIT(DMUS_IO_LYRICSTRACK_EVENTHEADER, lTimePhysical, std::uint32_t);
+        }
     };
 
     /// The DMUS_IO_MOTIFSETTINGS structure contains information about a motif.
@@ -926,6 +966,16 @@ namespace DirectMusic {
 
         /// Root of the scale, where 0 is the lowest C in the range and 23 is the top B.
         std::uint8_t bScaleRoot;
+
+        DMUS_IO_SUBCHORD() {}
+        DMUS_IO_SUBCHORD(const std::uint8_t *data) {
+            FIELDINIT(DMUS_IO_SUBCHORD, dwChordPattern, std::uint32_t);
+            FIELDINIT(DMUS_IO_SUBCHORD, dwScalePattern, std::uint32_t);
+            FIELDINIT(DMUS_IO_SUBCHORD, dwInversionPoints, std::uint32_t);
+            FIELDINIT(DMUS_IO_SUBCHORD, dwLevels, std::uint32_t);
+            FIELDINIT(DMUS_IO_SUBCHORD, bChordRoot, std::uint8_t);
+            FIELDINIT(DMUS_IO_SUBCHORD, bScaleRoot, std::uint8_t);
+        }
     };
 
     /// The DMUS_IO_SYSEX_ITEM structure contains information about a system exclusive MIDI message.
@@ -1129,5 +1179,15 @@ namespace DirectMusic {
         /// Gain, hundredths of a decibel, to be applied to all waves.
         std::int32_t lVolume;
         std::uint32_t dwFlags;
+    };
+
+    /// The DMUS_IO_TEMPO_ITEM structure contains information about a tempo change in a track.
+    /// Used in the Tempo Track Chunk.
+    struct DMUS_IO_TEMPO_ITEM {
+        /// Time of the tempo change.
+        std::uint32_t lTime;
+
+        /// Tempo, in beats per minute.
+        double dblTempo;
     };
 }

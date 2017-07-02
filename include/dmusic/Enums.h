@@ -40,6 +40,89 @@ namespace DirectMusic {
         DMUS_COMMANDT_ENDANDINTRO = 5
     };
 
+    enum DMUS_COMPOSEF_FLAGS {
+        /// No flags. By default, the transition starts on a measure boundary.
+        DMUS_COMPOSEF_NONE = 0,
+
+        /// Align transition to the time signature of the currently playing segment.
+        DMUS_COMPOSEF_ALIGN = 0x1,
+
+        /// Overlap the transition into pToSeg. Not implemented.
+        DMUS_COMPOSEF_OVERLAP = 0x2,
+
+        /// AutoTransition only. Start transition immediately.
+        DMUS_COMPOSEF_IMMEDIATE = 0x4,
+
+        /// AutoTransition only. Start transition on a grid boundary.
+        DMUS_COMPOSEF_GRID = 0x8,
+
+        /// AutoTransition only. Start transition on a beat boundary.
+        DMUS_COMPOSEF_BEAT = 0x10,
+
+        /// AutoTransition only. Start transition on a measure boundary.
+        DMUS_COMPOSEF_MEASURE = 0x20,
+
+        /// AutoTransition only.
+        /// Use the DMUS_SEGF_AFTERPREPARETIME flag when cueing the transition.
+        DMUS_COMPOSEF_AFTERPREPARETIME = 0x40,
+
+        /// Allow the switch to occur on any beat.
+        /// Used in conjunction with DMUS_COMPOSEF_ALIGN.
+        DMUS_COMPOSEF_VALID_START_BEAT = 0x80,
+
+        /// Allow the switch to occur on any grid.
+        /// Used in conjunction with DMUS_COMPOSEF_ALIGN.
+        DMUS_COMPOSEF_VALID_START_GRID = 0x100,
+
+        /// Allow the switch to occur at any time.
+        /// Used in conjunction with DMUS_COMPOSEF_ALIGN.
+        DMUS_COMPOSEF_VALID_START_TICK = 0x200,
+
+        /// Play the transition at the end of the current segment.
+        DMUS_COMPOSEF_SEGMENTEND = 0x400,
+
+        /// Play the transition at the next marker in the current segment.
+        DMUS_COMPOSEF_MARKER = 0x800,
+
+        /// Compose a transition that modulates smoothly from pFromSeg to pToSeg, using the chord of pToSeg.
+        DMUS_COMPOSEF_MODULATE = 0x1000,
+
+        /// Composes a long transition.
+        /// If this flag is not set, the length of the transition is at most one measure unless the wCommand parameter of
+        /// ComposeTransition or AutoTransition specifies an ending and the style contains an ending of greater than one measure.
+        /// If this flag is set, the length of the transition increases by one measure.
+        DMUS_COMPOSEF_LONG = 0x2000,
+
+        /// Include the entire transition pattern.
+        DMUS_COMPOSEF_ENTIRE_TRANSITION = 0x4000,
+
+        /// Include one bar of the transition pattern.
+        DMUS_COMPOSEF_1BAR_TRANSITION = 0x8000,
+
+        /// Include the additional transition pattern in its entirety.
+        /// Used in combination with DMUS_COMPOSEF_LONG.
+        DMUS_COMPOSEF_ENTIRE_ADDITION = 0x10000,
+
+        /// Include one bar of the additional transition pattern.
+        /// This is the default behavior when DMUS_COMPOSEF_LONG is specified.
+        DMUS_COMPOSEF_1BAR_ADDITION = 0x20000,
+
+        /// Allow the switch to occur on any bar.  Used in combination with DMUS_COMPOSEF_ALIGN.
+        DMUS_COMPOSEF_VALID_START_MEASURE = 0x40000,
+
+        /// Use the segment's default boundary.
+        DMUS_COMPOSEF_DEFAULT = 0x80000,
+
+        /// Do not invalidate segments that are playing.
+        DMUS_COMPOSEF_NOINVALIDATE = 0x100000,
+
+        /// Use the audiopaths embedded in the segments.
+        DMUS_COMPOSEF_USE_AUDIOPATH = 0x200000,
+
+        /// Invalidate only the primary segment when transitioning to a new segment.
+        DMUS_COMPOSEF_INVALIDATE_PRI = 0x400000
+    };
+
     /// The DMUS_CURVE_FLAGS enumerated type is used in the bFlags member of the DMUS_CURVE_PMSG structure.
     enum DMUS_CURVE_FLAGS {
         /// The value of DMUS_CURVE_PMSG.nResetValue must be set when the time is reached
@@ -216,7 +299,7 @@ namespace DirectMusic {
         DMUS_PMSGT_USER = 255
     };
 
-    enum DMUS_SEGF_FLAGS {
+    enum DMUS_SEGF_FLAGS : std::uint32_t {
         /// Time parameter is in reference time.
         DMUS_SEGF_REFTIME = 1 << 6,
 
@@ -305,7 +388,7 @@ namespace DirectMusic {
         /// Invalidate only the primary segment when transitioning to a new segment.s
         DMUS_SEGF_INVALIDATE_PRI = 1 << 28
     };
-
+    
     /// The DMUS_TIME_RESOLVE_FLAGS enumerated type is used in the dwFlags member of the DMUS_PMSG structure.
     enum DMUS_TIME_RESOLVE_FLAGS {
         /// Resolve to a time after the prepare time.
