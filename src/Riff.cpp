@@ -22,15 +22,17 @@ Chunk::Chunk(const std::uint8_t* buffer) {
     m_data = std::vector<std::uint8_t>(buffer, buffer + header.size);
 
     // A RIFF chunk only contains subchunks if its ID is "RIFF" or "LIST"
-    if (m_id == "RIFF" || m_id == "LIST") {
-        m_listId = std::string((const char *)buffer, 4);
-        buffer += 4;
-        std::uint32_t count = 0;
-        if (m_listId == "INFO") {
-            buffer = buffer;
+    // BUT!! There is also the 'seqt' chunk which doesn't conform to this convention
+    // and has subchunks nonetheless...
+    if (m_id == "RIFF" || m_id == "LIST" || m_id == "seqt") {
+        std::uint32_t sbchkSize = header.size;
+        if (m_id != "seqt") {
+            m_listId = std::string((const char *)buffer, 4);
+            buffer += 4;
+            sbchkSize -= 4;
         }
-        // len includes the listId FOURCC, we must exclude it in this calculation
-        while (count < header.size - 4) {
+        std::uint32_t count = 0;
+        while (count < sbchkSize) {
             Chunk subchunk(buffer);
             m_subchunks.push_back(subchunk);
             int size = subchunk.m_data.size();
