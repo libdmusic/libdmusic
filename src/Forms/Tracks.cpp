@@ -111,7 +111,7 @@ static Chordmap parseChordmap(const Chunk& c) {
         }
     }
 
-    throw "Invalid band item";
+    throw "Invalid chordmap";
 }
 
 ChordmapTrack::ChordmapTrack(const Chunk& c) {
@@ -149,7 +149,7 @@ static LyricsEvent readLyricsEvent(const Chunk& c) {
         }
     }
 
-    throw "Invalid band item";
+    throw "Invalid lyrics event";
 }
 
 LyricsTrack::LyricsTrack(const Chunk& c) {
@@ -159,6 +159,161 @@ LyricsTrack::LyricsTrack(const Chunk& c) {
     for (Chunk subchunk : c.getSubchunks()) {
         if (subchunk.getId() == "LIST" && subchunk.getListId() == "lyrt") {
             m_lyrics.push_back(readLyricsEvent(subchunk));
+        }
+    }
+}
+
+MarkerTrack::MarkerTrack(const Chunk& c) {
+    if (c.getId() != "LIST" || c.getListId() != "MARK")
+        throw DirectMusic::InvalidChunkException("LIST MARK", c.getId() + " " + c.getListId());
+
+    for (Chunk subchunk : c.getSubchunks()) {
+        std::string id = subchunk.getId();
+        const std::uint8_t *data = subchunk.getData().data();
+        const std::uint8_t *start = data;
+        if (id == "vals") {
+            std::uint16_t structSize = littleEndianRead<std::uint16_t>(data);
+            data += 2;
+            while (data - start < subchunk.getData().size()) {
+                m_validStarts.push_back(DMUS_IO_VALID_START(data));
+                data += structSize;
+            }
+        } else if (id == "play") {
+            std::uint16_t structSize = littleEndianRead<std::uint16_t>(data);
+            data += 2;
+            while (data - start < subchunk.getData().size()) {
+                m_validPlays.push_back(DMUS_IO_PLAY_MARKER(data));
+                data += structSize;
+            }
+        }
+    }
+}
+
+MuteTrack::MuteTrack(const Chunk& c) {
+    if (c.getId() != "mute")
+        throw DirectMusic::InvalidChunkException("mute", c.getId() + " " + c.getListId());
+
+    const std::uint8_t *data = c.getData().data();
+    const std::uint8_t *start = data;
+    std::uint16_t structSize = littleEndianRead<std::uint16_t>(data);
+    data += 2;
+    while (data - start < c.getData().size()) {
+        m_mutes.push_back(DMUS_IO_MUTE(data));
+        data += structSize;
+    }
+}
+
+PatternTrack::PatternTrack(const Chunk& c)
+    : m_pattern(nullptr)
+{
+    if(c.getId() != "RIFF" || c.getListId() != "DMPT")
+        throw DirectMusic::InvalidChunkException("RIFF DMPT", c.getId() + " " + c.getListId());
+    for (Chunk subchunk : c.getSubchunks()) {
+        std::string id = subchunk.getId();
+        if (id == "styh") {
+            const std::uint8_t *data = subchunk.getData().data();
+            m_style = DMUS_IO_STYLE(data);
+        } else if (id == "LIST") {
+            if (subchunk.getListId() == "pttn") {
+                m_pattern = std::make_shared<Pattern>(Pattern(subchunk));
+            }
+        }
+    }
+}
+
+SequenceTrack::SequenceTrack(const Chunk& c) {
+    if (c.getId() != "seqt")
+        throw DirectMusic::InvalidChunkException("seqt", c.getId() + " " + c.getListId());
+
+    for (Chunk subchunk : c.getSubchunks()) {
+        std::string id = subchunk.getId();
+        const std::uint8_t *data = subchunk.getData().data();
+        const std::uint8_t *start = data;
+        if (id == "evtl") {
+            std::uint16_t structSize = littleEndianRead<std::uint16_t>(data);
+            data += 2;
+            while (data - start < subchunk.getData().size()) {
+                m_seqItems.push_back(DMUS_IO_SEQ_ITEM(data));
+                data += structSize;
+            }
+        } else if (id == "curl") {
+            std::uint16_t structSize = littleEndianRead<std::uint16_t>(data);
+            data += 2;
+            while (data - start < subchunk.getData().size()) {
+                m_curveItems.push_back(DMUS_IO_CURVE_ITEM(data));
+                data += structSize;
+            }
+        }
+    }
+}
+
+SignpostTrack::SignpostTrack(const Chunk& c) {
+    if (c.getId() != "sgnp")
+        throw DirectMusic::InvalidChunkException("sgnp", c.getId() + " " + c.getListId());
+    const std::uint8_t *data = c.getData().data();
+    const std::uint8_t *start = data;
+    std::uint16_t structSize = littleEndianRead<std::uint16_t>(data);
+    data += 2;
+    while (data - start < c.getData().size()) {
+        m_signposts.push_back(DMUS_IO_SIGNPOST(data));
+        data += structSize;
+    }
+}
+
+static StyleReference readStyleReference(const Chunk& c) {
+    std::uint16_t stmp;
+    for (Chunk subchunk : c.getSubchunks()) {
+        std::string id = subchunk.getId();
+        if (id == "stmp") {
+            stmp = littleEndianRead<std::uint16_t>(subchunk.getData().data());
+        } else if (id == "LIST" && subchunk.getListId() == "DMRF") {
+            return std::make_tuple(stmp, ReferenceList(subchunk));
+        }
+    }
+
+    throw "Invalid style reference";
+}
+
+StyleTrack::StyleTrack(const Chunk& c) {
+    if (c.getId() != "LIST" || c.getListId() != "sttr")
+        throw DirectMusic::InvalidChunkException("LIST sttr", c.getId() + " " + c.getListId());
+
+    for (Chunk subchunk : c.getSubchunks()) {
+        std::string id = subchunk.getId();
+        if (id == "LIST" && subchunk.getListId() == "strf") {
+            m_styles.push_back(readStyleReference(subchunk));
+        }
+    }
+}
+
+TempoTrack::TempoTrack(const Chunk& c) {
+    if (c.getId() != "tetr")
+        throw DirectMusic::InvalidChunkException("tetr", c.getId() + " " + c.getListId());
+    const std::uint8_t *data = c.getData().data();
+    const std::uint8_t *start = data;
+    std::uint16_t structSize = littleEndianRead<std::uint16_t>(data);
+    data += 2;
+    while (data - start < c.getData().size()) {
+        m_items.push_back(DMUS_IO_TEMPO_ITEM(data));
+        data += structSize;
+    }
+}
+
+TimeSignatureTrack::TimeSignatureTrack(const Chunk& c) {
+    if (c.getId() != "LIST" || c.getListId() != "TIMS")
+        throw DirectMusic::InvalidChunkException("LIST TIMS", c.getId() + " " + c.getListId());
+
+    for (Chunk subchunk : c.getSubchunks()) {
+        std::string id = subchunk.getId();
+        if (id == "tims") {
+            const std::uint8_t *data = subchunk.getData().data();
+            const std::uint8_t *start = data;
+            std::uint16_t structSize = littleEndianRead<std::uint16_t>(data);
+            data += 2;
+            while (data - start < subchunk.getData().size()) {
+                m_items.push_back(DMUS_IO_TIMESIGNATURE_ITEM(data));
+                data += structSize;
+            }
         }
     }
 }

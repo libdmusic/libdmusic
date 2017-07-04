@@ -88,10 +88,10 @@ namespace DirectMusic {
         : public SubtrackForm {
     public:
         MuteTrack(const DirectMusic::Riff::Chunk& chunk);
-        const DMUS_IO_MUTE& getData() const { return m_mute; }
+        const std::vector<DMUS_IO_MUTE>& getData() const { return m_mutes; }
 
     private:
-        DMUS_IO_MUTE m_mute;
+        std::vector<DMUS_IO_MUTE> m_mutes;
     };
 
     class ParameterControlTrack
@@ -105,11 +105,11 @@ namespace DirectMusic {
     public:
         PatternTrack(const DirectMusic::Riff::Chunk& chunk);
         const DMUS_IO_STYLE& getStyleHeader() const { return m_style; }
-        const Pattern& getPattern() const { return m_pattern; }
+        const std::shared_ptr<Pattern>& getPattern() const { return m_pattern; }
 
     private:
         DMUS_IO_STYLE m_style;
-        Pattern m_pattern;
+        std::shared_ptr<Pattern> m_pattern;
     };
 
     class ScriptTrack

@@ -17,6 +17,13 @@ namespace DirectMusic {
 
         /// Grids (subdivisions) per beat.
         std::uint16_t wGridsPerBeat;
+
+        DMUS_IO_TIMESIG() {}
+        DMUS_IO_TIMESIG(const std::uint8_t *data) {
+            FIELDINIT(DMUS_IO_TIMESIG, bBeatsPerMeasure, std::uint8_t);
+            FIELDINIT(DMUS_IO_TIMESIG, bBeat, std::uint8_t);
+            FIELDINIT(DMUS_IO_TIMESIG, wGridsPerBeat, std::uint16_t);
+        }
     };
 
     /// The DMUS_IO_BAND_ITEM_HEADER structure contains information about a band change.
@@ -311,6 +318,24 @@ namespace DirectMusic {
 
         /// Merge index. Supported for mod wheel, reverb send, chorus send, pitch bend, volume, and expression controllers.
         std::uint16_t wMergeIndex;
+
+        DMUS_IO_CURVE_ITEM() {}
+        DMUS_IO_CURVE_ITEM(const std::uint8_t *data) {
+            FIELDINIT(DMUS_IO_CURVE_ITEM, mtStart, std::uint32_t);
+            FIELDINIT(DMUS_IO_CURVE_ITEM, mtDuration, std::uint32_t);
+            FIELDINIT(DMUS_IO_CURVE_ITEM, mtResetDuration, std::uint32_t);
+            FIELDINIT(DMUS_IO_CURVE_ITEM, dwPChannel, std::uint32_t);
+            FIELDINIT(DMUS_IO_CURVE_ITEM, nOffset, std::uint16_t);
+            FIELDINIT(DMUS_IO_CURVE_ITEM, nStartValue, std::uint16_t);
+            FIELDINIT(DMUS_IO_CURVE_ITEM, nEndValue, std::uint16_t);
+            FIELDINIT(DMUS_IO_CURVE_ITEM, nResetValue, std::uint16_t);
+            FIELDINIT(DMUS_IO_CURVE_ITEM, bType, std::uint8_t);
+            FIELDINIT(DMUS_IO_CURVE_ITEM, bCurveShape, std::uint8_t);
+            FIELDINIT(DMUS_IO_CURVE_ITEM, bCCData, std::uint8_t);
+            FIELDINIT(DMUS_IO_CURVE_ITEM, bFlags, std::uint8_t);
+            FIELDINIT(DMUS_IO_CURVE_ITEM, wParamType, std::uint16_t);
+            FIELDINIT(DMUS_IO_CURVE_ITEM, wMergeIndex, std::uint16_t);
+        }
     };
 
     /// The DMUS_IO_INSTRUMENT structure contains information about an instrument.
@@ -417,6 +442,13 @@ namespace DirectMusic {
 
         /// Channel to which dwPChannel is being mapped, or 0xFFFFFFFF if dwPChannel is to be muted.
         std::uint32_t dwPChannelMap;
+
+        DMUS_IO_MUTE() {}
+        DMUS_IO_MUTE(const std::uint8_t *data) {
+            FIELDINIT(DMUS_IO_MUTE, mtTime, std::uint32_t);
+            FIELDINIT(DMUS_IO_MUTE, dwPChannel, std::uint32_t);
+            FIELDINIT(DMUS_IO_MUTE, dwPChannelMap, std::uint32_t);
+        }
     };
 
     /// The DMUS_IO_NEXTCHORD structure contains information about the next chord in a chord graph.
@@ -584,6 +616,11 @@ namespace DirectMusic {
     struct DMUS_IO_PLAY_MARKER {
         /// Time of legal play point.
         std::uint32_t mtTime;
+
+        DMUS_IO_PLAY_MARKER() {}
+        DMUS_IO_PLAY_MARKER(const std::uint8_t *data) {
+            FIELDINIT(DMUS_IO_PLAY_MARKER, mtTime, std::uint32_t);
+        }
     };
 
     /// The DMUS_IO_PORTCONFIG_HEADER structure contains information about a port configuration.
@@ -734,6 +771,17 @@ namespace DirectMusic {
 
         /// Second byte of the MIDI data.
         std::uint8_t bByte2;
+
+        DMUS_IO_SEQ_ITEM() {}
+        DMUS_IO_SEQ_ITEM(const std::uint8_t *data) {
+            FIELDINIT(DMUS_IO_SEQ_ITEM, mtTime, std::uint32_t);
+            FIELDINIT(DMUS_IO_SEQ_ITEM, mtDuration, std::uint32_t);
+            FIELDINIT(DMUS_IO_SEQ_ITEM, dwPChannel, std::uint32_t);
+            FIELDINIT(DMUS_IO_SEQ_ITEM, nOffset, std::int16_t);
+            FIELDINIT(DMUS_IO_SEQ_ITEM, bStatus, std::uint8_t);
+            FIELDINIT(DMUS_IO_SEQ_ITEM, bByte1, std::uint8_t);
+            FIELDINIT(DMUS_IO_SEQ_ITEM, bByte2, std::uint8_t);
+        }
     };
 
     /// The DMUS_IO_SIGNPOST structure contains information about a signpost in a signpost track
@@ -751,6 +799,13 @@ namespace DirectMusic {
 
         /// Measure on which the signpost falls.
         std::uint16_t wMeasure;
+
+        DMUS_IO_SIGNPOST() {}
+        DMUS_IO_SIGNPOST(const std::uint8_t *data) {
+            FIELDINIT(DMUS_IO_SIGNPOST, mtTime, std::uint32_t);
+            FIELDINIT(DMUS_IO_SIGNPOST, dwChords, std::uint32_t);
+            FIELDINIT(DMUS_IO_SIGNPOST, wMeasure, std::uint16_t);
+        }
     };
 
     /// The DMUS_IO_STYLE structure contains information about the time signature and tempo of a style.
@@ -761,6 +816,14 @@ namespace DirectMusic {
 
         /// Tempo of the style.
         double dblTempo;
+
+        DMUS_IO_STYLE() {}
+        DMUS_IO_STYLE(const std::uint8_t *data)
+            : timeSig(data)
+        {
+            std::uint64_t tmp = littleEndianRead<std::uint64_t>(data + offsetof(DMUS_IO_STYLE, dblTempo));
+            dblTempo = reinterpret_cast<double&>(tmp);
+        }
     };
 
     /// The DMUS_IO_STYLE_ANTICIPATION structure describes a resolution anticipation.
@@ -1006,6 +1069,14 @@ namespace DirectMusic {
 
         /// Grids (subdivisions) per beat.
         std::uint16_t wGridsPerBeat;
+
+        DMUS_IO_TIMESIGNATURE_ITEM() {}
+        DMUS_IO_TIMESIGNATURE_ITEM(const std::uint8_t *data) {
+            FIELDINIT(DMUS_IO_TIMESIGNATURE_ITEM, lTime, std::uint32_t);
+            FIELDINIT(DMUS_IO_TIMESIGNATURE_ITEM, bBeatsPerMeasure, std::uint8_t);
+            FIELDINIT(DMUS_IO_TIMESIGNATURE_ITEM, bBeat, std::uint8_t);
+            FIELDINIT(DMUS_IO_TIMESIGNATURE_ITEM, wGridsPerBeat, std::uint16_t);
+        }
     };
 
     /// The DMUS_IO_TOOL_HEADER structure contains information about a tool.
@@ -1080,10 +1151,15 @@ namespace DirectMusic {
 
     /// The DMUS_IO_VALID_START structure contains information about a valid
     /// start point in a segment that is to be cued to a rhythm.
-    // Used in the Marker Track List.
+    /// Used in the Marker Track List.
     struct DMUS_IO_VALID_START {
         /// Time of the start point.
         std::uint32_t mtTime;
+
+        DMUS_IO_VALID_START() {}
+        DMUS_IO_VALID_START(const std::uint8_t *data) {
+            FIELDINIT(DMUS_IO_VALID_START, mtTime, std::uint32_t);
+        }
     };
 
     /// The DMUS_IO_VERSION structure contains the version number of the data.
@@ -1189,5 +1265,13 @@ namespace DirectMusic {
 
         /// Tempo, in beats per minute.
         double dblTempo;
+
+        DMUS_IO_TEMPO_ITEM() {}
+        DMUS_IO_TEMPO_ITEM(const std::uint8_t *data) {
+            FIELDINIT(DMUS_IO_TEMPO_ITEM, lTime, std::uint32_t);
+
+            std::uint64_t tmp = littleEndianRead<std::uint64_t>(data + offsetof(DMUS_IO_STYLE, dblTempo));
+            dblTempo = reinterpret_cast<double&>(tmp);
+        }
     };
 }
