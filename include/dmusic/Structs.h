@@ -429,6 +429,15 @@ namespace DirectMusic {
 
         /// Default resolution. See DMUS_TIME_RESOLVE_FLAGS.
         std::uint32_t dwResolution;
+
+        DMUS_IO_MOTIFSETTINGS() {}
+        DMUS_IO_MOTIFSETTINGS(const std::uint8_t *data) {
+            FIELDINIT(DMUS_IO_MOTIFSETTINGS, dwRepeats, std::uint32_t);
+            FIELDINIT(DMUS_IO_MOTIFSETTINGS, mtPlayStart, std::uint32_t);
+            FIELDINIT(DMUS_IO_MOTIFSETTINGS, mtLoopStart, std::uint32_t);
+            FIELDINIT(DMUS_IO_MOTIFSETTINGS, mtLoopEnd, std::uint32_t);
+            FIELDINIT(DMUS_IO_MOTIFSETTINGS, dwResolution, std::uint32_t);
+        }
     };
 
     /// The DMUS_IO_MUTE structure contains information about a mute event on a channel.
@@ -563,6 +572,19 @@ namespace DirectMusic {
 
         /// Performance channel of the part.
         std::uint32_t dwPChannel;
+
+        DMUS_IO_PARTREF() {}
+        DMUS_IO_PARTREF(const std::uint8_t *data)
+            : FIELDCONST(DMUS_IO_PARTREF, guidPartID, GUID)
+        {
+            FIELDINIT(DMUS_IO_PARTREF, wLogicalPartID, std::uint16_t);
+            FIELDINIT(DMUS_IO_PARTREF, bVariationLockID, std::uint8_t);
+            FIELDINIT(DMUS_IO_PARTREF, bSubChordLevel, std::uint8_t);
+            FIELDINIT(DMUS_IO_PARTREF, bPriority, std::uint8_t);
+            FIELDINIT(DMUS_IO_PARTREF, bRandomVariation, std::uint8_t);
+            FIELDINIT(DMUS_IO_PARTREF, wPad, std::uint16_t);
+            FIELDINIT(DMUS_IO_PARTREF, dwPChannel, std::uint32_t);
+        }
     };
 
     /// The DMUS_IO_PATTERN structure contains information about a pattern. Used in the Style Form.
@@ -591,6 +613,19 @@ namespace DirectMusic {
         /// Top of groove range for next pattern.
         std::uint8_t bDestGrooveTop;
         std::uint32_t dwFlags;
+
+        DMUS_IO_PATTERN() {}
+        DMUS_IO_PATTERN(const std::uint8_t *data)
+            : FIELDCONST(DMUS_IO_PATTERN, timeSig, DMUS_IO_TIMESIG)
+        {
+            FIELDINIT(DMUS_IO_PATTERN, bGrooveBottom, std::uint8_t);
+            FIELDINIT(DMUS_IO_PATTERN, bGrooveTop, std::uint8_t);
+            FIELDINIT(DMUS_IO_PATTERN, wEmbellishment, std::uint16_t);
+            FIELDINIT(DMUS_IO_PATTERN, wNbrMeasures, std::uint16_t);
+            FIELDINIT(DMUS_IO_PATTERN, bDestGrooveBottom, std::uint8_t);
+            FIELDINIT(DMUS_IO_PATTERN, bDestGrooveTop, std::uint8_t);
+            FIELDINIT(DMUS_IO_PATTERN, dwFlags, std::uint32_t);
+        }
     };
 
     /// The DMUS_IO_PCHANNELTOBUFFER_HEADER structure defines a range of
@@ -840,6 +875,14 @@ namespace DirectMusic {
 
         /// Range by which to randomize time.
         std::uint8_t bTimeRange;
+
+        DMUS_IO_STYLE_ANTICIPATION() {}
+        DMUS_IO_STYLE_ANTICIPATION(const std::uint8_t *data) {
+            FIELDINIT(DMUS_IO_STYLE_ANTICIPATION, mtGridStart, std::uint32_t);
+            FIELDINIT(DMUS_IO_STYLE_ANTICIPATION, dwVariation, std::uint32_t);
+            FIELDINIT(DMUS_IO_STYLE_ANTICIPATION, nTimeOffset, std::uint16_t);
+            FIELDINIT(DMUS_IO_STYLE_ANTICIPATION, bTimeRange, std::uint8_t);
+        }
     };
 
     /// The DMUS_IO_STYLECURVE structure contains information about a curve in a style.
@@ -891,6 +934,24 @@ namespace DirectMusic {
         /// Merge index. Supported for mod wheel, reverb send, chorus send,
         /// pitch bend, volume, and expression controllers.
         std::uint16_t wMergeIndex;
+
+        DMUS_IO_STYLECURVE() {}
+        DMUS_IO_STYLECURVE(const std::uint8_t *data) {
+            FIELDINIT(DMUS_IO_STYLECURVE, mtGridStart, std::uint32_t);
+            FIELDINIT(DMUS_IO_STYLECURVE, dwVariation, std::uint32_t);
+            FIELDINIT(DMUS_IO_STYLECURVE, mtDuration, std::uint32_t);
+            FIELDINIT(DMUS_IO_STYLECURVE, mtResetDuration, std::uint32_t);
+            FIELDINIT(DMUS_IO_STYLECURVE, nTimeOffset, std::uint16_t);
+            FIELDINIT(DMUS_IO_STYLECURVE, nStartValue, std::uint16_t);
+            FIELDINIT(DMUS_IO_STYLECURVE, nEndValue, std::uint16_t);
+            FIELDINIT(DMUS_IO_STYLECURVE, nResetValue, std::uint16_t);
+            FIELDINIT(DMUS_IO_STYLECURVE, bEventType, std::uint8_t);
+            FIELDINIT(DMUS_IO_STYLECURVE, bCurveShape, std::uint8_t);
+            FIELDINIT(DMUS_IO_STYLECURVE, bCCData, std::uint8_t);
+            FIELDINIT(DMUS_IO_STYLECURVE, bFlags, std::uint8_t);
+            FIELDINIT(DMUS_IO_STYLECURVE, wParamType, std::uint16_t);
+            FIELDINIT(DMUS_IO_STYLECURVE, wMergeIndex, std::uint16_t);
+        }
     };
 
     /// The DMUS_IO_STYLEMARKER structure contains information about a marker in a style.
@@ -906,6 +967,13 @@ namespace DirectMusic {
         /// Flags that specify behavior of the marker.
         /// If zero, the behavior is as it was in DirectX version 7.0.
         std::uint16_t wMarkerFlags;
+        
+        DMUS_IO_STYLEMARKER() {}
+        DMUS_IO_STYLEMARKER(const std::uint8_t *data) {
+            FIELDINIT(DMUS_IO_STYLEMARKER, mtGridStart, std::uint32_t);
+            FIELDINIT(DMUS_IO_STYLEMARKER, dwVariation, std::uint32_t);
+            FIELDINIT(DMUS_IO_STYLEMARKER, wMarkerFlags, std::uint16_t);
+        }
     };
 
     /// The DMUS_IO_STYLENOTE structure contains information about a note in a style.
@@ -948,6 +1016,22 @@ namespace DirectMusic {
 
         /// Flags. See DMUS_NOTEF_FLAGS.
         std::uint8_t bNoteFlags;
+
+        DMUS_IO_STYLENOTE() {}
+        DMUS_IO_STYLENOTE(const std::uint8_t *data) {
+            FIELDINIT(DMUS_IO_STYLENOTE, mtGridStart, std::uint32_t);
+            FIELDINIT(DMUS_IO_STYLENOTE, dwVariation, std::uint32_t);
+            FIELDINIT(DMUS_IO_STYLENOTE, mtDuration, std::uint32_t);
+            FIELDINIT(DMUS_IO_STYLENOTE, nTimeOffset, std::uint16_t);
+            FIELDINIT(DMUS_IO_STYLENOTE, wMusicValue, std::uint16_t);
+            FIELDINIT(DMUS_IO_STYLENOTE, bVelocity, std::uint8_t);
+            FIELDINIT(DMUS_IO_STYLENOTE, bTimeRange, std::uint8_t);
+            FIELDINIT(DMUS_IO_STYLENOTE, bDurRange, std::uint8_t);
+            FIELDINIT(DMUS_IO_STYLENOTE, bVelRange, std::uint8_t);
+            FIELDINIT(DMUS_IO_STYLENOTE, bInversionID, std::uint8_t);
+            FIELDINIT(DMUS_IO_STYLENOTE, bPlayModeFlags, std::uint8_t);
+            FIELDINIT(DMUS_IO_STYLENOTE, bNoteFlags, std::uint8_t);
+        }
     };
 
     /// The DMUS_IO_STYLEPART structure contains information about a musical part.
@@ -981,6 +1065,24 @@ namespace DirectMusic {
 
         /// Flags that specify the behavior of the part.
         std::uint16_t dwFlags;
+
+        DMUS_IO_STYLEPART() {}
+        DMUS_IO_STYLEPART(const std::uint8_t *data)
+            : FIELDCONST(DMUS_IO_STYLEPART, timeSig, DMUS_IO_TIMESIG),
+              FIELDCONST(DMUS_IO_STYLEPART, guidPartID, GUID)
+        {
+            for (int i = 0; i < 32; i++) {
+                dwVariationChoices[i] = littleEndianRead<std::uint32_t>(data + offsetof(DMUS_IO_STYLEPART, dwVariationChoices) + i * 4);
+            }
+            FIELDINIT(DMUS_IO_STYLEPART, wNbrMeasures, std::uint16_t);
+            FIELDINIT(DMUS_IO_STYLEPART, bPlayModeFlags, std::uint8_t);
+            FIELDINIT(DMUS_IO_STYLEPART, bInvertUpper, std::uint8_t);
+            FIELDINIT(DMUS_IO_STYLEPART, bInvertLower, std::uint8_t);
+            for (int i = 0; i < 3; i++) {
+                bPad[i] = littleEndianRead<std::uint32_t>(data + offsetof(DMUS_IO_STYLEPART, bPad) + i);
+            }
+            FIELDINIT(DMUS_IO_STYLEPART, dwFlags, std::uint16_t);
+        }
     };
 
     /// The DMUS_IO_STYLERESOLUTION structure describes a style resolution.
@@ -997,6 +1099,14 @@ namespace DirectMusic {
 
         /// Play mode flags. See DMUS_PLAYMODE_FLAGS.
         std::uint8_t bPlayModeFlags;
+
+        DMUS_IO_STYLERESOLUTION() {}
+        DMUS_IO_STYLERESOLUTION(const std::uint8_t *data) {
+            FIELDINIT(DMUS_IO_STYLERESOLUTION, dwVariation, std::uint32_t);
+            FIELDINIT(DMUS_IO_STYLERESOLUTION, wMusicValue, std::uint16_t);
+            FIELDINIT(DMUS_IO_STYLERESOLUTION, bInversionID, std::uint8_t);
+            FIELDINIT(DMUS_IO_STYLERESOLUTION, bPlayModeFlags, std::uint8_t);
+        }
     };
 
     /// The DMUS_IO_SUBCHORD structure contains information about a subchord.
