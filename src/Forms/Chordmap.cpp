@@ -1,4 +1,3 @@
-#include <dmusic/Common.h>
 #include <dmusic/Forms.h>
 #include <dmusic/Exceptions.h>
 
@@ -12,8 +11,8 @@ Chord DirectMusic::readChord(const Chunk& c) {
     std::wstring name;
     std::vector<std::uint16_t> indexes;
 
-    for (Chunk subchunk : c.getSubchunks()) {
-        std::string id = subchunk.getId();
+    for (const Chunk& subchunk : c.getSubchunks()) {
+        const std::string& id = subchunk.getId();
         const std::uint8_t *data = subchunk.getData().data();
         if (id == "UNAM") {
             name = std::wstring((const wchar_t *)data);
@@ -41,8 +40,8 @@ ChordEntry::ChordEntry(const Chunk& c) {
     if (c.getId() != "LIST" || c.getListId() != "choe")
         throw DirectMusic::InvalidChunkException("LIST choe", c.getId() + " " + c.getListId());
 
-    for (Chunk subchunk : c.getSubchunks()) {
-        std::string id = subchunk.getId();
+    for (const Chunk& subchunk : c.getSubchunks()) {
+        const std::string& id = subchunk.getId();
         if (id == "cheh") {
             m_header = DMUS_IO_CHORDENTRY(subchunk.getData().data());
         } else if (id == "ncsq") {
@@ -64,8 +63,8 @@ Signpost::Signpost(const Chunk& c) {
     if (c.getId() != "LIST" || c.getListId() != "spst")
         throw DirectMusic::InvalidChunkException("LIST spsq", c.getId() + " " + c.getListId());
 
-    for(Chunk subchunk : c.getSubchunks()) {
-        std::string id = subchunk.getId();
+    for(const Chunk& subchunk : c.getSubchunks()) {
+        const std::string& id = subchunk.getId();
         if(id == "spsh") {
             m_header = DMUS_IO_CHORDMAP_SIGNPOST(c.getData().data());
         } else if(id == "LIST") {
@@ -83,8 +82,8 @@ ChordmapForm::ChordmapForm(const Chunk& c) {
     if (c.getId() != "RIFF" || c.getListId() != "DMPR")
         throw DirectMusic::InvalidChunkException("RIFF DMPR", c.getId() + " " + c.getListId());
 
-    for(Chunk subchunk : c.getSubchunks()) {
-        std::string id = subchunk.getId();
+    for(const Chunk& subchunk : c.getSubchunks()) {
+        const std::string& id = subchunk.getId();
         if(id == "perh") {
             m_header = DMUS_IO_CHORDMAP(c.getData().data());
         } else if(id == "guid") {

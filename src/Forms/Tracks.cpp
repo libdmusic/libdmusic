@@ -1,4 +1,3 @@
-#include <dmusic/Common.h>
 #include <dmusic/Forms.h>
 #include <dmusic/Tracks.h>
 #include <dmusic/Exceptions.h>
@@ -11,8 +10,8 @@ TrackForm::TrackForm(const Chunk& c)
     if (c.getId() != "RIFF" || c.getListId() != "DMTK")
         throw DirectMusic::InvalidChunkException("RIFF DMTK", c.getId() + " " + c.getListId());
 
-    for (Chunk subchunk : c.getSubchunks()) {
-        std::string id = subchunk.getId();
+    for (const Chunk& subchunk : c.getSubchunks()) {
+        const std::string& id = subchunk.getId();
         if (id == "guid") {
             m_guid = GUID(subchunk.getData().data());
         } else if (id == "vers") {
@@ -20,20 +19,57 @@ TrackForm::TrackForm(const Chunk& c)
         } else if (id == "trkh") {
             m_header = DMUS_IO_TRACK_HEADER(subchunk.getData().data());
         } else if (id == "trkx") {
-            m_flags = std::make_shared<DMUS_IO_TRACK_EXTRAS_HEADER>(DMUS_IO_TRACK_EXTRAS_HEADER(subchunk.getData().data()));
+            m_flags = std::make_shared<DMUS_IO_TRACK_EXTRAS_HEADER>(subchunk.getData().data());
         } else if (id == "LIST") {
-            std::string listid = subchunk.getListId();
+            const std::string& listid = subchunk.getListId();
             if (listid == "UNFO") {
                 m_unfo = Unfo(subchunk);
+            } else if (listid == "cord") {
+                m_data = ChordTrack(subchunk);
+            } else if (listid == "pftr") {
+                m_data = ChordmapTrack(subchunk);
+            } else if (listid == "lyrt") {
+                m_data = LyricsTrack(subchunk);
+            } else if (listid == "MARK") {
+                m_data = MarkerTrack(subchunk);
+            } else if (listid == "prmt") {
+                m_data = ParameterControlTrack(subchunk);
+            } else if (listid == "scrt") {
+                m_data = ScriptTrack(subchunk);
+            } else if (listid == "segt") {
+                m_data = SegmentTriggerTrack(subchunk);
+            } else if (listid == "sttr") {
+                m_data = StyleTrack(subchunk);
+            } else if (listid == "TIMS") {
+                m_data = TimeSignatureTrack(subchunk);
+            } else if (listid == "wavt") {
+                m_data = WaveTrack(subchunk);
             }
+        } else if (id == "RIFF") {
+            const std::string& listid = subchunk.getListId();
+            if (listid == "DMBT") {
+                m_data = BandTrack(subchunk);
+            } else if (listid == "DMPT") {
+                m_data = PatternTrack(subchunk);
+            }
+        } else if (id == "cmnd") {
+            m_data = CommandTrack(subchunk);
+        } else if (id == "mute") {
+            m_data = MuteTrack(subchunk);
+        } else if (id == "sgnp") {
+            m_data = SignpostTrack(subchunk);
+        } else if (id == "syex") {
+            m_data = SysexTrack(subchunk);
+        } else if (id == "tetr") {
+            m_data = TempoTrack(subchunk);
         }
     }
 }
 
 static BandItem parseBandItem(const Chunk& c) {
     DMUS_IO_BAND_ITEM_HEADER2 header;
-    for (Chunk subchunk : c.getSubchunks()) {
-        std::string id = subchunk.getId();
+    for (const Chunk& subchunk : c.getSubchunks()) {
+        const std::string& id = subchunk.getId();
         if (id == "bdih") {
             DMUS_IO_BAND_ITEM_HEADER h(subchunk.getData().data());
             header.lBandTimeLogical = h.lBandTime;
@@ -52,8 +88,8 @@ BandTrack::BandTrack(const Chunk& c) {
     if (c.getId() != "RIFF" || c.getListId() != "DMBT")
         throw DirectMusic::InvalidChunkException("RIFF DMBT", c.getId() + " " + c.getListId());
 
-    for (Chunk subchunk : c.getSubchunks()) {
-        std::string id = subchunk.getId();
+    for (const Chunk& subchunk : c.getSubchunks()) {
+        const std::string& id = subchunk.getId();
         if (id == "guid") {
             m_guid = GUID(subchunk.getData().data());
         } else if (id == "vers") {
@@ -61,7 +97,7 @@ BandTrack::BandTrack(const Chunk& c) {
         } else if (id == "bdth") {
             m_header = DMUS_IO_BAND_TRACK_HEADER(subchunk.getData().data());
         } else if (id == "LIST") {
-            std::string listid = subchunk.getListId();
+            const std::string& listid = subchunk.getListId();
             if (listid == "UNFO") {
                 m_unfo = Unfo(subchunk);
             } else if (listid == "lbdl") {
@@ -79,8 +115,8 @@ ChordTrack::ChordTrack(const Chunk& c) {
     if (c.getId() != "LIST" || c.getListId() != "cord")
         throw DirectMusic::InvalidChunkException("LIST cord", c.getId() + " " + c.getListId());
 
-    for (Chunk subchunk : c.getSubchunks()) {
-        std::string id = subchunk.getId();
+    for (const Chunk& subchunk : c.getSubchunks()) {
+        const std::string& id = subchunk.getId();
         if (id == "crdh") {
             m_header = littleEndianRead<std::uint32_t>(subchunk.getData().data());
         } else if (id == "crdb") {
@@ -102,8 +138,8 @@ ChordTrack::ChordTrack(const Chunk& c) {
 
 static Chordmap parseChordmap(const Chunk& c) {
     std::uint16_t stamp;
-    for (Chunk subchunk : c.getSubchunks()) {
-        std::string id = subchunk.getId();
+    for (const Chunk& subchunk : c.getSubchunks()) {
+        const std::string& id = subchunk.getId();
         if (id == "stmp") {
             stamp = littleEndianRead<std::uint16_t>(subchunk.getData().data());
         } else if (id == "LIST" && subchunk.getListId() == "DMRF") {
@@ -118,7 +154,7 @@ ChordmapTrack::ChordmapTrack(const Chunk& c) {
     if (c.getId() != "LIST" || c.getListId() != "pftr")
         throw DirectMusic::InvalidChunkException("LIST pftr", c.getId() + " " + c.getListId());
 
-    for (Chunk subchunk : c.getSubchunks()) {
+    for (const Chunk& subchunk : c.getSubchunks()) {
         if (subchunk.getId() == "LIST" && subchunk.getListId() == "pfrf") {
             m_chordmaps.push_back(parseChordmap(subchunk));
         }
@@ -140,8 +176,8 @@ CommandTrack::CommandTrack(const Chunk& c) {
 
 static LyricsEvent readLyricsEvent(const Chunk& c) {
     DMUS_IO_LYRICSTRACK_EVENTHEADER header;
-    for (Chunk subchunk : c.getSubchunks()) {
-        std::string id = subchunk.getId();
+    for (const Chunk& subchunk : c.getSubchunks()) {
+        const std::string& id = subchunk.getId();
         if (id == "stmp") {
             header = DMUS_IO_LYRICSTRACK_EVENTHEADER(subchunk.getData().data());
         } else if (id == "lyrn") {
@@ -156,7 +192,7 @@ LyricsTrack::LyricsTrack(const Chunk& c) {
     if (c.getId() != "LIST" || c.getListId() != "lyrt")
         throw DirectMusic::InvalidChunkException("LIST lyrt", c.getId() + " " + c.getListId());
 
-    for (Chunk subchunk : c.getSubchunks()) {
+    for (const Chunk& subchunk : c.getSubchunks()) {
         if (subchunk.getId() == "LIST" && subchunk.getListId() == "lyrt") {
             m_lyrics.push_back(readLyricsEvent(subchunk));
         }
@@ -167,8 +203,8 @@ MarkerTrack::MarkerTrack(const Chunk& c) {
     if (c.getId() != "LIST" || c.getListId() != "MARK")
         throw DirectMusic::InvalidChunkException("LIST MARK", c.getId() + " " + c.getListId());
 
-    for (Chunk subchunk : c.getSubchunks()) {
-        std::string id = subchunk.getId();
+    for (const Chunk& subchunk : c.getSubchunks()) {
+        const std::string& id = subchunk.getId();
         const std::uint8_t *data = subchunk.getData().data();
         const std::uint8_t *start = data;
         if (id == "vals") {
@@ -208,14 +244,14 @@ PatternTrack::PatternTrack(const Chunk& c)
 {
     if(c.getId() != "RIFF" || c.getListId() != "DMPT")
         throw DirectMusic::InvalidChunkException("RIFF DMPT", c.getId() + " " + c.getListId());
-    for (Chunk subchunk : c.getSubchunks()) {
-        std::string id = subchunk.getId();
+    for (const Chunk& subchunk : c.getSubchunks()) {
+        const std::string& id = subchunk.getId();
         if (id == "styh") {
             const std::uint8_t *data = subchunk.getData().data();
             m_style = DMUS_IO_STYLE(data);
         } else if (id == "LIST") {
             if (subchunk.getListId() == "pttn") {
-                m_pattern = std::make_shared<Pattern>(Pattern(subchunk));
+                m_pattern = std::make_shared<Pattern>(subchunk);
             }
         }
     }
@@ -225,8 +261,8 @@ SequenceTrack::SequenceTrack(const Chunk& c) {
     if (c.getId() != "seqt")
         throw DirectMusic::InvalidChunkException("seqt", c.getId() + " " + c.getListId());
 
-    for (Chunk subchunk : c.getSubchunks()) {
-        std::string id = subchunk.getId();
+    for (const Chunk& subchunk : c.getSubchunks()) {
+        const std::string& id = subchunk.getId();
         const std::uint8_t *data = subchunk.getData().data();
         const std::uint8_t *start = data;
         if (id == "evtl") {
@@ -262,8 +298,8 @@ SignpostTrack::SignpostTrack(const Chunk& c) {
 
 static StyleReference readStyleReference(const Chunk& c) {
     std::uint16_t stmp;
-    for (Chunk subchunk : c.getSubchunks()) {
-        std::string id = subchunk.getId();
+    for (const Chunk& subchunk : c.getSubchunks()) {
+        const std::string& id = subchunk.getId();
         if (id == "stmp") {
             stmp = littleEndianRead<std::uint16_t>(subchunk.getData().data());
         } else if (id == "LIST" && subchunk.getListId() == "DMRF") {
@@ -278,8 +314,8 @@ StyleTrack::StyleTrack(const Chunk& c) {
     if (c.getId() != "LIST" || c.getListId() != "sttr")
         throw DirectMusic::InvalidChunkException("LIST sttr", c.getId() + " " + c.getListId());
 
-    for (Chunk subchunk : c.getSubchunks()) {
-        std::string id = subchunk.getId();
+    for (const Chunk& subchunk : c.getSubchunks()) {
+        const std::string& id = subchunk.getId();
         if (id == "LIST" && subchunk.getListId() == "strf") {
             m_styles.push_back(readStyleReference(subchunk));
         }
@@ -303,8 +339,8 @@ TimeSignatureTrack::TimeSignatureTrack(const Chunk& c) {
     if (c.getId() != "LIST" || c.getListId() != "TIMS")
         throw DirectMusic::InvalidChunkException("LIST TIMS", c.getId() + " " + c.getListId());
 
-    for (Chunk subchunk : c.getSubchunks()) {
-        std::string id = subchunk.getId();
+    for (const Chunk& subchunk : c.getSubchunks()) {
+        const std::string& id = subchunk.getId();
         if (id == "tims") {
             const std::uint8_t *data = subchunk.getData().data();
             const std::uint8_t *start = data;

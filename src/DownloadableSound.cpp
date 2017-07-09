@@ -10,8 +10,8 @@ DownloadableSound::DownloadableSound(const Chunk& c) {
     if (c.getId() != "RIFF" || c.getListId() != "DLS ")
         throw DirectMusic::InvalidChunkException("RIFF DLS", c.getId() + " " + c.getListId());
 
-    for (Chunk subchunk : c.getSubchunks()) {
-        std::string id = subchunk.getId();
+    for (const Chunk& subchunk : c.getSubchunks()) {
+        const std::string& id = subchunk.getId();
         if (id == "vers") {
             m_version = littleEndianRead<std::uint64_t>(subchunk.getData().data());
         } else if (id == "dlid") {

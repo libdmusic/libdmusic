@@ -1,4 +1,3 @@
-#include <dmusic/Common.h>
 #include <dmusic/Forms.h>
 #include <dmusic/Exceptions.h>
 
@@ -9,8 +8,8 @@ ReferenceList::ReferenceList(const Chunk& c) {
     if (c.getId() != "LIST" || c.getListId() != "DMRF")
         throw DirectMusic::InvalidChunkException("LIST DMRF", c.getId() + " " + c.getListId());
 
-    for(Chunk subchunk : c.getSubchunks()) {
-        std::string id = subchunk.getId();
+    for(const Chunk& subchunk : c.getSubchunks()) {
+        const std::string& id = subchunk.getId();
         if(id == "refh") {
             m_header = DMUS_IO_REFERENCE(subchunk.getData().data());
         } else if(id == "guid") {

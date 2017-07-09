@@ -8,8 +8,8 @@ Region::Region(const Chunk& c) {
     if (c.getId() != "LIST" || c.getListId() != "rgn ")
         throw DirectMusic::InvalidChunkException("LIST rgn", c.getId() + " " + c.getListId());
 
-    for(Chunk subchunk: c.getSubchunks()) {
-        std::string id = subchunk.getId();
+    for(const Chunk& subchunk: c.getSubchunks()) {
+        const std::string& id = subchunk.getId();
         if(id == "rgnh") {
             m_rgnHeader = RegionHeader(subchunk.getData().data());
         } else if(id == "LIST" && subchunk.getListId() == "lart") {

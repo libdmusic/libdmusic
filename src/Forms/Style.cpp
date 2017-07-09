@@ -1,4 +1,3 @@
-#include <dmusic/Common.h>
 #include <dmusic/Forms.h>
 #include <dmusic/Exceptions.h>
 
@@ -9,8 +8,8 @@ StylePart::StylePart(const Chunk& c) {
     if (c.getId() != "LIST" || c.getListId() != "part")
         throw DirectMusic::InvalidChunkException("LIST part", c.getId() + " " + c.getListId());
 
-    for (Chunk subchunk : c.getSubchunks()) {
-        std::string id = subchunk.getId();
+    for (const Chunk& subchunk : c.getSubchunks()) {
+        const std::string& id = subchunk.getId();
         const std::uint8_t *data = subchunk.getData().data();
         const std::uint8_t *start = data;
         if (id == "prth") {
@@ -66,8 +65,8 @@ Pattern::Pattern(const Chunk& c)
     if (c.getId() != "LIST" || c.getListId() != "pttn")
         throw DirectMusic::InvalidChunkException("LIST pttn", c.getId() + " " + c.getListId());
 
-    for (Chunk subchunk : c.getSubchunks()) {
-        std::string id = subchunk.getId();
+    for (const Chunk& subchunk : c.getSubchunks()) {
+        const std::string& id = subchunk.getId();
         const std::uint8_t *data = subchunk.getData().data();
         const std::uint8_t *start = data;
         if (id == "ptnh") {
@@ -78,7 +77,7 @@ Pattern::Pattern(const Chunk& c)
                 data += 2;
             }
         } else if(id == "mtfs") {
-            m_motifSettings = std::make_shared<DMUS_IO_MOTIFSETTINGS>(DMUS_IO_MOTIFSETTINGS(data));
+            m_motifSettings = std::make_shared<DMUS_IO_MOTIFSETTINGS>(data);
         } else if (id == "LIST") {
             std::string listid = subchunk.getListId();
             if (listid == "UNFO") {
@@ -105,8 +104,8 @@ StyleForm::StyleForm(const Chunk& c) {
     if (c.getId() != "RIFF" || c.getListId() != "DMST")
         throw DirectMusic::InvalidChunkException("RIFF DMST", c.getId() + " " + c.getListId());
 
-    for (Chunk subchunk : c.getSubchunks()) {
-        std::string id = subchunk.getId();
+    for (const Chunk& subchunk : c.getSubchunks()) {
+        const std::string& id = subchunk.getId();
         const std::uint8_t *data = subchunk.getData().data();
         const std::uint8_t *start = data;
         if (id == "styh") {

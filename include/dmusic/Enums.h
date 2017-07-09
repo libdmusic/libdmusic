@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include "Common.h"
 
 namespace DirectMusic {
     /// The DMUS_CHORDKEYF_FLAGS enumerated type is used in the bFlags member of the DMUS_CHORD_KEY structure.

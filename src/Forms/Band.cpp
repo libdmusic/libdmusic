@@ -1,4 +1,3 @@
-#include <dmusic/Common.h>
 #include <dmusic/Forms.h>
 #include <dmusic/Exceptions.h>
 
@@ -11,12 +10,12 @@ BandInstrument::BandInstrument(const Chunk& c)
     if (c.getId() != "LIST" || c.getListId() != "lbin")
         throw DirectMusic::InvalidChunkException("LIST lbin", c.getId() + " " + c.getListId());
 
-    for(Chunk subchunk : c.getSubchunks()) {
-        std::string id = subchunk.getId();
+    for(const Chunk& subchunk : c.getSubchunks()) {
+        const std::string& id = subchunk.getId();
         if(id == "bins") {
             m_header = DMUS_IO_INSTRUMENT(subchunk.getData().data());
         } else if(id == "LIST" && subchunk.getListId() == "DMRF") {
-            m_reference = std::make_shared<ReferenceList>(ReferenceList(subchunk));
+            m_reference = std::make_shared<ReferenceList>(subchunk);
         }
     }
 }
@@ -25,8 +24,8 @@ BandForm::BandForm(const Chunk& c) {
     if (c.getId() != "RIFF" || c.getListId() != "DMBD")
         throw DirectMusic::InvalidChunkException("RIFF DMBD", c.getId() + " " + c.getListId());
 
-    for(Chunk subchunk : c.getSubchunks()) {
-        std::string id = subchunk.getId();
+    for(const Chunk& subchunk : c.getSubchunks()) {
+        const std::string& id = subchunk.getId();
         if(id == "guid") {
             m_guid = GUID(subchunk.getData().data());
         } else if(id == "vers") {

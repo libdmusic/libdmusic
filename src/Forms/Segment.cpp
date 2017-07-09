@@ -1,4 +1,3 @@
-#include <dmusic/Common.h>
 #include <dmusic/Forms.h>
 #include <dmusic/Exceptions.h>
 
@@ -9,8 +8,8 @@ SegmentForm::SegmentForm(const Chunk& c) {
     if (c.getId() != "RIFF" || c.getListId() != "DMSG")
         throw DirectMusic::InvalidChunkException("RIFF DMSG", c.getId() + " " + c.getListId());
 
-    for (Chunk subchunk : c.getSubchunks()) {
-        std::string id = subchunk.getId();
+    for (const Chunk& subchunk : c.getSubchunks()) {
+        const std::string& id = subchunk.getId();
         if (id == "segh") {
             m_header = DMUS_IO_SEGMENT_HEADER(subchunk.getData().data());
         } else if (id == "guid") {

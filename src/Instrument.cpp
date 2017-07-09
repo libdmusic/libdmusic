@@ -8,8 +8,8 @@ Instrument::Instrument(const Chunk& c) {
     if (c.getId() != "LIST" || c.getListId() != "ins ")
         throw DirectMusic::InvalidChunkException("LIST ins", c.getId() + " " + c.getListId());
 
-    for (Chunk subchunk : c.getSubchunks()) {
-        std::string id = subchunk.getId();
+    for (const Chunk& subchunk : c.getSubchunks()) {
+        const std::string& id = subchunk.getId();
         if (id == "dlid") {
             m_dlsid = *((GUID*)subchunk.getData().data());
         } else if (id == "insh") {

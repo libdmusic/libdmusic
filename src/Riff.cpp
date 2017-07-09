@@ -46,9 +46,9 @@ Chunk::Chunk(const std::uint8_t* buffer) {
 Info::Info(const Chunk& c) {
     if (c.getId() != "LIST" || c.getListId() != "INFO")
         throw DirectMusic::InvalidChunkException("LIST INFO", c.getId() + " " + c.getListId());
-    for(Chunk subchunk : c.getSubchunks()) {
+    for(const Chunk& subchunk : c.getSubchunks()) {
         std::vector<std::uint8_t> data = subchunk.getData();
-        std::string id = subchunk.getId();
+        const std::string& id = subchunk.getId();
         std::string value = std::string((const char *)data.data());
         if (id == "IARL") m_iarl = value;
         if (id == "IART") m_iart = value;
@@ -73,9 +73,9 @@ Info::Info(const Chunk& c) {
 Unfo::Unfo(const Chunk& c) {
     if (c.getId() != "LIST" || c.getListId() != "UNFO")
         throw DirectMusic::InvalidChunkException("LIST UNFO", c.getId() + " " + c.getListId());
-    for (Chunk subchunk : c.getSubchunks()) {
+    for (const Chunk& subchunk : c.getSubchunks()) {
         std::vector<std::uint8_t> data = subchunk.getData();
-        std::string id = subchunk.getId();
+        const std::string& id = subchunk.getId();
         std::wstring value = std::wstring((const wchar_t *)data.data());
         if (id == "IARL") m_iarl = value;
         if (id == "IART") m_iart = value;
