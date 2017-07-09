@@ -1,3 +1,11 @@
+<h1 align="center">
+  <br>
+  <img width="192" src="media/logo.svg">
+  <br>
+  <br>
+  <br>
+</h1>
+
 Project goals
 =============
 
