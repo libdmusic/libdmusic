@@ -1,6 +1,6 @@
 <h1 align="center">
   <br>
-  <img width="192" src="media/logo.svg">
+  <img width="256" src="https://cdn.rawgit.com/frabert/libdmusic/f7aeed1b/media/logo.svg">
   <br>
 </h1>
 
