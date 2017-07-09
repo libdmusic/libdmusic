@@ -2,11 +2,9 @@
   <br>
   <img width="192" src="media/logo.svg">
   <br>
-  <br>
-  <br>
 </h1>
 
-Project goals
+Project goals [![Linux build Status](https://travis-ci.org/frabert/libdmusic.svg?branch=master)](https://travis-ci.org/frabert/libdmusic) [![Windows build status](https://ci.appveyor.com/api/projects/status/7t7ral8wos4p7idc?svg=true)](https://ci.appveyor.com/project/frabert/libdmusic)
 =============
 
 `libdmusic` aims to provide a framework and suite of tools to enable applications and games playback of Microsoft DirectMusic audio files.
