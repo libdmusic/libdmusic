@@ -2,6 +2,7 @@
 #include <dmusic/PlayingContext.h>
 #include <dmusic/InstrumentPlayer.h>
 #include <dmusic/Tracks.h>
+#include <dmusic/dls/DownloadableSound.h>
 
 using namespace DirectMusic;
 using namespace DirectMusic::DLS;
@@ -50,7 +51,7 @@ static void printTrack(const T& track) {
 }
 
 template<>
-static void printTrack<std::shared_ptr<ChordTrack>>(const std::shared_ptr<ChordTrack>& track) {
+void printTrack<std::shared_ptr<ChordTrack>>(const std::shared_ptr<ChordTrack>& track) {
     std::uint32_t header = track->getHeader();
     std::cout << getChordName((header & 0xFF000000) >> 24) << "\n";
     std::wcout << std::wstring((const wchar_t *)track->getChord().wszName) << "\n";
@@ -60,7 +61,7 @@ static void printTrack<std::shared_ptr<ChordTrack>>(const std::shared_ptr<ChordT
 }
 
 template<>
-static void printTrack<std::shared_ptr<StyleTrack>>(const std::shared_ptr<StyleTrack>& track) {
+void printTrack<std::shared_ptr<StyleTrack>>(const std::shared_ptr<StyleTrack>& track) {
     for (const StyleReference& ref : track->getStyles()) {
         std::uint16_t timestamp = std::get<0>(ref);
         ReferenceList refList = std::get<1>(ref);
@@ -69,7 +70,7 @@ static void printTrack<std::shared_ptr<StyleTrack>>(const std::shared_ptr<StyleT
 }
 
 template<>
-static void printTrack<std::shared_ptr<BandTrack>>(const std::shared_ptr<BandTrack>& track) {
+void printTrack<std::shared_ptr<BandTrack>>(const std::shared_ptr<BandTrack>& track) {
     std::cout << "Auto download: " << (track->getHeader().bAutoDownload ? "true" : "false") << "\n";
     for (const auto& band : track->getBands()) {
         DMUS_IO_BAND_ITEM_HEADER2 header = std::get<0>(band);
@@ -84,14 +85,14 @@ static void printTrack<std::shared_ptr<BandTrack>>(const std::shared_ptr<BandTra
 }
 
 template<>
-static void printTrack<std::shared_ptr<TempoTrack>>(const std::shared_ptr<TempoTrack>& track) {
+void printTrack<std::shared_ptr<TempoTrack>>(const std::shared_ptr<TempoTrack>& track) {
     for (const auto& item : track->getItems()) {
         std::cout << "Tempo: " << item.dblTempo << " at " << item.lTime << "\n";
     }
 }
 
 template<>
-static void printTrack<TrackForm>(const TrackForm& track) {
+void printTrack<TrackForm>(const TrackForm& track) {
     const auto& header = track.getHeader();
     std::string ckid = std::string(header.ckid),
         fccType = std::string(header.fccType);
