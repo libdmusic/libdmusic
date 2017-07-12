@@ -2,6 +2,7 @@
 #include <dmusic/PlayingContext.h>
 #include <dmusic/InstrumentPlayer.h>
 #include <dmusic/Tracks.h>
+#include <dmusic/dls/DownloadableSound.h>
 
 using namespace DirectMusic;
 using namespace DirectMusic::DLS;
