@@ -64,7 +64,7 @@ namespace DirectMusic {
         /// Loads an instrument collection
         std::shared_ptr<DirectMusic::DLS::DownloadableSound> loadInstrumentCollection(const std::string& file) const {
             std::vector<std::uint8_t> data = m_loader.loadFile(file);
-            return genObjFromChunkData<DownloadableSound>(data);
+            return genObjFromChunkData<DirectMusic::DLS::DownloadableSound>(data);
         }
     };
 }
