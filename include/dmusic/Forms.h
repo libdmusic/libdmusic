@@ -122,7 +122,7 @@ namespace DirectMusic {
         const DirectMusic::Riff::Unfo& getInfo() const { return m_unfo; }
         const DMUS_IO_TRACK_HEADER& getHeader() const { return m_header; }
         const std::shared_ptr<DMUS_IO_TRACK_EXTRAS_HEADER>& getTrackFlags() const { return m_flags; }
-        const SubtrackForm& getData() const { return m_data; }
+        const std::shared_ptr<SubtrackForm> getData() const { return m_data; }
 
     private:
         GUID m_guid;
@@ -130,7 +130,7 @@ namespace DirectMusic {
         DirectMusic::Riff::Unfo m_unfo;
         DMUS_IO_TRACK_HEADER m_header;
         std::shared_ptr<DMUS_IO_TRACK_EXTRAS_HEADER> m_flags;
-        SubtrackForm m_data;
+        std::shared_ptr<SubtrackForm> m_data;
     };
 
     class SegmentForm {

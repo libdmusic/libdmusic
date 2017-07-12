@@ -82,17 +82,17 @@ namespace DirectMusic {
     }
 
     struct GUID {
-        std::uint64_t Data1;
-        std::uint32_t Data2;
-        std::uint32_t Data3;
+        std::uint32_t Data1;
+        std::uint16_t Data2;
+        std::uint16_t Data3;
         std::uint64_t Data4;
 
         GUID() {}
 
         GUID(const std::uint8_t *data) {
-            FIELDINIT(GUID, Data1, std::uint64_t);
-            FIELDINIT(GUID, Data2, std::uint32_t);
-            FIELDINIT(GUID, Data3, std::uint32_t);
+            FIELDINIT(GUID, Data1, std::uint32_t);
+            FIELDINIT(GUID, Data2, std::uint16_t);
+            FIELDINIT(GUID, Data3, std::uint16_t);
             FIELDINIT(GUID, Data4, std::uint64_t);
         }
     };

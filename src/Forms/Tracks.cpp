@@ -25,43 +25,43 @@ TrackForm::TrackForm(const Chunk& c)
             if (listid == "UNFO") {
                 m_unfo = Unfo(subchunk);
             } else if (listid == "cord") {
-                m_data = ChordTrack(subchunk);
+                m_data = std::make_shared<ChordTrack>(subchunk);
             } else if (listid == "pftr") {
-                m_data = ChordmapTrack(subchunk);
+                m_data = std::make_shared<ChordmapTrack>(subchunk);
             } else if (listid == "lyrt") {
-                m_data = LyricsTrack(subchunk);
+                m_data = std::make_shared<LyricsTrack>(subchunk);
             } else if (listid == "MARK") {
-                m_data = MarkerTrack(subchunk);
+                m_data = std::make_shared<MarkerTrack>(subchunk);
             } else if (listid == "prmt") {
-                m_data = ParameterControlTrack(subchunk);
+                m_data = std::make_shared<ParameterControlTrack>(subchunk);
             } else if (listid == "scrt") {
-                m_data = ScriptTrack(subchunk);
+                m_data = std::make_shared<ScriptTrack>(subchunk);
             } else if (listid == "segt") {
-                m_data = SegmentTriggerTrack(subchunk);
+                m_data = std::make_shared<SegmentTriggerTrack>(subchunk);
             } else if (listid == "sttr") {
-                m_data = StyleTrack(subchunk);
+                m_data = std::make_shared<StyleTrack>(subchunk);
             } else if (listid == "TIMS") {
-                m_data = TimeSignatureTrack(subchunk);
+                m_data = std::make_shared<TimeSignatureTrack>(subchunk);
             } else if (listid == "wavt") {
-                m_data = WaveTrack(subchunk);
+                m_data = std::make_shared<WaveTrack>(subchunk);
             }
         } else if (id == "RIFF") {
             const std::string& listid = subchunk.getListId();
             if (listid == "DMBT") {
-                m_data = BandTrack(subchunk);
+                m_data = std::make_shared<BandTrack>(subchunk);
             } else if (listid == "DMPT") {
-                m_data = PatternTrack(subchunk);
+                m_data = std::make_shared<PatternTrack>(subchunk);
             }
         } else if (id == "cmnd") {
-            m_data = CommandTrack(subchunk);
+            m_data = std::make_shared<CommandTrack>(subchunk);
         } else if (id == "mute") {
-            m_data = MuteTrack(subchunk);
+            m_data = std::make_shared<MuteTrack>(subchunk);
         } else if (id == "sgnp") {
-            m_data = SignpostTrack(subchunk);
+            m_data = std::make_shared<SignpostTrack>(subchunk);
         } else if (id == "syex") {
-            m_data = SysexTrack(subchunk);
+            m_data = std::make_shared<SysexTrack>(subchunk);
         } else if (id == "tetr") {
-            m_data = TempoTrack(subchunk);
+            m_data = std::make_shared<TempoTrack>(subchunk);
         }
     }
 }
@@ -120,7 +120,7 @@ ChordTrack::ChordTrack(const Chunk& c) {
         if (id == "crdh") {
             m_header = littleEndianRead<std::uint32_t>(subchunk.getData().data());
         } else if (id == "crdb") {
-            const std::uint8_t *data = c.getData().data();
+            const std::uint8_t *data = subchunk.getData().data();
             std::uint16_t chordSize = littleEndianRead<std::uint16_t>(data);
             data += 2;
             m_chord = DMUS_IO_CHORD(data);

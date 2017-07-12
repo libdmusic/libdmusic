@@ -15,10 +15,25 @@ namespace DirectMusic {
     /// This the main interface to the DirectMusic emulation layer
     template<typename T>
     class PlayingContext {
+    private:
+        std::uint32_t m_sampleRate, m_audioChannels;
+        const Loader& m_loader;
+        std::map<int, std::shared_ptr<InstrumentPlayer>> m_performanceChannels;
+
+        template<typename T1>
+        std::shared_ptr<T1> genObjFromChunkData(const std::vector<std::uint8_t>& data) const {
+            if (data.empty()) return nullptr;
+            DirectMusic::Riff::Chunk c(data.data());
+            return std::make_shared<T1>(c);
+        }
+
     public:
         /// Creates a new playing contest with the specified sampling rate and
         /// number of audio channels (normally 1 (mono) or 2 (stereo))
-        PlayingContext(std::uint32_t sampleRate, std::uint32_t audioChannels);
+        PlayingContext(std::uint32_t sampleRate, std::uint32_t audioChannels)
+            : m_sampleRate(sampleRate),
+            m_audioChannels(audioChannels),
+            m_loader(Loader()) {}
 
         /// Renders the following audio block
         void renderBlock(std::int16_t *data, std::uint32_t count, float volume = 1) noexcept;
@@ -35,17 +50,21 @@ namespace DirectMusic {
         void provideLoader(const Loader& l) { m_loader = l; };
 
         /// Loads a segment file
-        std::shared_ptr<SegmentForm> loadSegment(const std::string& file) const;
+        std::shared_ptr<SegmentForm> loadSegment(const std::string& file) const {
+            std::vector<std::uint8_t> data = m_loader.loadFile(file);
+            return genObjFromChunkData<SegmentForm>(data);
+        }
 
         /// Loads a style file
-        std::shared_ptr<StyleForm> loadStyle(const std::string& file) const;
+        std::shared_ptr<StyleForm> loadStyle(const std::string& file) const {
+            std::vector<std::uint8_t> data = m_loader.loadFile(file);
+            return genObjFromChunkData<StyleForm>(data);
+        }
 
         /// Loads an instrument collection
-        std::shared_ptr<DirectMusic::DLS::DownloadableSound> loadInstrumentCollection(const std::string& file) const;
-
-    private:
-        std::uint32_t m_sampleRate, m_audioChannels;
-        const Loader& m_loader;
-        std::map<int, InstrumentPlayer> m_performanceChannels;
+        std::shared_ptr<DirectMusic::DLS::DownloadableSound> loadInstrumentCollection(const std::string& file) const {
+            std::vector<std::uint8_t> data = m_loader.loadFile(file);
+            return genObjFromChunkData<DownloadableSound>(data);
+        }
     };
 }

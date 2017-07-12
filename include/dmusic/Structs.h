@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include "Common.h"
+#include "Enums.h"
 
 namespace DirectMusic {
     /// The DMUS_IO_TIMESIG structure contains information about the time signature of a segment.
@@ -228,7 +229,7 @@ namespace DirectMusic {
         std::uint8_t bBeat;
 
         /// Command type. See DMUS_COMMANDT_TYPES.
-        std::uint8_t bCommand;
+        DMUS_COMMANDT_TYPES bCommand;
 
         /// Groove level, or 0 if the command is not a groove command.
         std::uint8_t bGrooveLevel;
@@ -244,7 +245,13 @@ namespace DirectMusic {
 
         DMUS_IO_COMMAND() {}
         DMUS_IO_COMMAND(const std::uint8_t *data) {
-
+            FIELDINIT(DMUS_IO_COMMAND, mtTime, std::uint32_t);
+            FIELDINIT(DMUS_IO_COMMAND, wMeasure, std::uint16_t);
+            FIELDINIT(DMUS_IO_COMMAND, bBeat, std::uint8_t);
+            bCommand = (DMUS_COMMANDT_TYPES)DirectMusic::littleEndianRead<std::uint8_t>(data + offsetof(DMUS_IO_COMMAND, bCommand));
+            FIELDINIT(DMUS_IO_COMMAND, bGrooveLevel, std::uint8_t);
+            FIELDINIT(DMUS_IO_COMMAND, bGrooveRange, std::uint8_t);
+            FIELDINIT(DMUS_IO_COMMAND, bRepeatMode, std::uint8_t);
         }
     };
 

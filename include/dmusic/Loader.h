@@ -9,6 +9,6 @@ namespace DirectMusic {
     /// resolved when loading segments, styles and instrument collections
     class Loader {
     public:
-        virtual std::vector<std::uint8_t> loadFile(const std::string& name) const;
+        std::vector<std::uint8_t> loadFile(const std::string& name) const;
     };
 }

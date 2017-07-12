@@ -19,7 +19,7 @@ namespace DirectMusic {
     };
 
     /// The DMUS_COMMANDT_TYPES enumerated type is used in the bCommand member of the DMUS_COMMAND_PARAM structure.
-    enum DMUS_COMMANDT_TYPES {
+    enum class DMUS_COMMANDT_TYPES : std::uint8_t {
         /// The command is a groove command.
         DMUS_COMMANDT_GROOVE = 0,
 
