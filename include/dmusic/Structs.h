@@ -5,6 +5,7 @@
 #include "Enums.h"
 
 namespace DirectMusic {
+#pragma pack(push, 1)
     /// The DMUS_IO_TIMESIG structure contains information about the time signature of a segment.
     /// Used in the DMUS_IO_STYLE, DMUS_IO_VERSION, and DMUS_IO_PATTERN structures.
     struct DMUS_IO_TIMESIG {
@@ -863,8 +864,7 @@ namespace DirectMusic {
         DMUS_IO_STYLE(const std::uint8_t *data)
             : timeSig(data)
         {
-            std::uint64_t tmp = littleEndianRead<std::uint64_t>(data + offsetof(DMUS_IO_STYLE, dblTempo));
-            dblTempo = reinterpret_cast<double&>(tmp);
+            dblTempo = *((double*)(data + offsetof(DMUS_IO_STYLE, dblTempo)));
         }
     };
 
@@ -1387,8 +1387,8 @@ namespace DirectMusic {
         DMUS_IO_TEMPO_ITEM(const std::uint8_t *data) {
             FIELDINIT(DMUS_IO_TEMPO_ITEM, lTime, std::uint32_t);
 
-            std::uint64_t tmp = littleEndianRead<std::uint64_t>(data + offsetof(DMUS_IO_STYLE, dblTempo));
-            dblTempo = reinterpret_cast<double&>(tmp);
+            dblTempo = *((double*)(data + offsetof(DMUS_IO_TEMPO_ITEM, dblTempo)));
         }
     };
+#pragma pack(pop)
 }
