@@ -1,4 +1,6 @@
 #include <iostream>
+#include <queue>
+#include <locale>
 #include <dmusic/PlayingContext.h>
 #include <dmusic/InstrumentPlayer.h>
 #include <dmusic/Tracks.h>
@@ -6,6 +8,8 @@
 
 using namespace DirectMusic;
 using namespace DirectMusic::DLS;
+
+static std::queue<std::wstring> styles;
 
 class MyInstrumentPlayer : public InstrumentPlayer {
 public:
@@ -65,7 +69,8 @@ void printTrack<std::shared_ptr<StyleTrack>>(const std::shared_ptr<StyleTrack>& 
     for (const StyleReference& ref : track->getStyles()) {
         std::uint16_t timestamp = std::get<0>(ref);
         ReferenceList refList = std::get<1>(ref);
-        std::wcout << refList.getName() << " (" << refList.getFile() << ")" << "\n";
+        std::wcout << refList.getName() << " (" << refList.getFile() << ")" << " at " << timestamp << "\n";
+        styles.push(refList.getFile());
     }
 }
 
@@ -79,7 +84,7 @@ void printTrack<std::shared_ptr<BandTrack>>(const std::shared_ptr<BandTrack>& tr
             auto ref = instr.getReference();
             std::wcout << ref->getName() << " (" << ref->getFile() << ")" << "\n";
             auto header = instr.getHeader();
-            std::cout << "Channel: " << header.dwPChannel << "\n";
+            std::cout << "Channel: " << header.dwPChannel << "\nPriority: " << header.dwChannelPriority << "\n";
         }
     }
 }
@@ -88,6 +93,36 @@ template<>
 void printTrack<std::shared_ptr<TempoTrack>>(const std::shared_ptr<TempoTrack>& track) {
     for (const auto& item : track->getItems()) {
         std::cout << "Tempo: " << item.dblTempo << " at " << item.lTime << "\n";
+    }
+}
+
+template<>
+void printTrack<std::shared_ptr<CommandTrack>>(const std::shared_ptr<CommandTrack>& track) {
+    for (const auto& command : track->getCommands()) {
+        switch (command.bCommand) {
+        case DMUS_COMMANDT_TYPES::DMUS_COMMANDT_BREAK:
+            std::cout << "Break command ";
+            break;
+        case DMUS_COMMANDT_TYPES::DMUS_COMMANDT_END:
+            std::cout << "End command ";
+            break;
+        case DMUS_COMMANDT_TYPES::DMUS_COMMANDT_ENDANDINTRO:
+            std::cout << "End and intro command ";
+            break;
+        case DMUS_COMMANDT_TYPES::DMUS_COMMANDT_FILL:
+            std::cout << "Fill command ";
+            break;
+        case DMUS_COMMANDT_TYPES::DMUS_COMMANDT_GROOVE:
+            std::cout << "Groove command ";
+            break;
+        case DMUS_COMMANDT_TYPES::DMUS_COMMANDT_INTRO:
+            std::cout << "Intro command ";
+            break;
+        default:
+            std::cout << "Invalid command ";
+            break;
+        }
+        std::cout << "at " << command.wMeasure << ":" << (std::uint32_t)command.bBeat << "\n";
     }
 }
 
@@ -134,7 +169,7 @@ void printTrack<TrackForm>(const TrackForm& track) {
             std::cout << "- Pattern track\n";
             printTrack(std::static_pointer_cast<PatternTrack>(track.getData()));
         }
-    } else if(ckid == "cmnd") {
+    } else if (ckid == "cmnd") {
         std::cout << "- Command track\n";
         printTrack(std::static_pointer_cast<CommandTrack>(track.getData()));
     } else if (ckid == "mute") {
@@ -152,6 +187,28 @@ void printTrack<TrackForm>(const TrackForm& track) {
     }
 }
 
+void printStyle(const std::shared_ptr<StyleForm> style) {
+    std::wcout << "Style name: " << style->getInfo().getName() << "\n";
+    auto header = style->getHeader();
+    std::cout << "Tempo: " << header.dblTempo << " BPM " << (std::uint32_t)header.timeSig.bBeatsPerMeasure << "/" << (std::uint32_t)header.timeSig.bBeat << "\n";
+    const auto& parts = style->getParts();
+    std::cout << parts.size() << " parts:\n";
+    for (const auto& part : parts) {
+        std::wcout << part.getInfo().getName() << ": "
+            << part.getCurves().size() << " curves, "
+            << part.getMarkers().size() << " markers, "
+            << part.getNotes().size() << " notes, "
+            << part.getResolutions().size() << " resolutions.\n";
+    }
+
+    const auto& patterns = style->getPatterns();
+    std::cout << "\n" << patterns.size() << " patterns:\n";
+    for (const auto& pattern : patterns) {
+        std::wcout << pattern.getInfo().getName() << ": "
+            << pattern.getRhythms().size() << " rhythms.\n";
+    }
+}
+
 int main(int argc, char **argv) {
     if (argc < 2) {
         std::cerr << "Usage: dmrender [inputfile]\n";
@@ -163,6 +220,15 @@ int main(int argc, char **argv) {
     std::cout << " done.\n" << segment->getTracks().size() << " tracks found:\n";
     for (const auto& track : segment->getTracks()) {
         printTrack(track);
+    }
+
+    std::cout << "\n---\n\nLoading styles...\n";
+
+    while (!styles.empty()) {
+        std::wstring styleFile = styles.front();
+        styles.pop();
+        auto style = ctx.loadStyle(std::string(styleFile.begin(), styleFile.end()));
+        printStyle(style);
     }
     return 0;
 }
