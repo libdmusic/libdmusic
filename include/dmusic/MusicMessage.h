@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <memory>
 #include "Midi.h"
 
 namespace DirectMusic {
@@ -28,8 +29,8 @@ namespace DirectMusic {
     };
     
     struct MusicMessageComparer {
-        bool operator()(const MusicMessage& lhs, const MusicMessage& rhs) const {
-            return lhs.getMessageTime() > rhs.getMessageTime();
+        bool operator()(const std::shared_ptr<MusicMessage>& lhs, const std::shared_ptr<MusicMessage>& rhs) const {
+            return lhs->getMessageTime() > rhs->getMessageTime();
         }
     };
 

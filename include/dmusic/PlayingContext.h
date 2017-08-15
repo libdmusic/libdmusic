@@ -32,7 +32,7 @@ namespace DirectMusic {
         double m_tempo;
         TimeSignature m_signature;
         std::mutex m_mutex;
-        std::priority_queue<MusicMessage, std::vector<MusicMessage>, MusicMessageComparer> m_messageQueue;
+        std::priority_queue<std::shared_ptr<MusicMessage>, std::vector<std::shared_ptr<MusicMessage>>, MusicMessageComparer> m_messageQueue;
 
         template<typename T1>
         static std::shared_ptr<T1> genObjFromChunkData(const std::vector<std::uint8_t>& data) {
