@@ -13,11 +13,14 @@ static std::queue<std::wstring> styles;
 
 class MyInstrumentPlayer : public InstrumentPlayer {
 public:
-    MyInstrumentPlayer(const Instrument& instr, std::uint32_t sampleRate, std::uint32_t channels) : InstrumentPlayer(instr, sampleRate, channels) {}
+    MyInstrumentPlayer(std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patch,
+        const DownloadableSound& dls,
+        std::uint32_t sampleRate,
+        std::uint32_t channels) : InstrumentPlayer(bankLo, bankHi, patch, dls, sampleRate, channels) {}
     virtual std::uint32_t renderBlock(std::int16_t *buffer, std::uint32_t count) noexcept { return count; }
 
     /// Instructs the synthesizer to start playing a note
-    virtual bool noteOn(std::uint8_t note, std::uint8_t velocity) {}
+    virtual void noteOn(std::uint8_t note, std::uint8_t velocity) {}
 
     /// Instructs the synthesizer to stop playing a note
     virtual void noteOff(std::uint8_t note, std::uint8_t velocity) {}
@@ -47,6 +50,21 @@ static std::string getChordName(std::uint32_t chord) {
     std::string noteName = table[chord % 12];
     int octave = (chord - (chord % 12)) / 12;
     return noteName + std::to_string(octave);
+}
+
+static void printBand(const BandForm& band) {
+    for (const auto& instr : band.getInstruments()) {
+        auto ref = instr.getReference();
+        if (ref != nullptr) {
+            std::wcout << ref->getName() << " (" << ref->getFile() << ")" << ".\n";
+        }
+        auto header = instr.getHeader();
+        // I don't know why the first bytes is skipped...
+        std::uint8_t bankHi = (header.dwPatch & 0x00FF0000) >> 0x10;
+        std::uint8_t bankLo = (header.dwPatch & 0x0000FF00) >> 0x8;
+        std::uint8_t patch = (header.dwPatch & 0x000000FF);
+        std::cout << "- Instrument - Channel: " << header.dwPChannel << ". Bank Hi: " << (std::uint32_t)bankHi << ", Bank Lo: " << (std::uint32_t)bankLo << ", Patch: " << (std::uint32_t)patch << "\n";
+    }
 }
 
 template<typename T>
@@ -80,12 +98,7 @@ void printTrack<std::shared_ptr<BandTrack>>(const std::shared_ptr<BandTrack>& tr
     for (const auto& band : track->getBands()) {
         DMUS_IO_BAND_ITEM_HEADER2 header = std::get<0>(band);
         BandForm bandForm = std::get<1>(band);
-        for (const auto& instr : bandForm.getInstruments()) {
-            auto ref = instr.getReference();
-            std::wcout << ref->getName() << " (" << ref->getFile() << ")" << "\n";
-            auto header = instr.getHeader();
-            std::cout << "Channel: " << header.dwPChannel << "\nPriority: " << header.dwChannelPriority << "\n";
-        }
+        printBand(bandForm);
     }
 }
 
@@ -204,8 +217,26 @@ void printStyle(const std::shared_ptr<StyleForm> style) {
     const auto& patterns = style->getPatterns();
     std::cout << "\n" << patterns.size() << " patterns:\n";
     for (const auto& pattern : patterns) {
+        const auto& patternParts = pattern.getParts();
         std::wcout << pattern.getInfo().getName() << ": "
-            << pattern.getRhythms().size() << " rhythms.\n";
+            << pattern.getRhythms().size() << " rhythms, "
+            << patternParts.size() << " parts.\n";
+        if (pattern.getMotifSettings() != nullptr) {
+            const auto motifSettings = pattern.getMotifSettings();
+            std::cout << "To be looped " << motifSettings->dwRepeats << " times, from " << motifSettings->mtLoopStart << " to " << motifSettings->mtLoopEnd << ".\n";
+        }
+
+        for (const auto& part : patternParts) {
+            std::wcout << "    " << part.getInfo().getName() << ": "
+                << part.getCurves().size() << " curves, "
+                << part.getMarkers().size() << " markers, "
+                << part.getNotes().size() << " notes, "
+                << part.getResolutions().size() << " resolutions.\n";
+        }
+    }
+
+    for (const auto& band : style->getBands()) {
+        printBand(band);
     }
 }
 
@@ -214,13 +245,19 @@ int main(int argc, char **argv) {
         std::cerr << "Usage: dmrender [inputfile]\n";
         return 1;
     }
-    PlayingContext<MyInstrumentPlayer> ctx(44100, 1);
+    PlayingContext ctx(44100, 1, [](std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patch,
+        const DownloadableSound& dls, std::uint32_t sampleRate, std::uint32_t channels) {
+        return std::static_pointer_cast<InstrumentPlayer>(std::make_shared<MyInstrumentPlayer>(bankLo, bankHi, patch, dls, sampleRate, channels));
+    });
     std::cout << "Loading segment...";
     auto segment = ctx.loadSegment(argv[1]);
     std::cout << " done.\n" << segment->getTracks().size() << " tracks found:\n";
     for (const auto& track : segment->getTracks()) {
         printTrack(track);
     }
+    std::cout << "Segment must be repeated " << segment->getHeader().dwRepeats << " times.\n";
+    std::cout << "Segment length: " << segment->getHeader().mtLength << " pulses.\n";
+    std::cout << "Loop start: " << segment->getHeader().mtLoopStart << ", loop end: " << segment->getHeader().mtLoopEnd << "\n";
 
     std::cout << "\n---\n\nLoading styles...\n";
 
@@ -230,5 +267,7 @@ int main(int argc, char **argv) {
         auto style = ctx.loadStyle(std::string(styleFile.begin(), styleFile.end()));
         printStyle(style);
     }
+    int a;
+    std::cin >> a;
     return 0;
 }

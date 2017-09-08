@@ -1,20 +1,25 @@
-#pragma once
+/// Use this macro to initialize struct fields which are expected to be loaded as little endian data
+#undef FIELDINIT
+#define FIELDINIT(s, f, t) {f = DirectMusic::littleEndianRead<t>(data + offsetof(s, f));}
+
+/// Use this macro to initialize struct fields which are expected to be loaded as little endian data and need casting
+#undef FIELDINITE
+#define FIELDINITE(s, f, t, c) {f = (c) DirectMusic::littleEndianRead<t>(data + offsetof(s, f));}
+
+/// Use this macro to initialize struct fields in constructors that need to load little endian data
+#undef FIELDCONST
+#define FIELDCONST(s, f, t) f(t(data + offsetof(s, f)))
+
+/// Use this macro to read a FourCC into a char array
+#undef READFOURCC
+#define READFOURCC(s, f) {memcpy(f, data + offsetof(s, f), 4);}
+
+#ifndef DMUSIC_COMMON_H
+#define DMUSIC_COMMON_H
 
 #include <cstdint>
 #include <cstddef>
 #include <cstring>
-
-/// Use this macro to initialize struct fields which are expected to be loaded as little endian data
-#define FIELDINIT(s, f, t) {f = DirectMusic::littleEndianRead<t>(data + offsetof(s, f));}
-
-/// Use this macro to initialize struct fields which are expected to be loaded as little endian data and need casting
-#define FIELDINITE(s, f, t, c) {f = (c) DirectMusic::littleEndianRead<t>(data + offsetof(s, f));}
-
-/// Use this macro to initialize struct fields in constructors that need to load little endian data
-#define FIELDCONST(s, f, t) f(t(data + offsetof(s, f)))
-
-/// Use this macro to read a FourCC into a char array
-#define READFOURCC(s, f) {memcpy(f, data + offsetof(s, f), 4);}
 
 namespace DirectMusic {
     /**
@@ -97,3 +102,5 @@ namespace DirectMusic {
         }
     };
 }
+
+#endif

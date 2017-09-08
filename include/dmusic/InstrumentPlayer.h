@@ -2,7 +2,7 @@
 
 #include <cstdint>
 #include "Midi.h"
-#include "dls/Instrument.h"
+#include "dls/DownloadableSound.h"
 
 namespace DirectMusic {
     /** \brief Interface for objects that can respond to MIDI data and render audio
@@ -11,10 +11,11 @@ namespace DirectMusic {
      */
     class InstrumentPlayer {
     public:
-        InstrumentPlayer(const DirectMusic::DLS::Instrument& instrument,
+        InstrumentPlayer(std::uint8_t bank_lo, std::uint8_t bank_hi, std::uint8_t patch,
+                        const DirectMusic::DLS::DownloadableSound& dls,
                         std::uint32_t sampleRate,
                         std::uint32_t audioChannels)
-            : m_instrument(instrument) {};
+            : m_dls(dls) {};
 
         /// Renders the following `count` samples of audio
         /// WARNING: this method is very performance-sensitive; it is important
@@ -23,7 +24,7 @@ namespace DirectMusic {
         virtual std::uint32_t renderBlock(std::int16_t *buffer, std::uint32_t count) noexcept = 0;
 
         /// Instructs the synthesizer to start playing a note
-        virtual bool noteOn(std::uint8_t note, std::uint8_t velocity) = 0;
+        virtual void noteOn(std::uint8_t note, std::uint8_t velocity) = 0;
 
         /// Instructs the synthesizer to stop playing a note
         virtual void noteOff(std::uint8_t note, std::uint8_t velocity) = 0;
@@ -44,6 +45,6 @@ namespace DirectMusic {
         virtual void pitchBend(std::int16_t val) = 0;
 
     protected:
-        const DirectMusic::DLS::Instrument& m_instrument;
+        const DirectMusic::DLS::DownloadableSound& m_dls;
     };
 }

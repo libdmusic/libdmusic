@@ -5,7 +5,6 @@
 #include <map>
 #include <queue>
 #include <mutex>
-#include "Common.h"
 #include "Structs.h"
 #include "InstrumentPlayer.h"
 #include "Enums.h"
@@ -16,8 +15,14 @@
 
 namespace DirectMusic {
     /// This the main interface to the DirectMusic emulation layer
-    template<typename T>
+    using PlayerFactory = std::function<std::shared_ptr<InstrumentPlayer>(
+        std::uint8_t, std::uint8_t, std::uint8_t,
+        const DirectMusic::DLS::DownloadableSound&,
+        std::uint32_t,
+        std::uint32_t)>;
+
     class PlayingContext {
+        friend class MusicMessage;
     private:
         struct TimeSignature {
             std::uint8_t beatsPerMeasure;
@@ -25,35 +30,21 @@ namespace DirectMusic {
             std::uint16_t subdivisions;
         };
 
+        PlayerFactory m_instrumentFactory;
         std::uint32_t m_sampleRate, m_audioChannels;
-        const Loader& m_loader;
-        std::map<int, std::shared_ptr<InstrumentPlayer>> m_performanceChannels;
-        std::uint32_t m_musicTime;
+        Loader& m_loader;
+        std::map<std::uint32_t, std::shared_ptr<InstrumentPlayer>> m_performanceChannels;
+        double m_musicTime;
         double m_tempo;
         TimeSignature m_signature;
-        std::mutex m_mutex;
+        std::mutex m_queueMutex;
         std::priority_queue<std::shared_ptr<MusicMessage>, std::vector<std::shared_ptr<MusicMessage>>, MusicMessageComparer> m_messageQueue;
 
-        template<typename T1>
-        static std::shared_ptr<T1> genObjFromChunkData(const std::vector<std::uint8_t>& data) {
+        template<typename T>
+        static std::shared_ptr<T> genObjFromChunkData(const std::vector<std::uint8_t>& data) {
             if (data.empty()) return nullptr;
             DirectMusic::Riff::Chunk c(data.data());
-            return std::make_shared<T1>(c);
-        }
-
-        void setTempo(double tempo) {
-            m_mutex.lock();
-            m_tempo = tempo;
-            m_mutex.unlock();
-        }
-
-        void setTimeSignature(std::uint8_t beatsPerMeasure, std::uint8_t beat, std::uint16_t subdivisions) {
-            m_mutex.lock();
-            m_signature = TimeSignature();
-            m_signature.beatsPerMeasure = beatsPerMeasure;
-            m_signature.beat = beat;
-            m_signature.subdivisions = subdivisions;
-            m_mutex.unlock();
+            return std::make_shared<T>(c);
         }
 
     public:
@@ -61,24 +52,27 @@ namespace DirectMusic {
 
         /// Creates a new playing contest with the specified sampling rate and
         /// number of audio channels (normally 1 (mono) or 2 (stereo))
-        PlayingContext(std::uint32_t sampleRate, std::uint32_t audioChannels)
+        PlayingContext(std::uint32_t sampleRate,
+            std::uint32_t audioChannels,
+            PlayerFactory instrumentFactory)
             : m_sampleRate(sampleRate),
             m_audioChannels(audioChannels),
-            m_loader(Loader()),
-            m_musicTime(0) {}
+            m_instrumentFactory(instrumentFactory),
+            m_loader(*(new Loader())),
+            m_musicTime(0.0) {}
 
         /// Renders the following audio block
         void renderBlock(std::int16_t *data, std::uint32_t count, float volume = 1) noexcept;
 
         /// Begins the playback of a segment
-        void playSegment(const SegmentForm& segment, DMUS_SEGF_FLAGS flags, std::int64_t startTime = 0);
-
+        void playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS flags, std::int64_t startTime = 0*/);
+        /*
         void playTransition(const SegmentForm& segment,
                             DMUS_COMMANDT_TYPES command,
                             DMUS_COMPOSEF_FLAGS flags,
-                            std::shared_ptr<ChordmapForm> chordmap = nullptr);
+                            std::shared_ptr<ChordmapForm> chordmap = nullptr);*/
 
-        /// Overrides the default loader with a custom one
+                            /// Overrides the default loader with a custom one
         void provideLoader(const Loader& l) { m_loader = l; };
 
         /// Loads a segment file
@@ -99,6 +93,6 @@ namespace DirectMusic {
             return genObjFromChunkData<DirectMusic::DLS::DownloadableSound>(data);
         }
 
-        std::uint32_t getTime() const { return m_musicTime; }
+        double getTime() const { return m_musicTime; }
     };
 }
