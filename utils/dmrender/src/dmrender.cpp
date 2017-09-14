@@ -16,7 +16,16 @@ public:
     MyInstrumentPlayer(std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patch,
         const DownloadableSound& dls,
         std::uint32_t sampleRate,
-        std::uint32_t channels) : InstrumentPlayer(bankLo, bankHi, patch, dls, sampleRate, channels) {}
+        std::uint32_t channels) : InstrumentPlayer(bankLo, bankHi, patch, dls, sampleRate, channels) {
+
+        std::uint32_t bank = (bankHi << 16) + bankLo;
+
+        for (const auto& instr : dls.getInstruments()) {
+            if (instr.getMidiBank() == bank && instr.getMidiProgram() == patch) {
+                std::cout << "Instrument loaded: " << instr.getInfo().getName() << " from " << dls.getInfo().getName() << "\n";
+            }
+        }
+    }
     virtual std::uint32_t renderBlock(std::int16_t *buffer, std::uint32_t count) noexcept { return count; }
 
     /// Instructs the synthesizer to start playing a note
@@ -267,6 +276,9 @@ int main(int argc, char **argv) {
         auto style = ctx.loadStyle(std::string(styleFile.begin(), styleFile.end()));
         printStyle(style);
     }
+
+    ctx.playSegment(*segment);
+
     int a;
     std::cin >> a;
     return 0;

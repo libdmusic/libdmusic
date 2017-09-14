@@ -1,6 +1,7 @@
 #include "MusicMessages.h"
 #include <dmusic/PlayingContext.h>
 #include <assert.h>
+#include <cstdlib>
 
 using namespace DirectMusic;
 
@@ -14,6 +15,10 @@ std::shared_ptr<InstrumentPlayer> MusicMessage::createInstrument(PlayingContext&
 
 void MusicMessage::setInstrument(PlayingContext& ctx, std::uint32_t channel, std::shared_ptr<InstrumentPlayer> instr) {
     ctx.m_performanceChannels[channel] = instr;
+}
+
+void MusicMessage::setGrooveLevel(PlayingContext& ctx, std::uint8_t level) {
+    ctx.m_grooveLevel = level;
 }
 
 void TempoChangeMessage::Execute(PlayingContext& ctx) {
@@ -45,5 +50,14 @@ BandChangeMessage::BandChangeMessage(PlayingContext& ctx, std::uint32_t time, co
 void BandChangeMessage::Execute(PlayingContext& ctx) {
     for (const auto& kvpair : instruments) {
         setInstrument(ctx, kvpair.first, kvpair.second);
+    }
+}
+
+void GrooveLevelMessage::Execute(PlayingContext& ctx) {
+    if (m_range == 0) {
+        setGrooveLevel(ctx, m_level);
+    } else {
+        std::int8_t offset = (std::rand() % m_range) - (m_range / 2);
+        setGrooveLevel(ctx, m_level - offset);
     }
 }

@@ -47,7 +47,7 @@ namespace DirectMusic {
             const std::vector<Instrument>& getInstruments() const { return m_instruments; }
             const std::vector<std::uint32_t>& getPoolOffsets() const { return m_poolOffsets; }
             const std::vector<Wave>& getWavePool() const { return m_wavePool; }
-            DirectMusic::Riff::Info& getInfo() { return m_info; }
+            const DirectMusic::Riff::Info& getInfo() const { return m_info; }
             const GUID& getGuid() const { return m_dlsid; }
 
         private:

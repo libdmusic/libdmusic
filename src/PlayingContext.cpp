@@ -52,7 +52,11 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
                 m_messageQueue.push(message);
             }
         } else if (ckid == "cmnd") {
-            // TODO: Command track
+            auto commandTrack = std::static_pointer_cast<CommandTrack>(track.getData());
+            for (const auto& command : commandTrack->getCommands()) {
+                auto message = std::make_shared<GrooveLevelMessage>(command.mtTime, command.bGrooveLevel, command.bGrooveRange);
+                m_messageQueue.push(message);
+            }
         } else if (ckid == "" && fccType == "sttr") {
             // TODO: Style track
         } else if (ckid == "" && fccType == "DMBT") {

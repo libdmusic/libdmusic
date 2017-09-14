@@ -21,6 +21,8 @@ namespace DirectMusic {
         std::uint32_t,
         std::uint32_t)>;
 
+    using MessageQueue = std::priority_queue<std::shared_ptr<MusicMessage>, std::vector<std::shared_ptr<MusicMessage>>, MusicMessageComparer>;
+
     class PlayingContext {
         friend class MusicMessage;
     private:
@@ -30,15 +32,20 @@ namespace DirectMusic {
             std::uint16_t subdivisions;
         };
 
+        struct Segment {
+            MessageQueue messageQueue;
+        };
+
         PlayerFactory m_instrumentFactory;
         std::uint32_t m_sampleRate, m_audioChannels;
         Loader& m_loader;
         std::map<std::uint32_t, std::shared_ptr<InstrumentPlayer>> m_performanceChannels;
         double m_musicTime;
         double m_tempo;
+        std::uint8_t m_grooveLevel;
         TimeSignature m_signature;
         std::mutex m_queueMutex;
-        std::priority_queue<std::shared_ptr<MusicMessage>, std::vector<std::shared_ptr<MusicMessage>>, MusicMessageComparer> m_messageQueue;
+        MessageQueue m_messageQueue;
 
         template<typename T>
         static std::shared_ptr<T> genObjFromChunkData(const std::vector<std::uint8_t>& data) {
@@ -59,7 +66,8 @@ namespace DirectMusic {
             m_audioChannels(audioChannels),
             m_instrumentFactory(instrumentFactory),
             m_loader(*(new Loader())),
-            m_musicTime(0.0) {}
+            m_musicTime(0.0),
+            m_grooveLevel(0) {}
 
         /// Renders the following audio block
         void renderBlock(std::int16_t *data, std::uint32_t count, float volume = 1) noexcept;
