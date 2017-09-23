@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
     DLS::DownloadableSound dls(chunk);
     std::cout << "Done.\n";
     SoundFont sf2;
-    Riff::Info& info = dls.getInfo();
+    const Riff::Info& info = dls.getInfo();
     sf2.set_bank_name(info.getName());
     sf2.set_comment(info.getComments());
     sf2.set_copyright(info.getCopyright());
