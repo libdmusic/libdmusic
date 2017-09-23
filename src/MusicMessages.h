@@ -42,4 +42,45 @@ namespace DirectMusic {
     private:
         std::uint8_t m_level, m_range;
     };
+
+    class ChordMessage : public MusicMessage {
+        ChordMessage(std::uint32_t time, std::uint32_t chord)
+            : MusicMessage(time),
+            m_chord(chord) {};
+
+        virtual void Execute(PlayingContext& ctx);
+
+    private:
+        std::uint32_t m_chord;
+    };
+
+    class NoteOnMessage : public MusicMessage {
+    public:
+        NoteOnMessage(std::uint32_t time, std::uint8_t note, std::uint8_t velocity, std::uint8_t velRange, std::uint32_t channel)
+            : MusicMessage(time),
+            m_note(note),
+            m_vel(velocity),
+            m_velRange(velRange),
+            m_channel(channel) {}
+
+        virtual void Execute(PlayingContext& ctx);
+
+    private:
+        std::uint8_t m_note, m_vel, m_velRange;
+        std::uint32_t m_channel;
+    };
+
+    class NoteOffMessage : public MusicMessage {
+    public:
+        NoteOffMessage(std::uint32_t time, std::uint8_t note, std::uint32_t channel)
+            : MusicMessage(time),
+            m_note(note),
+            m_channel(channel) {}
+
+        virtual void Execute(PlayingContext& ctx);
+
+    private:
+        std::uint8_t m_note;
+        std::uint32_t m_channel;
+    };
 }

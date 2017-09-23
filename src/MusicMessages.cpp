@@ -21,6 +21,14 @@ void MusicMessage::setGrooveLevel(PlayingContext& ctx, std::uint8_t level) {
     ctx.m_grooveLevel = level;
 }
 
+const std::map<std::uint32_t, std::shared_ptr<InstrumentPlayer>>& MusicMessage::getChannels(PlayingContext& ctx) {
+    return ctx.m_performanceChannels;
+}
+
+void MusicMessage::changeChord(PlayingContext& ctx, std::uint32_t chord) {
+    ctx.m_chord = chord;
+}
+
 void TempoChangeMessage::Execute(PlayingContext& ctx) {
     this->changeTempo(ctx, m_tempo);
 }
@@ -60,4 +68,25 @@ void GrooveLevelMessage::Execute(PlayingContext& ctx) {
         std::int8_t offset = (std::rand() % m_range) - (m_range / 2);
         setGrooveLevel(ctx, m_level - offset);
     }
+}
+
+void ChordMessage::Execute(PlayingContext& ctx) {
+    changeChord(ctx, this->m_chord);
+}
+
+void NoteOnMessage::Execute(PlayingContext& ctx) {
+    const auto& channels = getChannels(ctx);
+    assert(channels.find(m_channel) != channels.end());
+    if (m_velRange == 0) {
+        channels.at(m_channel)->noteOn(m_note, m_vel);
+    } else {
+        std::int8_t offset = (std::rand() % m_velRange) - (m_velRange / 2);
+        channels.at(m_channel)->noteOn(m_note, m_vel - offset);
+    }
+}
+
+void NoteOffMessage::Execute(PlayingContext& ctx) {
+    const auto& channels = getChannels(ctx);
+    assert(channels.find(m_channel) != channels.end());
+    channels.at(m_channel)->noteOff(m_note, 0);
 }

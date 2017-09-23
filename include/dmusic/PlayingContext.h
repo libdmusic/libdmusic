@@ -26,14 +26,21 @@ namespace DirectMusic {
     class PlayingContext {
         friend class MusicMessage;
     private:
-        struct TimeSignature {
-            std::uint8_t beatsPerMeasure;
-            std::uint8_t beat;
-            std::uint16_t subdivisions;
+        struct Pattern {
+            std::uint8_t grooveLower;
+            std::uint8_t grooveUpper;
+            DMUS_IO_TIMESIG timeSignature;
+            std::vector<DMUS_IO_STYLENOTE> notes;
+            std::uint32_t performanceChannel;
         };
 
         struct Segment {
-            MessageQueue messageQueue;
+            std::vector<std::shared_ptr<MusicMessage>> messages;
+            bool infiniteLoop;
+            std::uint32_t numLoops;
+            std::vector<Pattern> patterns;
+
+            Pattern* getRandomPattern(std::uint8_t grooveLevel) const;
         };
 
         PlayerFactory m_instrumentFactory;
@@ -43,9 +50,11 @@ namespace DirectMusic {
         double m_musicTime;
         double m_tempo;
         std::uint8_t m_grooveLevel;
-        TimeSignature m_signature;
+        std::uint32_t m_chord;
+        DMUS_IO_TIMESIG m_signature;
         std::mutex m_queueMutex;
         MessageQueue m_messageQueue;
+        std::unique_ptr<Segment> m_primarySegment = nullptr;
 
         template<typename T>
         static std::shared_ptr<T> genObjFromChunkData(const std::vector<std::uint8_t>& data) {
