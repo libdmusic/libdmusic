@@ -152,6 +152,7 @@ namespace DirectMusic {
 
     class StylePart {
     public:
+        StylePart() {};
         StylePart(const DirectMusic::Riff::Chunk& chunk);
         const DirectMusic::Riff::Unfo& getInfo() const { return m_unfo; }
         const DMUS_IO_STYLEPART& getHeader() const { return m_header; }
