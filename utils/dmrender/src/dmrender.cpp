@@ -220,7 +220,8 @@ void printStyle(const std::shared_ptr<StyleForm> style) {
             << part.getCurves().size() << " curves, "
             << part.getMarkers().size() << " markers, "
             << part.getNotes().size() << " notes, "
-            << part.getResolutions().size() << " resolutions.\n";
+            << part.getResolutions().size() << " resolutions, "
+            << part.getAnticipations().size() << " anticipations.\n";
     }
 
     const auto& patterns = style->getPatterns();
@@ -240,7 +241,8 @@ void printStyle(const std::shared_ptr<StyleForm> style) {
                 << part.getCurves().size() << " curves, "
                 << part.getMarkers().size() << " markers, "
                 << part.getNotes().size() << " notes, "
-                << part.getResolutions().size() << " resolutions.\n";
+                << part.getResolutions().size() << " resolutions, "
+                << part.getAnticipations().size() << " anticipations.\n";
         }
     }
 
