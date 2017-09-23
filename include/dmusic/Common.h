@@ -101,6 +101,13 @@ namespace DirectMusic {
             FIELDINIT(GUID, Data4, std::uint64_t);
         }
     };
+
+    class GuidComparer {
+    public:
+        bool operator()(const GUID& lhs, const GUID& rhs) const {
+            return memcmp(&lhs, &rhs, sizeof(rhs)) < 0;
+        }
+    };
 }
 
 #endif
