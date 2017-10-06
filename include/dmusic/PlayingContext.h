@@ -14,7 +14,6 @@
 #include "MusicMessage.h"
 
 namespace DirectMusic {
-    /// This the main interface to the DirectMusic emulation layer
     using PlayerFactory = std::function<std::shared_ptr<InstrumentPlayer>(
         std::uint8_t, std::uint8_t, std::uint8_t,
         const DirectMusic::DLS::DownloadableSound&,
@@ -23,6 +22,7 @@ namespace DirectMusic {
 
     using MessageQueue = std::priority_queue<std::shared_ptr<MusicMessage>, std::vector<std::shared_ptr<MusicMessage>>, MusicMessageComparer>;
 
+    /// This the main interface to the DirectMusic emulation layer
     class PlayingContext {
         friend class MusicMessage;
     private:
@@ -89,7 +89,7 @@ namespace DirectMusic {
                             DMUS_COMPOSEF_FLAGS flags,
                             std::shared_ptr<ChordmapForm> chordmap = nullptr);*/
 
-                            /// Overrides the default loader with a custom one
+        /// Overrides the default loader with a custom one
         void provideLoader(const Loader& l) { m_loader = l; };
 
         /// Loads a segment file

@@ -5,40 +5,71 @@
 
 using namespace DirectMusic;
 
+enum class Subdivision {
+    Grid,
+    Beat,
+    Measure
+};
+
+static std::uint32_t getNextGridSubdivision(std::uint32_t musicTime, Subdivision subd, DMUS_IO_TIMESIG timeSignature) {
+    std::uint32_t divisionCoeff;
+    if (timeSignature.bBeat == 0) {
+        divisionCoeff = PlayingContext::PulsesPerQuarterNote / 64;
+    } else if(timeSignature.bBeat > 4) {
+        divisionCoeff = (PlayingContext::PulsesPerQuarterNote * 4) / timeSignature.bBeat;
+    } else {
+        divisionCoeff = PlayingContext::PulsesPerQuarterNote * (4 / timeSignature.bBeat);
+    }
+    divisionCoeff *= timeSignature.wGridsPerBeat;
+
+    std::uint32_t nextGridDivision = (std::uint32_t)(ceil((double)musicTime / divisionCoeff));
+    std::uint32_t nextBeatDivision = nextGridDivision * timeSignature.wGridsPerBeat;
+    std::uint32_t nextMeasureDivision = nextBeatDivision * timeSignature.bBeatsPerMeasure;
+
+    switch (subd) {
+    case Subdivision::Beat:
+        return nextBeatDivision * divisionCoeff;
+    case Subdivision::Grid:
+        return nextGridDivision * divisionCoeff;
+    case Subdivision::Measure:
+        return nextMeasureDivision * divisionCoeff;
+    }
+}
+
 void PlayingContext::renderBlock(std::int16_t *data, std::uint32_t count, float volume) noexcept {
-    /*m_queueMutex.lock();
+    m_queueMutex.lock();
     double pulsesPerSecond = PulsesPerQuarterNote * m_tempo;
-    double pulsesPerSample = pulsesPerSample / m_sampleRate;
+    double pulsesPerSample = pulsesPerSecond / m_sampleRate;
     auto nextMessage = m_messageQueue.top();
     m_queueMutex.unlock();
 
     double nextMessageTimeOffset = nextMessage->getMessageTime() - m_musicTime;
     if (nextMessageTimeOffset / pulsesPerSample > count) {
-    // There are no messages to interpret in this block, we just
-    // process the already-playing instruments
-    for (const auto& channel : m_performanceChannels) {
-    const auto& player = channel.second;
-    player->renderBlock(data, count);
-    }
-    m_musicTime += (blockDuration * pulsesPerSecond);
+        // There are no messages to interpret in this block, we just
+        // process the already-playing instruments
+        for (const auto& channel : m_performanceChannels) {
+            const auto& player = channel.second;
+            player->renderBlock(data, count);
+        }
+        m_musicTime += (count * pulsesPerSample);
     } else {
-    do {
-    // We process the audio before the message, then we send the message
-    double nextMessageTimeOffsetInSamples = nextMessageTimeOffset / pulsesPerSample;
-    for (const auto& channel : m_performanceChannels) {
-    const auto& player = channel.second;
-    player->renderBlock(data, (std::uint32_t)nextMessageTimeOffsetInSamples);
-    }
+        do {
+            // We process the audio before the message, then we send the message
+            double nextMessageTimeOffsetInSamples = nextMessageTimeOffset / pulsesPerSample;
+            for (const auto& channel : m_performanceChannels) {
+                const auto& player = channel.second;
+                player->renderBlock(data, (std::uint32_t)nextMessageTimeOffsetInSamples);
+            }
 
-    switch (nextMessage->getMessageType()) {
-    case MessageType::ChannelPressure:
-    std::shared_ptr<ChannelPressureMessage> cpm = std::dynamic_pointer_cast(nextMessage);
-    cpm->
-    break;
+            m_queueMutex.lock();
+            m_musicTime += nextMessageTimeOffset;
+            m_messageQueue.pop();
+            nextMessage->Execute(*this);
+            nextMessage = m_messageQueue.top();
+            nextMessageTimeOffset = nextMessage->getMessageTime() - m_musicTime;
+            m_queueMutex.unlock();
+        } while (true);
     }
-
-    } while(???)
-    }*/
 }
 
 void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS flags, std::int64_t startTime*/) {
@@ -67,15 +98,15 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
                 const ReferenceList refs = std::get<1>(style);
 
                 std::wstring styleFile = refs.getFile();
-                auto style = loadStyle(std::string(styleFile.begin(), styleFile.end()));
-                assert(style != nullptr);
+                auto styleForm = loadStyle(std::string(styleFile.begin(), styleFile.end()));
+                assert(styleForm != nullptr);
                 m_primarySegment = std::make_unique<Segment>();
                 std::map<GUID, StylePart, GuidComparer> parts;
-                for (const auto& part : style->getParts()) {
+                for (const auto& part : styleForm->getParts()) {
                     parts[part.getHeader().guidPartID] = part;
                 }
 
-                for (const auto& pattern : style->getPatterns()) {
+                for (const auto& pattern : styleForm->getPatterns()) {
                     Pattern pttn;
                     pttn.grooveLower = pattern.getHeader().bGrooveBottom;
                     pttn.grooveUpper = pattern.getHeader().bGrooveTop;
@@ -115,8 +146,8 @@ PlayingContext::Pattern* PlayingContext::Segment::getRandomPattern(std::uint8_t 
         }
     }
 
-    if (suitablePatterns.size() == 0) return nullptr;
-    else if (suitablePatterns.size() == 1) return &suitablePatterns[0];
+    if (suitablePatterns.size() == 0) { return nullptr; }
+    else if (suitablePatterns.size() == 1) { return &suitablePatterns[0]; }
     else {
         int idx = rand();
         return &suitablePatterns[idx % suitablePatterns.size()];
