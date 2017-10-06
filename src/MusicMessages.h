@@ -44,6 +44,7 @@ namespace DirectMusic {
     };
 
     class ChordMessage : public MusicMessage {
+    public:
         ChordMessage(std::uint32_t time, std::uint32_t chord)
             : MusicMessage(time),
             m_chord(chord) {};

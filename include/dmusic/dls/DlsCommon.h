@@ -474,4 +474,3 @@ namespace DirectMusic {
 #pragma pack(pop)
     }
 }
-#undef FIELDINIT
