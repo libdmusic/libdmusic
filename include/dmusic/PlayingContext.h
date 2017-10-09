@@ -35,7 +35,7 @@ namespace DirectMusic {
         };
 
         struct Segment {
-            std::vector<std::shared_ptr<MusicMessage>> messages;
+            //std::vector<std::shared_ptr<MusicMessage>> messages;
             bool infiniteLoop;
             std::uint32_t numLoops;
             std::vector<Pattern> patterns;
@@ -76,7 +76,9 @@ namespace DirectMusic {
             m_instrumentFactory(instrumentFactory),
             m_loader(*(new Loader())),
             m_musicTime(0.0),
-            m_grooveLevel(0) {}
+            m_grooveLevel(0),
+            m_tempo(100),
+            m_primarySegment(nullptr) {}
 
         /// Renders the following audio block
         void renderBlock(std::int16_t *data, std::uint32_t count, float volume = 1) noexcept;
