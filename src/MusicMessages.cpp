@@ -1,4 +1,5 @@
 #include "MusicMessages.h"
+#include <dmusic/Structs.h>
 #include <dmusic/PlayingContext.h>
 #include <assert.h>
 #include <cstdlib>
@@ -25,8 +26,9 @@ const std::map<std::uint32_t, std::shared_ptr<InstrumentPlayer>>& MusicMessage::
     return ctx.m_performanceChannels;
 }
 
-void MusicMessage::changeChord(PlayingContext& ctx, std::uint32_t chord) {
+void MusicMessage::changeChord(PlayingContext& ctx, std::uint32_t chord, const std::vector<DMUS_IO_SUBCHORD>& subchords) {
     ctx.m_chord = chord;
+    ctx.m_subchords = subchords;
 }
 
 void TempoChangeMessage::Execute(PlayingContext& ctx) {

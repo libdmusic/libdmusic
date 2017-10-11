@@ -51,6 +51,7 @@ namespace DirectMusic {
         double m_tempo;
         std::uint8_t m_grooveLevel;
         std::uint32_t m_chord;
+        std::vector<DMUS_IO_SUBCHORD> m_subchords;
         DMUS_IO_TIMESIG m_signature;
         std::mutex m_queueMutex;
         MessageQueue m_messageQueue;

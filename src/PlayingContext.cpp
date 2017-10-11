@@ -65,7 +65,7 @@ static std::uint32_t getMusicOffset(std::uint32_t mtGridStart, std::uint32_t nTi
         );
 }
 
-static std::uint8_t getNoteInScale(std::uint32_t chord, std::uint16_t value) {
+static std::uint8_t getNoteInScale(std::uint32_t chord, const std::vector<DMUS_IO_SUBCHORD>& subchords, DMUS_IO_STYLENOTE note) {
 
 }
 
@@ -208,7 +208,7 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
             }
         } else if (ckid == "" && fccType == "cord") {
             auto chordTrack = std::static_pointer_cast<ChordTrack>(track.getData());
-            auto message = std::make_shared<ChordMessage>(chordTrack->getChord().mtTime, chordTrack->getHeader());
+            auto message = std::make_shared<ChordMessage>(chordTrack->getChord().mtTime, chordTrack->getHeader(), chordTrack->getSubchords());
             m_messageQueue.push(message);
         }
     }

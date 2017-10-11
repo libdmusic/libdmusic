@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <memory>
 #include "Midi.h"
+#include <dmusic/Structs.h>
 #include <dmusic/dls/Instrument.h>
 #include <dmusic/InstrumentPlayer.h>
 
@@ -23,7 +24,7 @@ namespace DirectMusic {
         void setInstrument(PlayingContext& ctx, std::uint32_t channel, std::shared_ptr<InstrumentPlayer> instr);
         void setGrooveLevel(PlayingContext& ctx, std::uint8_t level);
         const std::map<std::uint32_t, std::shared_ptr<InstrumentPlayer>>& getChannels(PlayingContext& ctx);
-        void changeChord(PlayingContext& ctx, std::uint32_t chord);
+        void changeChord(PlayingContext& ctx, std::uint32_t chord, const std::vector<DMUS_IO_SUBCHORD>& subchords);
     };
 
     struct MusicMessageComparer {
