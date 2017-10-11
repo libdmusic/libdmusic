@@ -179,14 +179,21 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
                     Pattern pttn;
                     pttn.grooveLower = pattern.getHeader().bGrooveBottom;
                     pttn.grooveUpper = pattern.getHeader().bGrooveTop;
-                    pttn.performanceChannel = pattern.getPartReference().dwPChannel;
+                    for (const auto& partRef : pattern.getPartReferences()) {
+                        // TODO: fix this to actually separate the parts
+                        pttn.performanceChannel = partRef.dwPChannel;
 
-                    const auto& partGuid = pattern.getPartReference().guidPartID;
+                        const auto& partGuid = partRef.guidPartID;
+
+
+                        assert(parts.find(partGuid) != parts.end());
+                        StylePart part = parts[partGuid];
+                        for (const auto& note : part.getNotes()) {
+                            pttn.notes.push_back(note);
+                        }
+                        pttn.timeSignature = part.getHeader().timeSig;
+                    }
                     
-                    assert(parts.find(partGuid) != parts.end());
-                    StylePart part = parts[partGuid];
-                    pttn.notes = part.getNotes();
-                    pttn.timeSignature = part.getHeader().timeSig;
                     m_primarySegment->patterns.push_back(pttn);
                 }
             }
