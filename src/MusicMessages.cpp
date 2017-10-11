@@ -73,7 +73,7 @@ void GrooveLevelMessage::Execute(PlayingContext& ctx) {
 }
 
 void ChordMessage::Execute(PlayingContext& ctx) {
-    changeChord(ctx, this->m_chord);
+    changeChord(ctx, this->m_chord, this->m_subchords);
 }
 
 void NoteOnMessage::Execute(PlayingContext& ctx) {
