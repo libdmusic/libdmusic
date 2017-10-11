@@ -87,7 +87,7 @@ Pattern::Pattern(const Chunk& c)
             } else if (listid == "pref") {
                 for (Chunk pref : subchunk.getSubchunks()) {
                     if (pref.getId() == "prfc") {
-                        m_partref = DMUS_IO_PARTREF(pref.getData().data());
+                        m_partrefs.push_back(DMUS_IO_PARTREF(pref.getData().data()));
                         break;
                     }
                 }
