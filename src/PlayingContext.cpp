@@ -208,8 +208,12 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
             }
         } else if (ckid == "" && fccType == "cord") {
             auto chordTrack = std::static_pointer_cast<ChordTrack>(track.getData());
-            auto message = std::make_shared<ChordMessage>(chordTrack->getChord().mtTime, chordTrack->getHeader(), chordTrack->getSubchords());
-            m_messageQueue.push(message);
+            for (const auto& chord : chordTrack->getChords()) {
+                const auto& chordHeader = std::get<0>(chord);
+                const auto& chordBody = std::get<1>(chord);
+                auto message = std::make_shared<ChordMessage>(chordHeader.mtTime, chordTrack->getHeader(), chordBody);
+                m_messageQueue.push(message);
+            }
         }
     }
     m_queueMutex.unlock();

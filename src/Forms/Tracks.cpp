@@ -123,15 +123,18 @@ ChordTrack::ChordTrack(const Chunk& c) {
             const std::uint8_t *data = subchunk.getData().data();
             std::uint16_t chordSize = littleEndianRead<std::uint16_t>(data);
             data += 2;
-            m_chord = DMUS_IO_CHORD(data);
+            DMUS_IO_CHORD chord = DMUS_IO_CHORD(data);
             data += chordSize;
             std::uint16_t subchordNum = littleEndianRead<std::uint16_t>(data);
             data += 2;
             std::uint16_t subchordSize = littleEndianRead<std::uint16_t>(data);
             data += 2;
+            std::vector<DMUS_IO_SUBCHORD> subchords;
             for (int i = 0; i < subchordNum; i++) {
-                m_subchords.push_back(DMUS_IO_SUBCHORD(data));
+                subchords.push_back(DMUS_IO_SUBCHORD(data));
             }
+
+            m_chords.push_back(std::make_tuple(chord, subchords));
         }
     }
 }

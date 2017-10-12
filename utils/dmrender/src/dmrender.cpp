@@ -85,9 +85,13 @@ template<>
 void printTrack<std::shared_ptr<ChordTrack>>(const std::shared_ptr<ChordTrack>& track) {
     std::uint32_t header = track->getHeader();
     std::cout << getChordName((header & 0xFF000000) >> 24) << "\n";
-    std::wcout << std::wstring((const wchar_t *)track->getChord().wszName) << "\n";
-    for (const auto& subchord : track->getSubchords()) {
-        std::cout << getChordName(subchord.bChordRoot) << "\n";
+    for (const auto& chord : track->getChords()) {
+        const auto& chordHeader = std::get<0>(chord);
+        const auto& subchords = std::get<1>(chord);
+        std::wcout << std::wstring((const wchar_t *)chordHeader.wszName) << "\n";
+        for (const auto& subchord : subchords) {
+            std::cout << getChordName(subchord.bChordRoot) << "\n";
+        }
     }
 }
 

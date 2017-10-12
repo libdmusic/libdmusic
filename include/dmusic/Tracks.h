@@ -24,18 +24,17 @@ namespace DirectMusic {
         std::vector<BandItem> m_bands;
     };
 
+    typedef std::tuple<DMUS_IO_CHORD, std::vector<DMUS_IO_SUBCHORD>> ChordBody;
     class ChordTrack
         : public SubtrackForm {
     public:
         ChordTrack(const DirectMusic::Riff::Chunk& chunk);
         const std::uint32_t getHeader() const { return m_header; }
-        const DMUS_IO_CHORD& getChord() const { return m_chord; }
-        const std::vector<DMUS_IO_SUBCHORD>& getSubchords() const { return m_subchords; }
+        const std::vector<ChordBody>& getChords() { return m_chords;  }
 
     private:
         std::uint32_t m_header;
-        DMUS_IO_CHORD m_chord;
-        std::vector<DMUS_IO_SUBCHORD> m_subchords;
+        std::vector<ChordBody> m_chords;
     };
 
     typedef std::tuple<std::uint32_t, ReferenceList> Chordmap;
