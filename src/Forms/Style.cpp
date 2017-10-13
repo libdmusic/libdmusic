@@ -4,56 +4,45 @@
 using namespace DirectMusic;
 using namespace DirectMusic::Riff;
 
+/**
+* Loads a series of structures of type T into a vector from a memory buffer
+* The first 4 bytes represent the size of the structure to load
+* The number of structures to load is calculated from the size of the buffer
+* and the size of the data.
+* @param subchunkData A memory buffer
+* @param output The vector where the structures should be stored
+*/
+template<typename T>
+static void loadData(const std::vector<std::uint8_t>& subchunkData, std::vector<T>& output) {
+    const std::uint8_t *data = subchunkData.data();
+    std::uint32_t structSize = littleEndianRead<std::uint32_t>(data);
+    data += 4;
+    int numElements = (subchunkData.size() - 4) / structSize;
+    for (int i = 0; i < numElements; i++) {
+        output.push_back(T(data));
+        data += structSize;
+    }
+}
+
 StylePart::StylePart(const Chunk& c) {
     if (c.getId() != "LIST" || c.getListId() != "part")
         throw DirectMusic::InvalidChunkException("LIST part", c.getId() + " " + c.getListId());
 
     for (const Chunk& subchunk : c.getSubchunks()) {
         const std::string& id = subchunk.getId();
-        const std::uint8_t *data = subchunk.getData().data();
-        const std::uint8_t *start = data;
+        const std::vector<std::uint8_t>& subchunkData = subchunk.getData();
         if (id == "prth") {
-            m_header = DMUS_IO_STYLEPART(data);
+            m_header = DMUS_IO_STYLEPART(subchunkData.data());
         } else if(id == "note") {
-            std::uint16_t structSize = littleEndianRead<std::uint16_t>(data);
-            data += 2;
-            int numElements = (subchunk.getData().size() - 2) / structSize;
-            for(int i = 0; i < numElements; i++) {
-                m_notes.push_back(DMUS_IO_STYLENOTE(data));
-                data += structSize;
-            }
+            loadData<DMUS_IO_STYLENOTE>(subchunkData, m_notes);
         } else if (id == "crve") {
-            std::uint16_t structSize = littleEndianRead<std::uint16_t>(data);
-            data += 2;
-            int numElements = (subchunk.getData().size() - 2) / structSize;
-            for (int i = 0; i < numElements; i++) {
-                m_curves.push_back(DMUS_IO_STYLECURVE(data));
-                data += structSize;
-            }
+            loadData<DMUS_IO_STYLECURVE>(subchunkData, m_curves);
         } else if (id == "mrkr") {
-            std::uint16_t structSize = littleEndianRead<std::uint16_t>(data);
-            data += 2;
-            int numElements = (subchunk.getData().size() - 2) / structSize;
-            for (int i = 0; i < numElements; i++) {
-                m_markers.push_back(DMUS_IO_STYLEMARKER(data));
-                data += structSize;
-            }
+            loadData<DMUS_IO_STYLEMARKER>(subchunkData, m_markers);
         } else if (id == "rsln") {
-            std::uint16_t structSize = littleEndianRead<std::uint16_t>(data);
-            data += 2;
-            int numElements = (subchunk.getData().size() - 2) / structSize;
-            for (int i = 0; i < numElements; i++) {
-                m_resolutions.push_back(DMUS_IO_STYLERESOLUTION(data));
-                data += structSize;
-            }
+            loadData<DMUS_IO_STYLERESOLUTION>(subchunkData, m_resolutions);
         } else if (id == "anpn") {
-            std::uint16_t structSize = littleEndianRead<std::uint16_t>(data);
-            data += 2;
-            int numElements = (subchunk.getData().size() - 2) / structSize;
-            for (int i = 0; i < numElements; i++) {
-                m_anticipations.push_back(DMUS_IO_STYLE_ANTICIPATION(data));
-                data += structSize;
-            }
+            loadData<DMUS_IO_STYLE_ANTICIPATION>(subchunkData, m_anticipations);
         } else if (id == "LIST") {
             std::string listid = subchunk.getListId();
             if (listid == "UNFO") {
