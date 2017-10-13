@@ -2,6 +2,8 @@
 #include <dmusic/Exceptions.h>
 #include <dmusic/Common.h>
 #include <string>
+#include <codecvt>
+#include <locale>
 
 using namespace DirectMusic::Riff;
 
@@ -85,7 +87,8 @@ Unfo::Unfo(const Chunk& c) {
     for (const Chunk& subchunk : c.getSubchunks()) {
         std::vector<std::uint8_t> data = subchunk.getData();
         const std::string& id = subchunk.getId();
-        std::string value = ucs_to_ascii((std::uint16_t *)data.data());
+
+        std::string value = utf16_to_utf8((const std::uint16_t *)data.data());
         if (id == "UARL") m_iarl = value;
         if (id == "UART") m_iart = value;
         if (id == "UCMS") m_icms = value;

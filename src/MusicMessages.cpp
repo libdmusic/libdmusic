@@ -46,10 +46,7 @@ BandChangeMessage::BandChangeMessage(PlayingContext& ctx, std::uint32_t time, co
             std::uint8_t bankLo = (header.dwPatch & 0x0000FF00) >> 0x8;
             std::uint8_t patch = (header.dwPatch & 0x000000FF);
 
-            using convert_type = std::codecvt_utf8<wchar_t>;
-            std::wstring_convert<convert_type, wchar_t> converter;
-            std::string converted_str = converter.to_bytes(ref->getFile());
-            auto dls = ctx.loadInstrumentCollection(converted_str);
+            auto dls = ctx.loadInstrumentCollection(ref->getFile());
             
             assert(dls != nullptr);
             instruments[header.dwPChannel] = createInstrument(ctx, bankLo, bankHi, patch, *dls);

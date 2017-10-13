@@ -184,7 +184,7 @@ static LyricsEvent readLyricsEvent(const Chunk& c) {
         if (id == "stmp") {
             header = DMUS_IO_LYRICSTRACK_EVENTHEADER(subchunk.getData().data());
         } else if (id == "lyrn") {
-            return std::make_tuple(header, std::wstring((const wchar_t *)subchunk.getData().data()));
+            return std::make_tuple(header, std::string(utf16_to_utf8((const std::uint16_t*)subchunk.getData().data())));
         }
     }
 

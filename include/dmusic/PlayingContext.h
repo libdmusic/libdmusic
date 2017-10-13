@@ -5,6 +5,7 @@
 #include <map>
 #include <queue>
 #include <mutex>
+#include <functional>
 #include "Structs.h"
 #include "InstrumentPlayer.h"
 #include "Enums.h"

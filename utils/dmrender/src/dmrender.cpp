@@ -5,11 +5,12 @@
 #include <dmusic/InstrumentPlayer.h>
 #include <dmusic/Tracks.h>
 #include <dmusic/dls/DownloadableSound.h>
+#include <codecvt>
 
 using namespace DirectMusic;
 using namespace DirectMusic::DLS;
 
-static std::queue<std::wstring> styles;
+static std::queue<std::string> styles;
 
 class MyInstrumentPlayer : public InstrumentPlayer {
 public:
@@ -65,7 +66,7 @@ static void printBand(const BandForm& band) {
     for (const auto& instr : band.getInstruments()) {
         auto ref = instr.getReference();
         if (ref != nullptr) {
-            std::wcout << ref->getName() << " (" << ref->getFile() << ")" << ".\n";
+            std::cout << ref->getName() << " (" << ref->getFile() << ")" << ".\n";
         }
         auto header = instr.getHeader();
         // I don't know why the first bytes is skipped...
@@ -88,7 +89,7 @@ void printTrack<std::shared_ptr<ChordTrack>>(const std::shared_ptr<ChordTrack>& 
     for (const auto& chord : track->getChords()) {
         const auto& chordHeader = std::get<0>(chord);
         const auto& subchords = std::get<1>(chord);
-        std::wcout << std::wstring((const wchar_t *)chordHeader.wszName) << "\n";
+        std::cout << std::string(utf16_to_utf8((const std::uint16_t *)chordHeader.wszName)) << "\n";
         for (const auto& subchord : subchords) {
             std::cout << getChordName(subchord.bChordRoot) << "\n";
         }
@@ -100,7 +101,7 @@ void printTrack<std::shared_ptr<StyleTrack>>(const std::shared_ptr<StyleTrack>& 
     for (const StyleReference& ref : track->getStyles()) {
         std::uint16_t timestamp = std::get<0>(ref);
         ReferenceList refList = std::get<1>(ref);
-        std::wcout << refList.getName() << " (" << refList.getFile() << ")" << " at " << timestamp << "\n";
+        std::cout << refList.getName() << " (" << refList.getFile() << ")" << " at " << timestamp << "\n";
         styles.push(refList.getFile());
     }
 }
@@ -277,8 +278,10 @@ int main(int argc, char **argv) {
     std::cout << "\n---\n\nLoading styles...\n";
 
     while (!styles.empty()) {
-        std::wstring styleFile = styles.front();
+        std::string styleFile = styles.front();
         styles.pop();
+
+        std::cout << "Loading style: " << styleFile << std::endl;
         auto style = ctx.loadStyle(std::string(styleFile.begin(), styleFile.end()));
         printStyle(style);
     }

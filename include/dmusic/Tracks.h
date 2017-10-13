@@ -59,7 +59,7 @@ namespace DirectMusic {
         std::vector<DMUS_IO_COMMAND> m_commands;
     };
 
-    typedef std::tuple<DMUS_IO_LYRICSTRACK_EVENTHEADER, std::wstring> LyricsEvent;
+    typedef std::tuple<DMUS_IO_LYRICSTRACK_EVENTHEADER, std::string> LyricsEvent;
 
     class LyricsTrack
         : public SubtrackForm {
