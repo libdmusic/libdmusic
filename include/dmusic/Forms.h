@@ -172,6 +172,8 @@ namespace DirectMusic {
         std::vector<DMUS_IO_STYLE_ANTICIPATION> m_anticipations;
     };
 
+
+    typedef std::tuple<DMUS_IO_PARTREF, DirectMusic::Riff::Unfo> PartReference;
     class Pattern {
     public:
         Pattern(const DirectMusic::Riff::Chunk& chunk);
@@ -180,7 +182,7 @@ namespace DirectMusic {
         const std::vector<std::uint16_t>& getRhythms() const { return m_rhythms; }
         const std::shared_ptr<DMUS_IO_MOTIFSETTINGS>& getMotifSettings() const { return m_motifSettings; }
         const std::shared_ptr<BandForm>& getBand() const { return m_band; }
-        const std::vector<DMUS_IO_PARTREF>& getPartReferences() const { return m_partrefs; }
+        const std::vector<PartReference>& getPartReferences() const { return m_partrefs; }
 
         /// Only used in Pattern Tracks
         const std::vector<StylePart> getParts() const { return m_parts; }
@@ -191,7 +193,7 @@ namespace DirectMusic {
         std::vector<std::uint16_t> m_rhythms;
         std::shared_ptr<DMUS_IO_MOTIFSETTINGS> m_motifSettings;
         std::shared_ptr<BandForm> m_band;
-        std::vector<DMUS_IO_PARTREF> m_partrefs;
+        std::vector<PartReference> m_partrefs;
         std::vector<StylePart> m_parts;
     };
 
