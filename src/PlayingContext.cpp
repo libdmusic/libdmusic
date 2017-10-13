@@ -65,7 +65,25 @@ static std::uint32_t getMusicOffset(std::uint32_t mtGridStart, std::uint32_t nTi
         );
 }
 
-static std::uint8_t getNoteInScale(std::uint32_t chord, const std::vector<DMUS_IO_SUBCHORD>& subchords, DMUS_IO_STYLENOTE note) {
+static std::uint8_t getNoteInScale(std::uint32_t chord, DMUS_IO_STYLENOTE note) {
+    /*
+    A chord (or a scale) has the following structure: the first 8 bits represent the
+    root of the chord (scale), with the standard MIDI notation:
+      0 -> C
+      1 -> C#
+      ....
+      23 -> B
+
+      The following 24 bits represent which notes are present in the chord, with each
+      bit meaning a semitone from the root (the LSB). Example taken from G2:
+
+      chord = 0x00AB5AB5
+      0   0   A   B   5   A   B   5
+      00000000101010110101101010110101
+      |-------|-|-|-||-|-||-|-|-||-|-|
+          C    W W W HW W HW W W HW W -----> C Major scale
+    */
+    std::uint8_t root = ((chord & 0xFF000000) >> 24);
 
 }
 
