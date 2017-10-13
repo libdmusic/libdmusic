@@ -204,6 +204,12 @@ namespace DirectMusic {
     /// The DMUS_PLAYMODE_FLAGS enumerated type is used in various structures to specify play modes.
     /// The play mode determines how a music value is transposed to a MIDI note. 
     enum DMUS_PLAYMODE_FLAGS {
+        /// Interpret the music value as a MIDI value.
+        /// This is defined as 0 and signifies the absence of other flags.
+        /// This flag is used for drums, sound effects, and sequenced notes
+        /// that should not be transposed by the chord or scale.
+        DMUS_PLAYMODE_FIXED = 0,
+
         /// Transpose over the key root.
         DMUS_PLAYMODE_KEY_ROOT = 1,
 

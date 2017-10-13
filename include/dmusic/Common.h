@@ -7,6 +7,9 @@
 /// Use this macro to initialize struct fields which are expected to be loaded as little endian data
 #define FIELDINIT(s, f, t) {f = DirectMusic::littleEndianRead<t>(data + offsetof(s, f));}
 
+/// Use this macro to initialize struct fields which are expected to be loaded as little endian data
+#define FIELDINITC(s, f, t1, t2) {f = (t2)(DirectMusic::littleEndianRead<t1>(data + offsetof(s, f)));}
+
 /// Use this macro to initialize struct fields which are expected to be loaded as little endian data and need casting
 #define FIELDINITE(s, f, t, c) {f = (c) DirectMusic::littleEndianRead<t>(data + offsetof(s, f));}
 

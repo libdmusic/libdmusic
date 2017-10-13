@@ -94,7 +94,7 @@ namespace DirectMusic {
         /// Beat that the chord falls on.
         std::uint8_t bBeat;
 
-        std::uint8_t bFlags;
+        DMUS_CHORDKEYF_FLAGS bFlags;
 
         DMUS_IO_CHORD() {}
         DMUS_IO_CHORD(const std::uint8_t *data) {
@@ -104,7 +104,7 @@ namespace DirectMusic {
             FIELDINIT(DMUS_IO_CHORD, mtTime, std::uint32_t);
             FIELDINIT(DMUS_IO_CHORD, wMeasure, std::uint16_t);
             FIELDINIT(DMUS_IO_CHORD, bBeat, std::uint8_t);
-            FIELDINIT(DMUS_IO_CHORD, bFlags, std::uint8_t);
+            FIELDINITC(DMUS_IO_CHORD, bFlags, std::uint8_t, DMUS_CHORDKEYF_FLAGS);
         }
     };
 
@@ -1019,10 +1019,10 @@ namespace DirectMusic {
 
         /// Flags to override the play mode of the part.
         /// For a list of values, see DMUS_PLAYMODE_FLAGS.
-        std::uint8_t bPlayModeFlags;
+        DMUS_PLAYMODE_FLAGS bPlayModeFlags;
 
         /// Flags. See DMUS_NOTEF_FLAGS.
-        std::uint8_t bNoteFlags;
+        DMUS_NOTEF_FLAGS bNoteFlags;
 
         DMUS_IO_STYLENOTE() {}
         DMUS_IO_STYLENOTE(const std::uint8_t *data) {
@@ -1036,8 +1036,8 @@ namespace DirectMusic {
             FIELDINIT(DMUS_IO_STYLENOTE, bDurRange, std::uint8_t);
             FIELDINIT(DMUS_IO_STYLENOTE, bVelRange, std::uint8_t);
             FIELDINIT(DMUS_IO_STYLENOTE, bInversionID, std::uint8_t);
-            FIELDINIT(DMUS_IO_STYLENOTE, bPlayModeFlags, std::uint8_t);
-            FIELDINIT(DMUS_IO_STYLENOTE, bNoteFlags, std::uint8_t);
+            FIELDINITC(DMUS_IO_STYLENOTE, bPlayModeFlags, std::uint8_t, DMUS_PLAYMODE_FLAGS);
+            FIELDINITC(DMUS_IO_STYLENOTE, bNoteFlags, std::uint8_t, DMUS_NOTEF_FLAGS);
         }
     };
 
@@ -1059,7 +1059,7 @@ namespace DirectMusic {
         std::uint16_t wNbrMeasures;
 
         /// Flags to define the play mode. For a list of values, see DMUS_PLAYMODE_FLAGS.
-        std::uint8_t bPlayModeFlags;
+        DMUS_PLAYMODE_FLAGS bPlayModeFlags;
 
         /// Upper limit of inversion.
         std::uint8_t bInvertUpper;
@@ -1082,7 +1082,7 @@ namespace DirectMusic {
                 dwVariationChoices[i] = littleEndianRead<std::uint32_t>(data + offsetof(DMUS_IO_STYLEPART, dwVariationChoices) + i * 4);
             }
             FIELDINIT(DMUS_IO_STYLEPART, wNbrMeasures, std::uint16_t);
-            FIELDINIT(DMUS_IO_STYLEPART, bPlayModeFlags, std::uint8_t);
+            FIELDINITC(DMUS_IO_STYLEPART, bPlayModeFlags, std::uint8_t, DMUS_PLAYMODE_FLAGS);
             FIELDINIT(DMUS_IO_STYLEPART, bInvertUpper, std::uint8_t);
             FIELDINIT(DMUS_IO_STYLEPART, bInvertLower, std::uint8_t);
             for (int i = 0; i < 3; i++) {
@@ -1105,14 +1105,14 @@ namespace DirectMusic {
         std::uint8_t bInversionID;
 
         /// Play mode flags. See DMUS_PLAYMODE_FLAGS.
-        std::uint8_t bPlayModeFlags;
+        DMUS_PLAYMODE_FLAGS bPlayModeFlags;
 
         DMUS_IO_STYLERESOLUTION() {}
         DMUS_IO_STYLERESOLUTION(const std::uint8_t *data) {
             FIELDINIT(DMUS_IO_STYLERESOLUTION, dwVariation, std::uint32_t);
             FIELDINIT(DMUS_IO_STYLERESOLUTION, wMusicValue, std::uint16_t);
             FIELDINIT(DMUS_IO_STYLERESOLUTION, bInversionID, std::uint8_t);
-            FIELDINIT(DMUS_IO_STYLERESOLUTION, bPlayModeFlags, std::uint8_t);
+            FIELDINITC(DMUS_IO_STYLERESOLUTION, bPlayModeFlags, std::uint8_t, DMUS_PLAYMODE_FLAGS);
         }
     };
 
