@@ -121,14 +121,14 @@ ChordTrack::ChordTrack(const Chunk& c) {
             m_header = littleEndianRead<std::uint32_t>(subchunk.getData().data());
         } else if (id == "crdb") {
             const std::uint8_t *data = subchunk.getData().data();
-            std::uint16_t chordSize = littleEndianRead<std::uint16_t>(data);
-            data += 2;
+            std::uint32_t chordSize = littleEndianRead<std::uint32_t>(data);
+            data += 4;
             DMUS_IO_CHORD chord = DMUS_IO_CHORD(data);
             data += chordSize;
-            std::uint16_t subchordNum = littleEndianRead<std::uint16_t>(data);
-            data += 2;
-            std::uint16_t subchordSize = littleEndianRead<std::uint16_t>(data);
-            data += 2;
+            std::uint32_t subchordNum = littleEndianRead<std::uint32_t>(data);
+            data += 4;
+            std::uint32_t subchordSize = littleEndianRead<std::uint32_t>(data);
+            data += 4;
             std::vector<DMUS_IO_SUBCHORD> subchords;
             for (int i = 0; i < subchordNum; i++) {
                 subchords.push_back(DMUS_IO_SUBCHORD(data));
