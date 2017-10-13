@@ -115,58 +115,58 @@ namespace DirectMusic {
             Unfo(const Chunk& c);
 
             /// Returns the contents of the IARL tag
-            const std::wstring& getArchivalLocation() const { return m_iarl; }
+            const std::string& getArchivalLocation() const { return m_iarl; }
 
             /// Returns the contents of the IART tag
-            const std::wstring& getArtist() const { return m_iart; }
+            const std::string& getArtist() const { return m_iart; }
 
             /// Returns the contents of the ICMS tag
-            const std::wstring& getCommission() const { return m_icms; }
+            const std::string& getCommission() const { return m_icms; }
 
             /// Returns the contents of the ICMT tag
-            const std::wstring& getComments() const { return m_icmt; }
+            const std::string& getComments() const { return m_icmt; }
 
             /// Returns the contents of the ICOP tag
-            const std::wstring& getCopyright() const { return m_icop; }
+            const std::string& getCopyright() const { return m_icop; }
 
             /// Returns the contents of the ICRD tag
-            const std::wstring& getCreationDate() const { return m_icrd; }
+            const std::string& getCreationDate() const { return m_icrd; }
 
             /// Returns the contents of the IENG tag
-            const std::wstring& getEngineer() const { return m_ieng; }
+            const std::string& getEngineer() const { return m_ieng; }
 
             /// Returns the contents of the IGNR tag
-            const std::wstring& getGenre() const { return m_ignr; }
+            const std::string& getGenre() const { return m_ignr; }
 
             /// Returns the contents of the IKEY tag
-            const std::wstring& getKeywords() const { return m_ikey; }
+            const std::string& getKeywords() const { return m_ikey; }
 
             /// Returns the contents of the IMED tag
-            const std::wstring& getMedium() const { return m_imed; }
+            const std::string& getMedium() const { return m_imed; }
 
             /// Returns the contents of the INAM tag
-            const std::wstring& getName() const { return m_inam; }
+            const std::string& getName() const { return m_inam; }
 
             /// Returns the contents of the IPRD tag
-            const std::wstring& getProduct() const { return m_iprd; }
+            const std::string& getProduct() const { return m_iprd; }
 
             /// Returns the contents of the ISBJ tag
-            const std::wstring& getSubject() const { return m_isbj; }
+            const std::string& getSubject() const { return m_isbj; }
 
             /// Returns the contents of the ISFT tag
-            const std::wstring& getSoftware() const { return m_isft; }
+            const std::string& getSoftware() const { return m_isft; }
 
             /// Returns the contents of the ISRC tag
-            const std::wstring& getSource() const { return m_isrc; }
+            const std::string& getSource() const { return m_isrc; }
 
             /// Returns the contents of the ISRF tag
-            const std::wstring& getSourceForm() const { return m_isrf; }
+            const std::string& getSourceForm() const { return m_isrf; }
 
             /// Returns the contents of the ITCH tag
-            const std::wstring& getTechnician() const { return m_itch; }
+            const std::string& getTechnician() const { return m_itch; }
 
         private:
-            std::wstring m_iarl, m_iart, m_icms, m_icmt,
+            std::string m_iarl, m_iart, m_icms, m_icmt,
                 m_icop, m_icrd, m_ieng, m_ignr, m_ikey,
                 m_imed, m_inam, m_iprd, m_isbj, m_isft,
                 m_isrc, m_isrf, m_itch;

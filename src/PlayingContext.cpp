@@ -195,7 +195,7 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
 
                 for (const auto& pattern : styleForm->getPatterns()) {
                     Pattern pttn;
-                    std::wcout << "--------------> " << pattern.getInfo().getName() << " <--------------\n";
+                    std::cout << "--------------> " << pattern.getInfo().getName() << " <--------------\n";
                     pttn.header = pattern.getHeader();
                     for (const auto& partRefTuple : pattern.getPartReferences()) {
                         const auto& partRef = std::get<0>(partRefTuple);
@@ -206,7 +206,7 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
                         assert(parts.find(partGuid) != parts.end());
                         StylePart part = parts[partGuid];
                         pttn.parts.push_back(part);
-                        std::wcout << " -- " << info.getName() << " --\n";
+                        std::cout << " -- " << info.getName() << " --\n";
                         for (const auto& note : part.getNotes()) {
                             std::cout << note.bPlayModeFlags << " ";
                             if (note.bPlayModeFlags == DMUS_PLAYMODE_FIXED) {

@@ -70,13 +70,22 @@ Info::Info(const Chunk& c) {
     }
 }
 
+static std::string ucs_to_ascii(std::uint16_t* buf) {
+    std::string res;
+    while (*buf) {
+        res += (std::uint8_t)(*buf & 0x00FF);
+        buf++;
+    }
+    return res;
+}
+
 Unfo::Unfo(const Chunk& c) {
     if (c.getId() != "LIST" || c.getListId() != "UNFO")
         throw DirectMusic::InvalidChunkException("LIST UNFO", c.getId() + " " + c.getListId());
     for (const Chunk& subchunk : c.getSubchunks()) {
         std::vector<std::uint8_t> data = subchunk.getData();
         const std::string& id = subchunk.getId();
-        std::wstring value = std::wstring((const wchar_t *)data.data());
+        std::string value = ucs_to_ascii((std::uint16_t *)data.data());
         if (id == "UARL") m_iarl = value;
         if (id == "UART") m_iart = value;
         if (id == "UCMS") m_icms = value;

@@ -214,13 +214,13 @@ void printTrack<TrackForm>(const TrackForm& track) {
 }
 
 void printStyle(const std::shared_ptr<StyleForm> style) {
-    std::wcout << "Style name: " << style->getInfo().getName() << "\n";
+    std::cout << "Style name: " << style->getInfo().getName() << "\n";
     auto header = style->getHeader();
     std::cout << "Tempo: " << header.dblTempo << " BPM " << (std::uint32_t)header.timeSig.bBeatsPerMeasure << "/" << (std::uint32_t)header.timeSig.bBeat << "\n";
     const auto& parts = style->getParts();
     std::cout << parts.size() << " parts:\n";
     for (const auto& part : parts) {
-        std::wcout << part.getInfo().getName() << ": "
+        std::cout << part.getInfo().getName() << ": "
             << part.getCurves().size() << " curves, "
             << part.getMarkers().size() << " markers, "
             << part.getNotes().size() << " notes, "
@@ -232,7 +232,7 @@ void printStyle(const std::shared_ptr<StyleForm> style) {
     std::cout << "\n" << patterns.size() << " patterns:\n";
     for (const auto& pattern : patterns) {
         const auto& patternParts = pattern.getParts();
-        std::wcout << pattern.getInfo().getName() << ": "
+        std::cout << pattern.getInfo().getName() << ": "
             << pattern.getRhythms().size() << " rhythms, "
             << patternParts.size() << " parts.\n";
         if (pattern.getMotifSettings() != nullptr) {
@@ -241,7 +241,7 @@ void printStyle(const std::shared_ptr<StyleForm> style) {
         }
 
         for (const auto& part : patternParts) {
-            std::wcout << "    " << part.getInfo().getName() << ": "
+            std::cout << "    " << part.getInfo().getName() << ": "
                 << part.getCurves().size() << " curves, "
                 << part.getMarkers().size() << " markers, "
                 << part.getNotes().size() << " notes, "
