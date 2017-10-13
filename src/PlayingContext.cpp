@@ -3,6 +3,7 @@
 #include "MusicMessages.h"
 #include <assert.h>
 #include <math.h>
+#include <bitset>
 
 using namespace DirectMusic;
 
@@ -33,7 +34,7 @@ static std::uint32_t getNextGridSubdivision(std::uint32_t musicTime, Subdivision
     std::uint32_t divisionCoeff;
     if (timeSignature.bBeat == 0) {
         divisionCoeff = PlayingContext::PulsesPerQuarterNote / 64;
-    } else if(timeSignature.bBeat > 4) {
+    } else if (timeSignature.bBeat > 4) {
         divisionCoeff = (PlayingContext::PulsesPerQuarterNote * 4) / timeSignature.bBeat;
     } else {
         divisionCoeff = PlayingContext::PulsesPerQuarterNote * (4 / timeSignature.bBeat);
@@ -59,29 +60,29 @@ static std::uint32_t getMusicOffset(std::uint32_t mtGridStart, std::uint32_t nTi
     const std::uint32_t DMUS_PPQ = PlayingContext::PulsesPerQuarterNote;
     return nTimeOffset +
         (
-            (mtGridStart / TimeSig.wGridsPerBeat) * ((DMUS_PPQ * 4) / TimeSig.bBeat)
+        (mtGridStart / TimeSig.wGridsPerBeat) * ((DMUS_PPQ * 4) / TimeSig.bBeat)
             +
             (mtGridStart % TimeSig.wGridsPerBeat) * (((DMUS_PPQ * 4) / TimeSig.bBeat) / TimeSig.wGridsPerBeat)
-        );
+            );
 }
 
 static std::uint8_t getNoteInScale(std::uint32_t chord, DMUS_IO_STYLENOTE note) {
     /*
     A chord (or a scale) has the following structure: the first 8 bits represent the
     root of the chord (scale), with the standard MIDI notation:
-      0 -> C
-      1 -> C#
-      ....
-      23 -> B
+    0 -> C
+    1 -> C#
+    ....
+    23 -> B
 
-      The following 24 bits represent which notes are present in the chord, with each
-      bit meaning a semitone from the root (the LSB). Example taken from G2:
+    The following 24 bits represent which notes are present in the chord, with each
+    bit meaning a semitone from the root (the LSB). Example taken from G2:
 
-      chord = 0x00AB5AB5
-      0   0   A   B   5   A   B   5
-      00000000101010110101101010110101
-      |-------|-|-|-||-|-||-|-|-||-|-|
-          C    W W W HW W HW W W HW W -----> C Major scale
+    chord = 0x00AB5AB5
+    0   0   A   B   5   A   B   5
+    00000000101010110101101010110101
+    |-------|-|-|-||-|-||-|-|-||-|-|
+    C    W W W HW W HW W W HW W -----> C Major scale
     */
     std::uint8_t root = ((chord & 0xFF000000) >> 24);
 
@@ -96,11 +97,10 @@ void PlayingContext::renderBlock(std::int16_t *data, std::uint32_t count, float 
         if (m_primarySegment->numLoops > 0 || m_primarySegment->infiniteLoop) {
             Pattern* pttn = m_primarySegment->getRandomPattern(m_grooveLevel);
             if (pttn != nullptr) {
-                for (const auto& note : pttn->notes) {
-                    std::uint32_t timeOffset = getMusicOffset(note.mtDuration, note.nTimeOffset, pttn->timeSignature);
-                    // TODO: Implement bDurRange, bTimeRange and bVelRange
-                    std::cout << note.wMusicValue << '\n';
-                }
+                /*for (const auto& note : pttn->notes) {
+                std::uint32_t timeOffset = getMusicOffset(note.mtDuration, note.nTimeOffset, pttn->timeSignature);
+                // TODO: Implement bDurRange, bTimeRange and bVelRange
+                }*/
 
                 if (!m_primarySegment->infiniteLoop) {
                     m_primarySegment->numLoops--;
@@ -134,7 +134,7 @@ void PlayingContext::renderBlock(std::int16_t *data, std::uint32_t count, float 
                 }
                 offset += (std::uint32_t)nextMessageTimeOffsetInSamples;
                 m_musicTime += nextMessageTimeOffset;
-                if(!m_messageQueue.empty()) m_messageQueue.pop();
+                if (!m_messageQueue.empty()) m_messageQueue.pop();
                 nextMessage->Execute(*this);
                 if (m_messageQueue.empty()) {
                     nextMessage = nullptr;
@@ -195,23 +195,31 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
 
                 for (const auto& pattern : styleForm->getPatterns()) {
                     Pattern pttn;
-                    pttn.grooveLower = pattern.getHeader().bGrooveBottom;
-                    pttn.grooveUpper = pattern.getHeader().bGrooveTop;
-                    for (const auto& partRef : pattern.getPartReferences()) {
-                        // TODO: fix this to actually separate the parts
-                        pttn.performanceChannel = partRef.dwPChannel;
+                    std::wcout << "--------------> " << pattern.getInfo().getName() << " <--------------\n";
+                    pttn.header = pattern.getHeader();
+                    for (const auto& partRefTuple : pattern.getPartReferences()) {
+                        const auto& partRef = std::get<0>(partRefTuple);
+                        const auto& info = std::get<1>(partRefTuple);
 
                         const auto& partGuid = partRef.guidPartID;
 
-
                         assert(parts.find(partGuid) != parts.end());
                         StylePart part = parts[partGuid];
+                        pttn.parts.push_back(part);
+                        std::wcout << " -- " << info.getName() << " --\n";
                         for (const auto& note : part.getNotes()) {
-                            pttn.notes.push_back(note);
+                            std::cout << note.bPlayModeFlags << " ";
+                            if (note.bPlayModeFlags == DMUS_PLAYMODE_FIXED) {
+                                std::cout << "FIXED: ";
+                            } else if (note.bPlayModeFlags == DMUS_PLAYMODE_NONE) {
+                                std::cout << "DEFAULT: ";
+                            } else {
+                                std::cout << "OTHER: ";
+                            }
+                            std::cout << note.wMusicValue << " " << std::bitset<32>(note.dwVariation) << "\n";
                         }
-                        pttn.timeSignature = part.getHeader().timeSig;
                     }
-                    
+
                     m_primarySegment->patterns.push_back(pttn);
                 }
             }
@@ -240,14 +248,12 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
 PlayingContext::Pattern* PlayingContext::Segment::getRandomPattern(std::uint8_t grooveLevel) const {
     std::vector<Pattern> suitablePatterns;
     for (const auto& pattern : patterns) {
-        if (pattern.grooveLower <= grooveLevel && pattern.grooveUpper >= grooveLevel) {
+        if (pattern.header.bGrooveBottom <= grooveLevel && pattern.header.bGrooveTop >= grooveLevel) {
             suitablePatterns.push_back(pattern);
         }
     }
 
-    if (suitablePatterns.size() == 0) { return nullptr; }
-    else if (suitablePatterns.size() == 1) { return &suitablePatterns[0]; }
-    else {
+    if (suitablePatterns.size() == 0) { return nullptr; } else if (suitablePatterns.size() == 1) { return &suitablePatterns[0]; } else {
         int idx = rand();
         return &suitablePatterns[idx % suitablePatterns.size()];
     }
