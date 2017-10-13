@@ -86,6 +86,13 @@ static std::uint8_t getNoteInScale(std::uint32_t chord, DMUS_IO_STYLENOTE note) 
     */
     std::uint8_t root = ((chord & 0xFF000000) >> 24);
 
+    /* Had to dig hard for this one: https://msdn.microsoft.com/en-us/library/ms898477.aspx
+    Here is how to interpret wMusicValue:
+    First nibble: octave
+    Second nibble: chord tone
+    Third nibble: scale offset
+    Fourth nibble: accidentals
+    */
 }
 
 void PlayingContext::renderBlock(std::int16_t *data, std::uint32_t count, float volume) noexcept {
