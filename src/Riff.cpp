@@ -72,15 +72,6 @@ Info::Info(const Chunk& c) {
     }
 }
 
-static std::string ucs_to_ascii(std::uint16_t* buf) {
-    std::string res;
-    while (*buf) {
-        res += (std::uint8_t)(*buf & 0x00FF);
-        buf++;
-    }
-    return res;
-}
-
 Unfo::Unfo(const Chunk& c) {
     if (c.getId() != "LIST" || c.getListId() != "UNFO")
         throw DirectMusic::InvalidChunkException("LIST UNFO", c.getId() + " " + c.getListId());
