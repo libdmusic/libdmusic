@@ -89,7 +89,7 @@ void printTrack<std::shared_ptr<ChordTrack>>(const std::shared_ptr<ChordTrack>& 
     for (const auto& chord : track->getChords()) {
         const auto& chordHeader = std::get<0>(chord);
         const auto& subchords = std::get<1>(chord);
-        std::cout << std::string((const wchar_t *)chordHeader.wszName) << "\n";
+        std::cout << std::string(utf16_to_utf8((const std::uint16_t *)chordHeader.wszName)) << "\n";
         for (const auto& subchord : subchords) {
             std::cout << getChordName(subchord.bChordRoot) << "\n";
         }
@@ -281,8 +281,7 @@ int main(int argc, char **argv) {
         std::string styleFile = styles.front();
         styles.pop();
 
-        std::string_convert<std::codecvt_utf8<wchar_t>> utf8_conv;
-        std::cout << "Loading style: " << utf8_conv.to_bytes(styleFile) << std::endl;
+        std::cout << "Loading style: " << styleFile << std::endl;
         auto style = ctx.loadStyle(std::string(styleFile.begin(), styleFile.end()));
         printStyle(style);
     }

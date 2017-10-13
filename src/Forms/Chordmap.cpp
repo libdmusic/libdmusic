@@ -15,7 +15,7 @@ Chord DirectMusic::readChord(const Chunk& c) {
         const std::string& id = subchunk.getId();
         const std::uint8_t *data = subchunk.getData().data();
         if (id == "UNAM") {
-            name = std::string(utf16_to_utf8((uint16_t*)data));
+            name = std::string(utf16_to_utf8((const std::uint16_t*)data));
         } else if (id == "sbcn") {
             const std::uint8_t *start = data;
             while (data - start < subchunk.getData().size()) {

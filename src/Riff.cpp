@@ -88,7 +88,7 @@ Unfo::Unfo(const Chunk& c) {
         std::vector<std::uint8_t> data = subchunk.getData();
         const std::string& id = subchunk.getId();
 
-        std::string value = utf16_to_utf8((const uint16_t *)data.data());
+        std::string value = utf16_to_utf8((const std::uint16_t *)data.data());
         if (id == "UARL") m_iarl = value;
         if (id == "UART") m_iart = value;
         if (id == "UCMS") m_icms = value;

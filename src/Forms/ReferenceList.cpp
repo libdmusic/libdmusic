@@ -17,11 +17,11 @@ ReferenceList::ReferenceList(const Chunk& c) {
         } else if(id == "date") {
             // Let's ignore it for now...
         } else if(id == "name") {
-            m_name = std::string(utf16_to_utf8((const uint16_t*)subchunk.getData().data()));
+            m_name = std::string(utf16_to_utf8((const std::uint16_t*)subchunk.getData().data()));
         } else if(id == "file") {
-            m_file = std::string(utf16_to_utf8((const uint16_t*)subchunk.getData().data()));
+            m_file = std::string(utf16_to_utf8((const std::uint16_t*)subchunk.getData().data()));
         } else if(id == "catg") {
-            m_category = std::string(utf16_to_utf8((const uint16_t*)subchunk.getData().data()));
+            m_category = std::string(utf16_to_utf8((const std::uint16_t*)subchunk.getData().data()));
         } else if(id == "vers") {
             m_version = DMUS_IO_VERSION(subchunk.getData().data());
         }
