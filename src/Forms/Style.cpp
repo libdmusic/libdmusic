@@ -17,35 +17,40 @@ StylePart::StylePart(const Chunk& c) {
         } else if(id == "note") {
             std::uint16_t structSize = littleEndianRead<std::uint16_t>(data);
             data += 2;
-            while (data - start < subchunk.getData().size()) {
+            int numElements = (subchunk.getData().size() - 2) / structSize;
+            for(int i = 0; i < numElements; i++) {
                 m_notes.push_back(DMUS_IO_STYLENOTE(data));
                 data += structSize;
             }
         } else if (id == "crve") {
             std::uint16_t structSize = littleEndianRead<std::uint16_t>(data);
             data += 2;
-            while (data - start < subchunk.getData().size()) {
+            int numElements = (subchunk.getData().size() - 2) / structSize;
+            for (int i = 0; i < numElements; i++) {
                 m_curves.push_back(DMUS_IO_STYLECURVE(data));
                 data += structSize;
             }
         } else if (id == "mrkr") {
             std::uint16_t structSize = littleEndianRead<std::uint16_t>(data);
             data += 2;
-            while (data - start < subchunk.getData().size()) {
+            int numElements = (subchunk.getData().size() - 2) / structSize;
+            for (int i = 0; i < numElements; i++) {
                 m_markers.push_back(DMUS_IO_STYLEMARKER(data));
                 data += structSize;
             }
         } else if (id == "rsln") {
             std::uint16_t structSize = littleEndianRead<std::uint16_t>(data);
             data += 2;
-            while (data - start < subchunk.getData().size()) {
+            int numElements = (subchunk.getData().size() - 2) / structSize;
+            for (int i = 0; i < numElements; i++) {
                 m_resolutions.push_back(DMUS_IO_STYLERESOLUTION(data));
                 data += structSize;
             }
         } else if (id == "anpn") {
             std::uint16_t structSize = littleEndianRead<std::uint16_t>(data);
             data += 2;
-            while (data - start < subchunk.getData().size()) {
+            int numElements = (subchunk.getData().size() - 2) / structSize;
+            for (int i = 0; i < numElements; i++) {
                 m_anticipations.push_back(DMUS_IO_STYLE_ANTICIPATION(data));
                 data += structSize;
             }
@@ -85,12 +90,16 @@ Pattern::Pattern(const Chunk& c)
             } else if (listid == "part") {
                 m_parts.push_back(StylePart(subchunk));
             } else if (listid == "pref") {
+                Unfo unfo;
+                DMUS_IO_PARTREF partref;
                 for (Chunk pref : subchunk.getSubchunks()) {
                     if (pref.getId() == "prfc") {
-                        m_partrefs.push_back(DMUS_IO_PARTREF(pref.getData().data()));
-                        break;
+                       partref = DMUS_IO_PARTREF(pref.getData().data());
+                    } else if (pref.getId() == "LIST" && pref.getListId() == "UNFO") {
+                        unfo = Unfo(pref);
                     }
                 }
+                m_partrefs.push_back(std::make_tuple(partref, unfo));
             }
         } else if (id == "RIFF") {
             if (subchunk.getListId() == "DMBD") {
