@@ -9,7 +9,7 @@
 #include "Structs.h"
 
 namespace DirectMusic {
-    typedef std::tuple<std::wstring, std::vector<std::uint16_t>> Chord;
+    typedef std::tuple<std::string, std::vector<std::uint16_t>> Chord;
     Chord readChord(const DirectMusic::Riff::Chunk& chunk);
 
     class ChordEntry {
@@ -72,15 +72,15 @@ namespace DirectMusic {
         const DMUS_IO_REFERENCE& getHeader() const { return m_header; }
         const GUID& getGuid() const { return m_guid; }
         //const FILETIME& getDate() const { return m_date; }
-        const std::wstring getName() const { return m_name; }
-        const std::wstring getFile() const { return m_file; }
-        const std::wstring getCategory() const { return m_category; }
+        const std::string getName() const { return m_name; }
+        const std::string getFile() const { return m_file; }
+        const std::string getCategory() const { return m_category; }
         const DMUS_IO_VERSION& getVersion() const { return m_version; }
 
     private:
         DMUS_IO_REFERENCE m_header;
         GUID m_guid;
-        std::wstring m_name, m_file, m_category;
+        std::string m_name, m_file, m_category;
         DMUS_IO_VERSION m_version;
     };
 

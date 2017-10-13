@@ -8,14 +8,14 @@ Chord DirectMusic::readChord(const Chunk& c) {
     if (c.getId() != "LIST" || c.getListId() != "chrd")
         throw DirectMusic::InvalidChunkException("LIST chrd", c.getId() + " " + c.getListId());
 
-    std::wstring name;
+    std::string name;
     std::vector<std::uint16_t> indexes;
 
     for (const Chunk& subchunk : c.getSubchunks()) {
         const std::string& id = subchunk.getId();
         const std::uint8_t *data = subchunk.getData().data();
         if (id == "UNAM") {
-            name = std::wstring((const wchar_t *)data);
+            name = std::string(utf16_to_utf8((uint16_t*)data));
         } else if (id == "sbcn") {
             const std::uint8_t *start = data;
             while (data - start < subchunk.getData().size()) {

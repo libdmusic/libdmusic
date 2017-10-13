@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cstddef>
 #include <cstring>
+#include <string>
 
 /// Use this macro to initialize struct fields which are expected to be loaded as little endian data
 #define FIELDINIT(s, f, t) {f = DirectMusic::littleEndianRead<t>(data + offsetof(s, f));}
@@ -82,6 +83,27 @@ namespace DirectMusic {
         for (std::size_t i = 0; i < numBytes; i++) {
             ptr[i] = (val & (0xFF << ((numBytes - i - 1) * 8))) >> ((numBytes - i - 1) * 8);
         }
+    }
+
+    /**
+     * Converts a buffer containing windows UTF16-Date (wchar_t on windows) to a UTF-8 compatible string
+     * @param utf16str Buffer with UTF16-data
+     * @param numChars Number of chars to be found in the given buffer
+     * @return UTF8 representation of the input string
+     */
+    inline std::string utf16_to_utf8(const std::uint16_t* utf16str) {
+        std::string ret;
+
+        // FIXME: More like utf16 to ascii. Should replace this with something proper, but this is good enough for now.
+        for(size_t i = 0; utf16str[i] != '\0'; i++) {
+            if(isascii(utf16str[i])) {
+                ret += static_cast<char>(utf16str[i]);
+            } else {
+                ret += u8"\uFFFD"; // Invalid char-sign
+            }
+        }
+
+        return ret;
     }
 
     struct GUID {

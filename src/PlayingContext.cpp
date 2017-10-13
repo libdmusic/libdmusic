@@ -182,7 +182,7 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
                 const std::uint16_t timestamp = std::get<0>(style);
                 const ReferenceList refs = std::get<1>(style);
 
-                std::wstring styleFile = refs.getFile();
+                std::string styleFile = refs.getFile();
                 auto styleForm = loadStyle(std::string(styleFile.begin(), styleFile.end()));
                 assert(styleForm != nullptr);
                 m_primarySegment = std::make_unique<Segment>();
