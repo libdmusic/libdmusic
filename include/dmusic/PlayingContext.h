@@ -27,11 +27,8 @@ namespace DirectMusic {
         friend class MusicMessage;
     private:
         struct Pattern {
-            std::uint8_t grooveLower;
-            std::uint8_t grooveUpper;
-            DMUS_IO_TIMESIG timeSignature;
-            std::vector<DMUS_IO_STYLENOTE> notes;
-            std::uint32_t performanceChannel;
+            DMUS_IO_PATTERN header;
+            std::vector<StylePart> parts;
         };
 
         struct Segment {
