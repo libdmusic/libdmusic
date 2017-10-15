@@ -66,7 +66,32 @@ static std::uint32_t getMusicOffset(std::uint32_t mtGridStart, std::uint32_t nTi
             );
 }
 
-static std::uint8_t getNoteInScale(std::uint32_t chord, DMUS_IO_STYLENOTE note) {
+// Returns true if the specified degree is present in a certain scale, and puts the distance from the
+// root note into offset. If not present, returns false.
+static bool getOffsetFromScale(std::uint8_t degree, std::uint32_t scale, std::uint8_t* offset) {
+    assert(offset != nullptr);
+
+    // FIXME: There is probably a faster way to do this
+    std::vector<int> degrees;
+    for (int i = 0; i < 24; i++) {
+        if (scale & (0x00000001 << i)) {
+            degrees.push_back(i);
+        }
+    }
+
+    if (degree < degrees.size()) {
+        *offset = degrees[degree];
+        return true;
+    } else {
+        return false;
+    }
+}
+
+static bool MusicValueToMIDI(std::uint32_t chord, const std::vector<DMUS_IO_SUBCHORD>& subchords, DMUS_IO_STYLENOTE note, DMUS_IO_STYLEPART part, std::uint8_t* value) {
+    assert(value != nullptr);
+    // TODO: The subchord level should be obtained from the part reference,
+    // but in Gothic's soundtrack it's always set to the first level.
+
     /*
     A chord (or a scale) has the following structure: the first 8 bits represent the
     root of the chord (scale), with the standard MIDI notation:
@@ -82,17 +107,50 @@ static std::uint8_t getNoteInScale(std::uint32_t chord, DMUS_IO_STYLENOTE note) 
     0   0   A   B   5   A   B   5
     00000000101010110101101010110101
     |-------|-|-|-||-|-||-|-|-||-|-|
-    C    W W W HW W HW W W HW W -----> C Major scale
+        C    W W W HW W HW W W HW W -----> C Major scale
     */
-    std::uint8_t root = ((chord & 0xFF000000) >> 24);
+    DMUS_IO_SUBCHORD subchord = subchords[0];
 
     /* Had to dig hard for this one: https://msdn.microsoft.com/en-us/library/ms898477.aspx
     Here is how to interpret wMusicValue:
-    First nibble: octave
-    Second nibble: chord tone
-    Third nibble: scale offset
-    Fourth nibble: accidentals
+    First nibble: octave (from -2 to 14 (??? I guess they meant -2 to 13) )
+    Second nibble: chord tone (0 to 15)
+    Third nibble: scale offset (0 to 15)
+    Fourth nibble: accidentals (-8 to 7)
     */
+
+    int octave = ((note.wMusicValue & 0xF000) >> 12);
+    int chordTone = ((note.wMusicValue & 0x0F00) >> 8);
+    int scaleTone = ((note.wMusicValue & 0x00F0) >> 4);
+
+    // Explanation: the accidentals are represented as a two's complement 4bit value.
+    // We first take only the last four bits from the word, then we shift it left
+    // while keeping it unsigned, so that when we convert it into a signed byte
+    // it has the correct sign. Then, we leverage on the fact that signed types
+    // use arithmetic shifting instead of plain shifting to restore the value
+    // to the correct range.
+    int accidentals = (std::int8_t)((note.wMusicValue & 0x000F) << 4) >> 4;
+
+    int noteValue = subchord.bChordRoot + 12 * octave;
+    std::uint8_t offset = 0;
+    if (getOffsetFromScale(chordTone, subchord.dwChordPattern, &offset)) {
+        noteValue += offset;
+    } else if (getOffsetFromScale(scaleTone, subchord.dwScalePattern, &offset)) {
+        noteValue += offset;
+    } else {
+        return false;
+    }
+
+    noteValue += accidentals;
+    while (noteValue < 0) {
+        noteValue += 12;
+    }
+    while (noteValue > 127) {
+        noteValue -= 12;
+    }
+
+    *value = noteValue;
+    return true;
 }
 
 void PlayingContext::renderBlock(std::int16_t *data, std::uint32_t count, float volume) noexcept {
@@ -100,26 +158,92 @@ void PlayingContext::renderBlock(std::int16_t *data, std::uint32_t count, float 
     double pulsesPerSecond = PulsesPerQuarterNote * m_tempo;
     double pulsesPerSample = pulsesPerSecond / m_sampleRate;
 
-    if (m_messageQueue.empty() && m_primarySegment != nullptr) {
-        if (m_primarySegment->numLoops > 0 || m_primarySegment->infiniteLoop) {
-            Pattern* pttn = m_primarySegment->getRandomPattern(m_grooveLevel);
-            if (pttn != nullptr) {
-                /*for (const auto& note : pttn->notes) {
-                std::uint32_t timeOffset = getMusicOffset(note.mtDuration, note.nTimeOffset, pttn->timeSignature);
-                // TODO: Implement bDurRange, bTimeRange and bVelRange
-                }*/
+    std::uint32_t offset = 0;
+    while (offset < count) {
+        // Segment looping, we have to wait for a band to be loaded
+        if (m_segmentQueue.empty() && m_primarySegment != nullptr && m_performanceChannels.size() > 0) {
+            if (m_primarySegment->numLoops > 0 || m_primarySegment->infiniteLoop) {
+                Pattern pttn;
+                if (m_primarySegment->getRandomPattern(m_grooveLevel, &pttn)) {
+                    for (const auto& partTuple : pttn.parts) {
+                        const auto& partRef = std::get<0>(partTuple);
+                        const auto& part = std::get<1>(partTuple);
+                        for (const auto& note : part.getNotes()) {
+                            std::uint8_t midiNote;
+                            if (MusicValueToMIDI(m_chord, m_subchords, note, part.getHeader(), &midiNote)) {
+                                std::uint32_t timeStart = getMusicOffset(note.mtGridStart, note.nTimeOffset, part.getHeader().timeSig);
+                                auto noteOnMessage = std::make_shared<NoteOnMessage>(m_musicTime + timeStart, midiNote, note.bVelocity, 0, partRef.dwPChannel);
+                                assert(noteOnMessage != nullptr);
+                                m_segmentQueue.push(noteOnMessage);
 
-                if (!m_primarySegment->infiniteLoop) {
-                    m_primarySegment->numLoops--;
+                                auto noteOffMessage = std::make_shared<NoteOffMessage>(m_musicTime + timeStart + note.mtDuration, midiNote, partRef.dwPChannel);
+                                assert(noteOffMessage != nullptr);
+                                m_segmentQueue.push(noteOffMessage);
+                            }
+                        }
+                    }
+
+                    if (!m_primarySegment->infiniteLoop) {
+                        m_primarySegment->numLoops--;
+                    }
                 }
+            } else {
+                m_primarySegment = nullptr;
             }
+        }
+
+        std::shared_ptr<MusicMessage> nextMessage = nullptr;
+        bool messageIsfromSegment = false;
+
+        if (!m_segmentQueue.empty()) {
+            nextMessage = m_segmentQueue.top();
+            messageIsfromSegment = true;
+        }
+
+        if (!m_messageQueue.empty()) {
+            if (nextMessage == nullptr || m_messageQueue.top()->getMessageTime() < nextMessage->getMessageTime()) {
+                nextMessage = m_messageQueue.top();
+                messageIsfromSegment = false;
+            }
+        }
+
+        if (nextMessage == nullptr) {
+            goto fill_buffer;
         } else {
-            m_primarySegment = nullptr;
+            double nextMessageTimeOffset = nextMessage->getMessageTime() - m_musicTime;
+            if (nextMessageTimeOffset / pulsesPerSample > count) {
+                goto fill_buffer;
+            } else {
+                double nextMessageTimeOffsetInSamples = nextMessageTimeOffset / pulsesPerSample;
+                for (const auto& channel : m_performanceChannels) {
+                    const auto& player = channel.second;
+                    player->renderBlock(data + offset, (std::uint32_t)nextMessageTimeOffsetInSamples);
+                }
+                offset += (std::uint32_t)nextMessageTimeOffsetInSamples;
+                m_musicTime += nextMessageTimeOffset;
+                if (messageIsfromSegment) {
+                    m_segmentQueue.pop();
+                } else {
+                    m_messageQueue.pop();
+                }
+                nextMessage->Execute(*this);
+            }
         }
     }
 
-    if (!m_messageQueue.empty()) {
+fill_buffer:
+    // There are no more messages to interpret in this block, we just
+    // process the already-playing instruments
+    int remainingSamples = count - offset;
+    for (const auto& channel : m_performanceChannels) {
+        const auto& player = channel.second;
+        player->renderBlock(data + offset, remainingSamples);
+    }
+    m_musicTime += (remainingSamples * pulsesPerSample);
+
+    /*if (!m_messageQueue.empty()) {
         auto nextMessage = m_messageQueue.top();
+
 
         double nextMessageTimeOffset = nextMessage->getMessageTime() - m_musicTime;
         if (nextMessageTimeOffset / pulsesPerSample > count) {
@@ -159,7 +283,7 @@ void PlayingContext::renderBlock(std::int16_t *data, std::uint32_t count, float 
             player->renderBlock(data, count);
         }
         m_musicTime += (count * pulsesPerSample);
-    }
+    }*/
     m_queueMutex.unlock();
 }
 
@@ -212,7 +336,7 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
 
                         assert(parts.find(partGuid) != parts.end());
                         StylePart part = parts[partGuid];
-                        pttn.parts.push_back(part);
+                        pttn.parts.push_back(std::make_tuple(partRef, part));
                         std::cout << " -- " << info.getName() << " --\n";
                         for (const auto& note : part.getNotes()) {
                             std::cout << note.bPlayModeFlags << " ";
@@ -223,7 +347,8 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
                             } else {
                                 std::cout << "OTHER: ";
                             }
-                            std::cout << note.wMusicValue << " " << std::bitset<32>(note.dwVariation) << "\n";
+                            std::int8_t value = (std::int8_t)((note.wMusicValue & 0x000F) << 4);
+                            std::cout << partRef.dwPChannel << " " << (int)(value >> 4) << " " << std::hex << note.wMusicValue << std::dec << " " << std::bitset<32>(note.dwVariation) << "\n";
                         }
                     }
 
@@ -252,16 +377,23 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
     m_queueMutex.unlock();
 }
 
-PlayingContext::Pattern* PlayingContext::Segment::getRandomPattern(std::uint8_t grooveLevel) const {
-    std::vector<Pattern> suitablePatterns;
-    for (const auto& pattern : patterns) {
+bool PlayingContext::Segment::getRandomPattern(std::uint8_t grooveLevel, Pattern* output) const {
+    std::vector<int> suitablePatterns;
+    for (int i = 0; i < patterns.size(); i++) {
+        const auto& pattern = patterns[i];
         if (pattern.header.bGrooveBottom <= grooveLevel && pattern.header.bGrooveTop >= grooveLevel) {
-            suitablePatterns.push_back(pattern);
+            suitablePatterns.push_back(i);
         }
     }
 
-    if (suitablePatterns.size() == 0) { return nullptr; } else if (suitablePatterns.size() == 1) { return &suitablePatterns[0]; } else {
+    if (suitablePatterns.size() == 0) {
+        return false;
+    } else if (suitablePatterns.size() == 1) {
+        *output = patterns[suitablePatterns[0]];
+        return true;
+    } else {
         int idx = rand();
-        return &suitablePatterns[idx % suitablePatterns.size()];
+        *output = patterns[suitablePatterns[idx % suitablePatterns.size()]];
+        return true;
     }
 }

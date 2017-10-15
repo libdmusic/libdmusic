@@ -59,7 +59,8 @@ static std::string getChordName(std::uint32_t chord) {
     };
     std::string noteName = table[chord % 12];
     int octave = (chord - (chord % 12)) / 12;
-    return noteName + std::to_string(octave);
+    std::string octaveString = std::to_string(octave);
+    return noteName + octaveString;
 }
 
 static void printBand(const BandForm& band) {
@@ -89,9 +90,9 @@ void printTrack<std::shared_ptr<ChordTrack>>(const std::shared_ptr<ChordTrack>& 
     for (const auto& chord : track->getChords()) {
         const auto& chordHeader = std::get<0>(chord);
         const auto& subchords = std::get<1>(chord);
-        std::cout << std::string(utf16_to_utf8((const std::uint16_t *)chordHeader.wszName)) << "\n";
+        std::cout << "Chord name: " << std::string(utf16_to_utf8((const std::uint16_t *)chordHeader.wszName)) << "\n";
         for (const auto& subchord : subchords) {
-            std::cout << getChordName(subchord.bChordRoot) << "\n";
+            std::cout << "Subchord : " << getChordName(subchord.bChordRoot) << " " << getChordName(subchord.bScaleRoot) << " " << std::hex << subchord.dwChordPattern << " " << subchord.dwScalePattern << std::dec << "\n";
         }
     }
 }
@@ -287,6 +288,7 @@ int main(int argc, char **argv) {
     }
 
     ctx.playSegment(*segment);
+    ctx.renderBlock(nullptr, 10000000);
 
     int a;
     std::cin >> a;

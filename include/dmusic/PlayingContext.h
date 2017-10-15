@@ -29,7 +29,7 @@ namespace DirectMusic {
     private:
         struct Pattern {
             DMUS_IO_PATTERN header;
-            std::vector<StylePart> parts;
+            std::vector<std::tuple<DMUS_IO_PARTREF, StylePart>> parts;
         };
 
         struct Segment {
@@ -38,7 +38,7 @@ namespace DirectMusic {
             std::uint32_t numLoops;
             std::vector<Pattern> patterns;
 
-            Pattern* getRandomPattern(std::uint8_t grooveLevel) const;
+            bool getRandomPattern(std::uint8_t grooveLevel, Pattern* output) const;
         };
 
         PlayerFactory m_instrumentFactory;
@@ -53,6 +53,7 @@ namespace DirectMusic {
         DMUS_IO_TIMESIG m_signature;
         std::mutex m_queueMutex;
         MessageQueue m_messageQueue;
+        MessageQueue m_segmentQueue;
         std::unique_ptr<Segment> m_primarySegment = nullptr;
 
         template<typename T>
