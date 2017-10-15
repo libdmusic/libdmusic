@@ -40,24 +40,36 @@ Wave::Wave(const Chunk& c) {
 }
 
 std::vector<std::uint8_t> Wave::getWaveFile() const {
-    int dataSize = m_wavedata.size();
-    int totalSize = sizeof(WaveFormatEx) +
-        m_extraFmtData.size() + dataSize +
-        ((sizeof(WaveFormatEx) + m_extraFmtData.size()) % 2) +
-        (m_wavedata.size() % 2) + 30;
-    int fmtSize = sizeof(WaveFormatEx) + m_extraFmtData.size();
 
-    std::vector<std::uint8_t> output(totalSize + 8);
+    int totalSize = 
+        4 + // RIFF
+        4 + // Total Size
+        4 + // WAVE
+        4 + // FMT
+        4 + // sizeof(WaveFormatEx) + m_extraFmtData.size()
+        sizeof(WaveFormatEx) +
+        m_extraFmtData.size() +
+        m_extraFmtData.size() % 2 +
+        4 + // data
+        4 + // m_wavedata.size()
+        m_wavedata.size() +
+        m_wavedata.size() % 2 +
+        4 + // fact
+        4 +
+        4;
+
+    std::vector<std::uint8_t> output(totalSize);
     std::uint8_t *data = output.data();
 
     memcpy(data, "RIFF", 4); data += 4;
 
-    littleEndianWrite<std::uint32_t>(totalSize, data); data += 4;
+    littleEndianWrite<std::uint32_t>(totalSize - 8, data); data += 4;
 
     memcpy(data, "WAVE", 4); data += 4;
 
     memcpy(data, "fmt ", 4); data += 4;
-    littleEndianWrite<std::uint32_t>(fmtSize, data); data += 4;
+
+    littleEndianWrite<std::uint32_t>(sizeof(WaveFormatEx) + m_extraFmtData.size(), data); data += 4;
     littleEndianWrite<std::uint16_t>((std::uint16_t)m_fmtex.wFormatTag, data); data += 2;
     littleEndianWrite<std::uint16_t>(m_fmtex.wChannels, data); data += 2;
     littleEndianWrite<std::uint32_t>(m_fmtex.dwSamplesPerSec, data); data += 4;
@@ -65,14 +77,15 @@ std::vector<std::uint8_t> Wave::getWaveFile() const {
     littleEndianWrite<std::uint16_t>(m_fmtex.wBlockAlign, data); data += 2;
     littleEndianWrite<std::uint16_t>(m_fmtex.wBitsPerSample, data); data += 2;
     littleEndianWrite<std::uint16_t>(m_fmtex.cbSize, data); data += 2;
+
     if (m_extraFmtData.size() > 0) {
         memcpy(data, m_extraFmtData.data(), m_extraFmtData.size());
         data += m_extraFmtData.size();
+        data += m_extraFmtData.size() % 2;
     }
-    data += (sizeof(WaveFormatEx) + m_extraFmtData.size()) % 2;
 
     memcpy(data, "data", 4); data += 4;
-    littleEndianWrite<std::uint32_t>(dataSize, data); data += 4; // Padding byte
+    littleEndianWrite<std::uint32_t>(m_wavedata.size(), data); data += 4; // Padding byte
 
     memcpy(data, (const char*)(m_wavedata.data()), m_wavedata.size());
     data += m_wavedata.size();
