@@ -136,7 +136,7 @@ static bool MusicValueToMIDI(std::uint32_t chord, const std::vector<DMUS_IO_SUBC
     // it has the correct sign. Then, we leverage on the fact that signed types
     // use arithmetic shifting instead of plain shifting to restore the value
     // to the correct range.
-    int accidentals = (std::int8_t)((note.wMusicValue & 0x000F) << 4) >> 4;
+    int accidentals = (std::int8_t)((note.wMusicValue & 0x000F) << 4) / 16;
 
     int noteValue = subchord.bChordRoot + 12 * octave;
     std::uint8_t offset = 0;
@@ -355,7 +355,7 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
                                 std::cout << "OTHER: ";
                             }
                             std::int8_t value = (std::int8_t)((note.wMusicValue & 0x000F) << 4);
-                            std::cout << partRef.dwPChannel << " " << (int)(value >> 4) << " " << std::hex << note.wMusicValue << std::dec << " " << std::bitset<32>(note.dwVariation) << "\n";
+                            std::cout << partRef.dwPChannel << " " << (int)(value / 16) << " " << std::hex << note.wMusicValue << std::dec << " " << std::bitset<32>(note.dwVariation) << "\n";
                         }
                     }
 
