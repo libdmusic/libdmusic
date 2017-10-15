@@ -88,8 +88,8 @@ void printTrack<std::shared_ptr<ChordTrack>>(const std::shared_ptr<ChordTrack>& 
     std::uint32_t header = track->getHeader();
     std::cout << getChordName((header & 0xFF000000) >> 24) << "\n";
     for (const auto& chord : track->getChords()) {
-        const auto& chordHeader = std::get<0>(chord);
-        const auto& subchords = std::get<1>(chord);
+        const auto& chordHeader = chord.first;
+        const auto& subchords = chord.second;
         std::cout << "Chord name: " << std::string(utf16_to_utf8((const std::uint16_t *)chordHeader.wszName)) << "\n";
         for (const auto& subchord : subchords) {
             std::cout << "Subchord : " << getChordName(subchord.bChordRoot) << " " << getChordName(subchord.bScaleRoot) << " " << std::hex << subchord.dwChordPattern << " " << subchord.dwScalePattern << std::dec << "\n";
@@ -100,8 +100,8 @@ void printTrack<std::shared_ptr<ChordTrack>>(const std::shared_ptr<ChordTrack>& 
 template<>
 void printTrack<std::shared_ptr<StyleTrack>>(const std::shared_ptr<StyleTrack>& track) {
     for (const StyleReference& ref : track->getStyles()) {
-        std::uint16_t timestamp = std::get<0>(ref);
-        ReferenceList refList = std::get<1>(ref);
+        std::uint16_t timestamp = ref.first;
+        ReferenceList refList = ref.second;
         std::cout << refList.getName() << " (" << refList.getFile() << ")" << " at " << timestamp << "\n";
         styles.push(refList.getFile());
     }
@@ -111,8 +111,8 @@ template<>
 void printTrack<std::shared_ptr<BandTrack>>(const std::shared_ptr<BandTrack>& track) {
     std::cout << "Auto download: " << (track->getHeader().bAutoDownload ? "true" : "false") << "\n";
     for (const auto& band : track->getBands()) {
-        DMUS_IO_BAND_ITEM_HEADER2 header = std::get<0>(band);
-        BandForm bandForm = std::get<1>(band);
+        DMUS_IO_BAND_ITEM_HEADER2 header = band.first;
+        BandForm bandForm = band.second;
         printBand(bandForm);
     }
 }

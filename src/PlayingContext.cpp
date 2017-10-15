@@ -173,8 +173,8 @@ void PlayingContext::renderBlock(std::int16_t *data, std::uint32_t count, float 
                 Pattern pttn;
                 if (m_primarySegment->getRandomPattern(m_grooveLevel, &pttn)) {
                     for (const auto& partTuple : pttn.parts) {
-                        const auto& partRef = std::get<0>(partTuple);
-                        const auto& part = std::get<1>(partTuple);
+                        const auto& partRef = partTuple.first;
+                        const auto& part = partTuple.second;
                         for (const auto& note : part.getNotes()) {
                             std::uint8_t midiNote;
                             if (MusicValueToMIDI(m_chord, m_subchords, note, part.getHeader(), &midiNote)) {
@@ -317,8 +317,8 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
         } else if (ckid == "" && fccType == "sttr") {
             auto styleTrack = std::static_pointer_cast<StyleTrack>(track.getData());
             for (const auto& style : styleTrack->getStyles()) {
-                const std::uint16_t timestamp = std::get<0>(style);
-                const ReferenceList refs = std::get<1>(style);
+                const std::uint16_t timestamp = style.first;
+                const ReferenceList refs = style.second;
 
                 std::string styleFile = refs.getFile();
                 auto styleForm = loadStyle(std::string(styleFile.begin(), styleFile.end()));
@@ -336,14 +336,14 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
                     std::cout << "--------------> " << pattern.getInfo().getName() << " <--------------\n";
                     pttn.header = pattern.getHeader();
                     for (const auto& partRefTuple : pattern.getPartReferences()) {
-                        const auto& partRef = std::get<0>(partRefTuple);
-                        const auto& info = std::get<1>(partRefTuple);
+                        const auto& partRef = partRefTuple.first;
+                        const auto& info = partRefTuple.second;
 
                         const auto& partGuid = partRef.guidPartID;
 
                         assert(parts.find(partGuid) != parts.end());
                         StylePart part = parts[partGuid];
-                        pttn.parts.push_back(std::make_tuple(partRef, part));
+                        pttn.parts.push_back(std::make_pair(partRef, part));
                         std::cout << " -- " << info.getName() << " --\n";
                         for (const auto& note : part.getNotes()) {
                             std::cout << note.bPlayModeFlags << " ";
@@ -365,8 +365,8 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
         } else if (ckid == "" && fccType == "DMBT") {
             auto bandTrack = std::static_pointer_cast<BandTrack>(track.getData());
             for (const auto& band : bandTrack->getBands()) {
-                DMUS_IO_BAND_ITEM_HEADER2 header = std::get<0>(band);
-                BandForm bandForm = std::get<1>(band);
+                DMUS_IO_BAND_ITEM_HEADER2 header = band.first;
+                BandForm bandForm = band.second;
 
                 auto message = std::make_shared<BandChangeMessage>(*this, header.lBandTimePhysical, bandForm);
                 m_messageQueue.push(message);
@@ -374,8 +374,8 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
         } else if (ckid == "" && fccType == "cord") {
             auto chordTrack = std::static_pointer_cast<ChordTrack>(track.getData());
             for (const auto& chord : chordTrack->getChords()) {
-                const auto& chordHeader = std::get<0>(chord);
-                const auto& chordBody = std::get<1>(chord);
+                const auto& chordHeader = chord.first;
+                const auto& chordBody = chord.second;
                 auto message = std::make_shared<ChordMessage>(chordHeader.mtTime, chordTrack->getHeader(), chordBody);
                 m_messageQueue.push(message);
             }

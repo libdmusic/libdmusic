@@ -77,7 +77,7 @@ static BandItem parseBandItem(const Chunk& c) {
         } else if (id == "bd2h") {
             header = DMUS_IO_BAND_ITEM_HEADER2(subchunk.getData().data());
         } else if (id == "RIFF" && subchunk.getListId() == "DMBD") {
-            return std::make_tuple(header, BandForm(subchunk));
+            return std::make_pair(header, BandForm(subchunk));
         }
     }
 
@@ -134,7 +134,7 @@ ChordTrack::ChordTrack(const Chunk& c) {
                 subchords.push_back(DMUS_IO_SUBCHORD(data));
             }
 
-            m_chords.push_back(std::make_tuple(chord, subchords));
+            m_chords.push_back(std::make_pair(chord, subchords));
         }
     }
 }
@@ -146,7 +146,7 @@ static Chordmap parseChordmap(const Chunk& c) {
         if (id == "stmp") {
             stamp = littleEndianRead<std::uint16_t>(subchunk.getData().data());
         } else if (id == "LIST" && subchunk.getListId() == "DMRF") {
-            return std::make_tuple(stamp, ReferenceList(subchunk));
+            return std::make_pair(stamp, ReferenceList(subchunk));
         }
     }
 
@@ -184,7 +184,7 @@ static LyricsEvent readLyricsEvent(const Chunk& c) {
         if (id == "stmp") {
             header = DMUS_IO_LYRICSTRACK_EVENTHEADER(subchunk.getData().data());
         } else if (id == "lyrn") {
-            return std::make_tuple(header, std::string(utf16_to_utf8((const std::uint16_t*)subchunk.getData().data())));
+            return std::make_pair(header, std::string(utf16_to_utf8((const std::uint16_t*)subchunk.getData().data())));
         }
     }
 
@@ -306,7 +306,7 @@ static StyleReference readStyleReference(const Chunk& c) {
         if (id == "stmp") {
             stmp = littleEndianRead<std::uint16_t>(subchunk.getData().data());
         } else if (id == "LIST" && subchunk.getListId() == "DMRF") {
-            return std::make_tuple(stmp, ReferenceList(subchunk));
+            return std::make_pair(stmp, ReferenceList(subchunk));
         }
     }
 

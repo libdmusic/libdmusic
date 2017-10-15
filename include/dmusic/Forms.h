@@ -2,14 +2,14 @@
 
 #include <cstdint>
 #include <vector>
-#include <tuple>
+#include <utility>
 #include <string>
 #include <memory>
 #include "Riff.h"
 #include "Structs.h"
 
 namespace DirectMusic {
-    typedef std::tuple<std::string, std::vector<std::uint16_t>> Chord;
+    typedef std::pair<std::string, std::vector<std::uint16_t>> Chord;
     Chord readChord(const DirectMusic::Riff::Chunk& chunk);
 
     class ChordEntry {
@@ -173,7 +173,7 @@ namespace DirectMusic {
     };
 
 
-    typedef std::tuple<DMUS_IO_PARTREF, DirectMusic::Riff::Unfo> PartReference;
+    typedef std::pair<DMUS_IO_PARTREF, DirectMusic::Riff::Unfo> PartReference;
     class Pattern {
     public:
         Pattern(const DirectMusic::Riff::Chunk& chunk);

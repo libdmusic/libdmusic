@@ -4,7 +4,7 @@
 #include "Structs.h"
 
 namespace DirectMusic {
-    typedef std::tuple<DMUS_IO_BAND_ITEM_HEADER2, BandForm> BandItem;
+    typedef std::pair<DMUS_IO_BAND_ITEM_HEADER2, BandForm> BandItem;
 
     class BandTrack
         : public SubtrackForm {
@@ -24,7 +24,7 @@ namespace DirectMusic {
         std::vector<BandItem> m_bands;
     };
 
-    typedef std::tuple<DMUS_IO_CHORD, std::vector<DMUS_IO_SUBCHORD>> ChordBody;
+    typedef std::pair<DMUS_IO_CHORD, std::vector<DMUS_IO_SUBCHORD>> ChordBody;
     class ChordTrack
         : public SubtrackForm {
     public:
@@ -37,7 +37,7 @@ namespace DirectMusic {
         std::vector<ChordBody> m_chords;
     };
 
-    typedef std::tuple<std::uint32_t, ReferenceList> Chordmap;
+    typedef std::pair<std::uint32_t, ReferenceList> Chordmap;
 
     class ChordmapTrack
         : public SubtrackForm {
@@ -59,7 +59,7 @@ namespace DirectMusic {
         std::vector<DMUS_IO_COMMAND> m_commands;
     };
 
-    typedef std::tuple<DMUS_IO_LYRICSTRACK_EVENTHEADER, std::string> LyricsEvent;
+    typedef std::pair<DMUS_IO_LYRICSTRACK_EVENTHEADER, std::string> LyricsEvent;
 
     class LyricsTrack
         : public SubtrackForm {
@@ -145,7 +145,7 @@ namespace DirectMusic {
         std::vector<DMUS_IO_SIGNPOST> m_signposts;
     };
 
-    typedef std::tuple<std::uint16_t, ReferenceList> StyleReference;
+    typedef std::pair<std::uint16_t, ReferenceList> StyleReference;
 
     class StyleTrack
         : public SubtrackForm {

@@ -88,7 +88,7 @@ Pattern::Pattern(const Chunk& c)
                         unfo = Unfo(pref);
                     }
                 }
-                m_partrefs.push_back(std::make_tuple(partref, unfo));
+                m_partrefs.push_back(std::make_pair(partref, unfo));
             }
         } else if (id == "RIFF") {
             if (subchunk.getListId() == "DMBD") {

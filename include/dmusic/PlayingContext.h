@@ -6,6 +6,7 @@
 #include <queue>
 #include <mutex>
 #include <functional>
+#include <utility>
 #include "Structs.h"
 #include "InstrumentPlayer.h"
 #include "Enums.h"
@@ -29,7 +30,7 @@ namespace DirectMusic {
     private:
         struct Pattern {
             DMUS_IO_PATTERN header;
-            std::vector<std::tuple<DMUS_IO_PARTREF, StylePart>> parts;
+            std::vector<std::pair<DMUS_IO_PARTREF, StylePart>> parts;
         };
 
         struct Segment {
