@@ -89,6 +89,13 @@ static bool getOffsetFromScale(std::uint8_t degree, std::uint32_t scale, std::ui
 
 static bool MusicValueToMIDI(std::uint32_t chord, const std::vector<DMUS_IO_SUBCHORD>& subchords, DMUS_IO_STYLENOTE note, DMUS_IO_STYLEPART part, std::uint8_t* value) {
     assert(value != nullptr);
+
+    if (note.bPlayModeFlags == DMUS_PLAYMODE_FIXED) {
+        // In the original Gothic sountrack this is not used, but it might be useful for modding purposes
+        *value = (std::uint8_t)(note.wMusicValue);
+        return true;
+    }
+
     // TODO: The subchord level should be obtained from the part reference,
     // but in Gothic's soundtrack it's always set to the first level.
 
