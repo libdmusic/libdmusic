@@ -179,11 +179,11 @@ void PlayingContext::renderBlock(std::int16_t *data, std::uint32_t count, float 
                             std::uint8_t midiNote;
                             if (MusicValueToMIDI(m_chord, m_subchords, note, part.getHeader(), &midiNote)) {
                                 std::uint32_t timeStart = getMusicOffset(note.mtGridStart, note.nTimeOffset, part.getHeader().timeSig);
-                                auto noteOnMessage = std::make_shared<NoteOnMessage>(m_musicTime + timeStart, midiNote, note.bVelocity, 0, partRef.dwPChannel);
+                                auto noteOnMessage = std::make_shared<NoteOnMessage>(m_musicTime + timeStart, midiNote, note.bVelocity, 0, partRef.wLogicalPartID);
                                 assert(noteOnMessage != nullptr);
                                 m_segmentQueue.push(noteOnMessage);
 
-                                auto noteOffMessage = std::make_shared<NoteOffMessage>(m_musicTime + timeStart + note.mtDuration, midiNote, partRef.dwPChannel);
+                                auto noteOffMessage = std::make_shared<NoteOffMessage>(m_musicTime + timeStart + note.mtDuration, midiNote, partRef.wLogicalPartID);
                                 assert(noteOffMessage != nullptr);
                                 m_segmentQueue.push(noteOffMessage);
                             }
@@ -355,7 +355,7 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
                                 std::cout << "OTHER: ";
                             }
                             std::int8_t value = (std::int8_t)((note.wMusicValue & 0x000F) << 4);
-                            std::cout << partRef.dwPChannel << " " << (int)(value / 16) << " " << std::hex << note.wMusicValue << std::dec << " " << std::bitset<32>(note.dwVariation) << "\n";
+                            std::cout << partRef.wLogicalPartID << " " << (int)(value / 16) << " " << std::hex << note.wMusicValue << std::dec << " " << std::bitset<32>(note.dwVariation) << "\n";
                         }
                     }
 
