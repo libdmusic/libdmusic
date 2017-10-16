@@ -218,10 +218,10 @@ void PlayingContext::renderBlock(std::int16_t *data, std::uint32_t count, float 
             goto fill_buffer;
         } else {
             double nextMessageTimeOffset = nextMessage->getMessageTime() - m_musicTime;
-            if (nextMessageTimeOffset / pulsesPerSample > count) {
+            std::uint32_t nextMessageTimeOffsetInSamples = (std::uint32_t)(nextMessageTimeOffset / pulsesPerSample);
+            if (nextMessageTimeOffsetInSamples + offset > count) {
                 goto fill_buffer;
             } else {
-                double nextMessageTimeOffsetInSamples = nextMessageTimeOffset / pulsesPerSample;
                 for (const auto& channel : m_performanceChannels) {
                     const auto& player = channel.second;
                     player->renderBlock(data + offset, (std::uint32_t)nextMessageTimeOffsetInSamples);
@@ -242,9 +242,11 @@ fill_buffer:
     // There are no more messages to interpret in this block, we just
     // process the already-playing instruments
     int remainingSamples = count - offset;
-    for (const auto& channel : m_performanceChannels) {
-        const auto& player = channel.second;
-        player->renderBlock(data + offset, remainingSamples);
+    if (remainingSamples > 0) {
+        for (const auto& channel : m_performanceChannels) {
+            const auto& player = channel.second;
+            player->renderBlock(data + offset, remainingSamples);
+        }
     }
     m_musicTime += (remainingSamples * pulsesPerSample);
 

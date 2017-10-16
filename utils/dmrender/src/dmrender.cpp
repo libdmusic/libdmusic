@@ -6,14 +6,12 @@
 #include <dmusic/Tracks.h>
 #include <dmusic/dls/DownloadableSound.h>
 #include <cassert>
-#include <fstream>
+#include <sndfile.h>
 #define TSF_IMPLEMENTATION
 #include "tsf.h"
 
 using namespace DirectMusic;
 using namespace DirectMusic::DLS;
-
-static std::queue<std::string> styles;
 
 class MyInstrumentPlayer : public InstrumentPlayer {
 private:
@@ -42,7 +40,7 @@ public:
             }
         }
 
-        std::cout << "error";
+        std::cerr << "Error loading instrument " << dls.getInfo().getName() << "\n";
     }
 
     virtual std::uint32_t renderBlock(std::int16_t *buffer, std::uint32_t count) noexcept {
@@ -87,18 +85,25 @@ int main(int argc, char **argv) {
     });
     std::cout << "Loading segment...";
     auto segment = ctx.loadSegment(argv[1]);
+    std::cout << " done. Beginning rendering...";
 
     ctx.playSegment(*segment);
     int sampleRate = 44100;
-    int length = 60 * sampleRate;
-    std::vector<std::int16_t> buffer;
-    buffer.reserve(length);
-    ctx.renderBlock(buffer.data(), length);
+    int length = 10 * sampleRate; // Render 10 seconds of sound
+    std::int16_t* buffer = (std::int16_t*)calloc(length, sizeof(std::int16_t));
+    ctx.renderBlock(buffer, length);
 
-    std::ofstream ofs(argv[2], std::ios::binary);
-    writeWave(buffer, ofs);
-
-    int a;
-    std::cin >> a;
+    SF_INFO info;
+    info.channels = 1;
+    info.format = SF_FORMAT_WAV | SF_FORMAT_PCM_16;
+    info.samplerate = 44100;
+    info.frames = 0;
+    info.sections = 0;
+    info.seekable = 0;
+    SNDFILE* sndfile = sf_open(argv[2], SFM_WRITE, &info);
+    sf_writef_short(sndfile, buffer, length);
+    sf_close(sndfile);
+    free(buffer);
+    std::cout << "done.";
     return 0;
 }
