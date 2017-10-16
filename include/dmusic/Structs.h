@@ -997,7 +997,7 @@ namespace DirectMusic {
         std::uint32_t mtDuration;
 
         /// Time after mtGridStart at which the event occurs.
-        std::uint16_t nTimeOffset;
+        std::int16_t nTimeOffset;
 
         /// Position in the scale.
         std::uint16_t wMusicValue;
@@ -1029,7 +1029,7 @@ namespace DirectMusic {
             FIELDINIT(DMUS_IO_STYLENOTE, mtGridStart, std::uint32_t);
             FIELDINIT(DMUS_IO_STYLENOTE, dwVariation, std::uint32_t);
             FIELDINIT(DMUS_IO_STYLENOTE, mtDuration, std::uint32_t);
-            FIELDINIT(DMUS_IO_STYLENOTE, nTimeOffset, std::uint16_t);
+            FIELDINIT(DMUS_IO_STYLENOTE, nTimeOffset, std::int16_t);
             FIELDINIT(DMUS_IO_STYLENOTE, wMusicValue, std::uint16_t);
             FIELDINIT(DMUS_IO_STYLENOTE, bVelocity, std::uint8_t);
             FIELDINIT(DMUS_IO_STYLENOTE, bTimeRange, std::uint8_t);

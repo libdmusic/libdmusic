@@ -89,9 +89,10 @@ int main(int argc, char **argv) {
 
     ctx.playSegment(*segment);
     int sampleRate = 44100;
-    int length = 10 * sampleRate; // Render 10 seconds of sound
+    std::uint32_t length = 60 * sampleRate; // Render 60 seconds of sound
     std::int16_t* buffer = (std::int16_t*)calloc(length, sizeof(std::int16_t));
-    ctx.renderBlock(buffer, length);
+    ctx.renderBlock(buffer, length / 2);
+    ctx.renderBlock(buffer + length / 2, length / 2);
 
     SF_INFO info;
     info.channels = 1;

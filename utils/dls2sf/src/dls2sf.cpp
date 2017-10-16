@@ -146,7 +146,7 @@ int main(int argc, char **argv) {
         }
         auto instrument = sf2.NewInstrument(instr.getInfo().getName(), zones);
         instruments.push_back(instrument);
-        presets.push_back(sf2.NewPreset(instrument->name(), 0, 0,
+        presets.push_back(sf2.NewPreset(instrument->name(), instr.getMidiProgram(), 0,
             std::vector<SFPresetZone>{
             SFPresetZone(instrument)
         }));

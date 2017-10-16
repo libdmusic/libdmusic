@@ -56,7 +56,7 @@ static std::uint32_t getNextGridSubdivision(std::uint32_t musicTime, Subdivision
 }
 
 // From the Microsoft DX8 SDK docs
-static std::uint32_t getMusicOffset(std::uint32_t mtGridStart, std::uint32_t nTimeOffset, DMUS_IO_TIMESIG TimeSig) {
+static std::uint32_t getMusicOffset(std::uint32_t mtGridStart, std::int16_t nTimeOffset, DMUS_IO_TIMESIG TimeSig) {
     const std::uint32_t DMUS_PPQ = PlayingContext::PulsesPerQuarterNote;
     return nTimeOffset +
         (
@@ -83,6 +83,7 @@ static bool getOffsetFromScale(std::uint8_t degree, std::uint32_t scale, std::ui
         *offset = degrees[degree];
         return true;
     } else {
+        *offset = degrees[degrees.size() - 1];
         return false;
     }
 }
@@ -138,12 +139,13 @@ static bool MusicValueToMIDI(std::uint32_t chord, const std::vector<DMUS_IO_SUBC
     // to the correct range.
     int accidentals = (std::int8_t)((note.wMusicValue & 0x000F) << 4) / 16;
 
-    int noteValue = subchord.bChordRoot + 12 * octave;
-    std::uint8_t offset = 0;
-    if (getOffsetFromScale(chordTone, subchord.dwChordPattern, &offset)) {
-        noteValue += offset;
-    } else if (getOffsetFromScale(scaleTone, subchord.dwScalePattern, &offset)) {
-        noteValue += offset;
+    int noteValue = /*subchord.bChordRoot*/((chord & 0xFF000000) >> 24) + 12 * octave;
+    std::uint8_t chordOffset = 0;
+    std::uint8_t scaleOffset = 0;
+    if (getOffsetFromScale(chordTone, subchord.dwChordPattern, &chordOffset)) {
+        noteValue += chordOffset;
+    } else if (getOffsetFromScale(scaleTone, subchord.dwScalePattern, &scaleOffset)) {
+        noteValue += scaleOffset;
     } else {
         return false;
     }
@@ -162,7 +164,7 @@ static bool MusicValueToMIDI(std::uint32_t chord, const std::vector<DMUS_IO_SUBC
 
 void PlayingContext::renderBlock(std::int16_t *data, std::uint32_t count, float volume) noexcept {
     m_queueMutex.lock();
-    double pulsesPerSecond = PulsesPerQuarterNote * m_tempo;
+    double pulsesPerSecond = PulsesPerQuarterNote * (m_tempo / 60);
     double pulsesPerSample = pulsesPerSecond / m_sampleRate;
 
     std::uint32_t offset = 0;
@@ -175,17 +177,20 @@ void PlayingContext::renderBlock(std::int16_t *data, std::uint32_t count, float 
                     for (const auto& partTuple : pttn.parts) {
                         const auto& partRef = partTuple.first;
                         const auto& part = partTuple.second;
-                        for (const auto& note : part.getNotes()) {
-                            std::uint8_t midiNote;
-                            if (MusicValueToMIDI(m_chord, m_subchords, note, part.getHeader(), &midiNote)) {
-                                std::uint32_t timeStart = getMusicOffset(note.mtGridStart, note.nTimeOffset, part.getHeader().timeSig);
-                                auto noteOnMessage = std::make_shared<NoteOnMessage>(m_musicTime + timeStart, midiNote, note.bVelocity, 0, partRef.wLogicalPartID);
-                                assert(noteOnMessage != nullptr);
-                                m_segmentQueue.push(noteOnMessage);
 
-                                auto noteOffMessage = std::make_shared<NoteOffMessage>(m_musicTime + timeStart + note.mtDuration, midiNote, partRef.wLogicalPartID);
-                                assert(noteOffMessage != nullptr);
-                                m_segmentQueue.push(noteOffMessage);
+                        /*if (partRef.wLogicalPartID == 0) */{
+                            for (const auto& note : part.getNotes()) {
+                                std::uint8_t midiNote;
+                                if (MusicValueToMIDI(m_chord, m_subchords, note, part.getHeader(), &midiNote)) {
+                                    std::uint32_t timeStart = getMusicOffset(note.mtGridStart, note.nTimeOffset, part.getHeader().timeSig);
+                                    auto noteOnMessage = std::make_shared<NoteOnMessage>(m_musicTime + timeStart, midiNote, note.bVelocity, 0, partRef.wLogicalPartID);
+                                    assert(noteOnMessage != nullptr);
+                                    m_segmentQueue.push(noteOnMessage);
+
+                                    auto noteOffMessage = std::make_shared<NoteOffMessage>(m_musicTime + timeStart + note.mtDuration, midiNote, partRef.wLogicalPartID);
+                                    assert(noteOffMessage != nullptr);
+                                    m_segmentQueue.push(noteOffMessage);
+                                }
                             }
                         }
                     }
@@ -218,6 +223,7 @@ void PlayingContext::renderBlock(std::int16_t *data, std::uint32_t count, float 
             goto fill_buffer;
         } else {
             double nextMessageTimeOffset = nextMessage->getMessageTime() - m_musicTime;
+            assert(nextMessageTimeOffset >= 0);
             std::uint32_t nextMessageTimeOffsetInSamples = (std::uint32_t)(nextMessageTimeOffset / pulsesPerSample);
             if (nextMessageTimeOffsetInSamples + offset > count) {
                 goto fill_buffer;
@@ -247,52 +253,9 @@ fill_buffer:
             const auto& player = channel.second;
             player->renderBlock(data + offset, remainingSamples);
         }
+        m_musicTime += (remainingSamples * pulsesPerSample);
     }
-    m_musicTime += (remainingSamples * pulsesPerSample);
 
-    /*if (!m_messageQueue.empty()) {
-        auto nextMessage = m_messageQueue.top();
-
-
-        double nextMessageTimeOffset = nextMessage->getMessageTime() - m_musicTime;
-        if (nextMessageTimeOffset / pulsesPerSample > count) {
-            // There are no messages to interpret in this block, we just
-            // process the already-playing instruments
-            for (const auto& channel : m_performanceChannels) {
-                const auto& player = channel.second;
-                player->renderBlock(data, count);
-            }
-            m_musicTime += (count * pulsesPerSample);
-        } else {
-            std::uint32_t offset = 0;
-            do {
-                // We process the audio before the message, then we send the message
-                double nextMessageTimeOffsetInSamples = nextMessageTimeOffset / pulsesPerSample;
-                for (const auto& channel : m_performanceChannels) {
-                    const auto& player = channel.second;
-                    player->renderBlock(data + offset, (std::uint32_t)nextMessageTimeOffsetInSamples);
-                }
-                offset += (std::uint32_t)nextMessageTimeOffsetInSamples;
-                m_musicTime += nextMessageTimeOffset;
-                if (!m_messageQueue.empty()) m_messageQueue.pop();
-                nextMessage->Execute(*this);
-                if (m_messageQueue.empty()) {
-                    nextMessage = nullptr;
-                } else {
-                    nextMessage = m_messageQueue.top();
-                    nextMessageTimeOffset = nextMessage->getMessageTime() - m_musicTime;
-                }
-            } while (offset < count);
-        }
-    } else {
-        // There are no messages to interpret in this block, we just
-        // process the already-playing instruments
-        for (const auto& channel : m_performanceChannels) {
-            const auto& player = channel.second;
-            player->renderBlock(data, count);
-        }
-        m_musicTime += (count * pulsesPerSample);
-    }*/
     m_queueMutex.unlock();
 }
 
