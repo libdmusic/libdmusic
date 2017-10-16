@@ -333,7 +333,6 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
 
                 for (const auto& pattern : styleForm->getPatterns()) {
                     Pattern pttn;
-                    std::cout << "--------------> " << pattern.getInfo().getName() << " <--------------\n";
                     pttn.header = pattern.getHeader();
                     for (const auto& partRefTuple : pattern.getPartReferences()) {
                         const auto& partRef = partRefTuple.first;
@@ -344,19 +343,6 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
                         assert(parts.find(partGuid) != parts.end());
                         StylePart part = parts[partGuid];
                         pttn.parts.push_back(std::make_pair(partRef, part));
-                        std::cout << " -- " << info.getName() << " --\n";
-                        for (const auto& note : part.getNotes()) {
-                            std::cout << note.bPlayModeFlags << " ";
-                            if (note.bPlayModeFlags == DMUS_PLAYMODE_FIXED) {
-                                std::cout << "FIXED: ";
-                            } else if (note.bPlayModeFlags == DMUS_PLAYMODE_NONE) {
-                                std::cout << "DEFAULT: ";
-                            } else {
-                                std::cout << "OTHER: ";
-                            }
-                            std::int8_t value = (std::int8_t)((note.wMusicValue & 0x000F) << 4);
-                            std::cout << partRef.wLogicalPartID << " " << (int)(value / 16) << " " << std::hex << note.wMusicValue << std::dec << " " << std::bitset<32>(note.dwVariation) << "\n";
-                        }
                     }
 
                     m_primarySegment->patterns.push_back(pttn);
