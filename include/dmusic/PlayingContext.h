@@ -78,7 +78,7 @@ namespace DirectMusic {
             m_loader(*(new Loader())),
             m_musicTime(0.0),
             m_grooveLevel(0),
-            m_tempo(70),
+            m_tempo(100),
             m_primarySegment(nullptr) {}
 
         /// Renders the following audio block

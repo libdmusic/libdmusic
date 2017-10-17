@@ -164,6 +164,7 @@ static bool MusicValueToMIDI(std::uint32_t chord, const std::vector<DMUS_IO_SUBC
 
 void PlayingContext::renderBlock(std::int16_t *data, std::uint32_t count, float volume) noexcept {
     m_queueMutex.lock();
+
     double pulsesPerSecond = PulsesPerQuarterNote * (m_tempo / 60);
     double pulsesPerSample = pulsesPerSecond / m_sampleRate;
 
@@ -222,6 +223,8 @@ void PlayingContext::renderBlock(std::int16_t *data, std::uint32_t count, float 
         if (nextMessage == nullptr) {
             goto fill_buffer;
         } else {
+            pulsesPerSecond = PulsesPerQuarterNote * (m_tempo / 60);
+            pulsesPerSample = pulsesPerSecond / m_sampleRate;
             double nextMessageTimeOffset = nextMessage->getMessageTime() - m_musicTime;
             assert(nextMessageTimeOffset >= 0);
             std::uint32_t nextMessageTimeOffsetInSamples = (std::uint32_t)(nextMessageTimeOffset / pulsesPerSample);
@@ -312,6 +315,16 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
 
                     m_primarySegment->patterns.push_back(pttn);
                 }
+
+                // Load the style's band
+                for (const auto& band : styleForm->getBands()) {
+                    auto message = std::make_shared<BandChangeMessage>(*this, 0, band);
+                    m_messageQueue.push(message);
+                }
+
+                // Load the style's tempo
+                auto message = std::make_shared<TempoChangeMessage>(0, styleForm->getHeader().dblTempo);
+                m_messageQueue.push(message);
             }
         } else if (ckid == "" && fccType == "DMBT") {
             auto bandTrack = std::static_pointer_cast<BandTrack>(track.getData());
