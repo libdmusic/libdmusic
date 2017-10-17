@@ -30,3 +30,8 @@ $ cd libdmusic
 $ cmake .
 $ make
 ````
+
+Acknowledgements
+----------------
+
+`dmrender` uses [TinySoundFont](https://github.com/schellingb/TinySoundFont) for SoundFont rendering.
