@@ -76,7 +76,7 @@ public:
 
 int main(int argc, char **argv) {
     if (argc < 3) {
-        std::cerr << "Usage: dmrender [inputfile] [outputfile]\n";
+        std::cerr << "Usage: dmrender [inputfile] [outputfile] <length in seconds>\n";
         return 1;
     }
     PlayingContext ctx(44100, 1, [](std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patch,
@@ -89,10 +89,14 @@ int main(int argc, char **argv) {
 
     ctx.playSegment(*segment);
     int sampleRate = 44100;
-    std::uint32_t length = 60 * sampleRate; // Render 60 seconds of sound
+    std::uint64_t length = 60 * sampleRate; // Render 60 seconds of sound if nothing else is specified
+    if (argc > 3) {
+        length = std::stoi(argv[3]) * sampleRate;
+    }
     std::int16_t* buffer = (std::int16_t*)calloc(length, sizeof(std::int16_t));
-    ctx.renderBlock(buffer, length / 2);
-    ctx.renderBlock(buffer + length / 2, length / 2);
+    for (std::uint64_t i = 0; i < length; i += sampleRate) {
+        ctx.renderBlock(buffer + i, sampleRate);
+    }
 
     SF_INFO info;
     info.channels = 1;
