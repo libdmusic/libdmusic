@@ -68,14 +68,14 @@ static std::uint32_t getMusicOffset(std::uint32_t mtGridStart, std::int16_t nTim
 
 // Returns true if the specified degree is present in a certain scale, and puts the distance from the
 // root note into offset. If not present, returns false.
-static bool getOffsetFromScale(std::uint8_t degree, std::uint32_t scale, int start = 0, std::uint8_t* offset) {
+static bool getOffsetFromScale(std::uint8_t degree, std::uint32_t scale, std::uint8_t* offset) {
     assert(offset != nullptr);
 
     // FIXME: There is probably a faster way to do this
     std::vector<int> degrees;
-    for (int i = start; i < 24; i++) {
+    for (int i = 0; i < 24; i++) {
         if (scale & (0x00000001 << i)) {
-            degrees.push_back(i - start);
+            degrees.push_back(i);
         }
     }
 
@@ -167,7 +167,7 @@ static bool MusicValueToMIDI(std::uint32_t chord, const std::vector<DMUS_IO_SUBC
     //      * depending on scale, it might be 8 semitones (minor) or 9 semitones (major)
     // So, scaleOffset depends on chord's grade
     // That works even if chord's grade doesn't fit into scale
-    if (getOffsetFromScale(scaleTone, subchord.dwScalePattern, chordOffset, &scaleOffset)) {
+    if (getOffsetFromScale(scaleTone, subchord.dwScalePattern >> chordOffset, &scaleOffset)) {
         noteValue += scaleOffset;
     }
 
