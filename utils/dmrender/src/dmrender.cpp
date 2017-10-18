@@ -40,19 +40,8 @@ public:
             m_soundfont = soundfonts.at(soundfontFile);
         }
         m_preset = tsf_get_presetindex(m_soundfont, 0, patch);
+        m_preset = 0;
         assert(m_preset >= 0);
-
-        /*for (const auto& instr : dls.getInstruments()) {
-            if (instr.getMidiProgram() == patch) {
-                for (int i = 0; i < tsf_get_presetcount(m_soundfont); i++) {
-                    if (instr.getInfo().getName().compare(tsf_get_presetname(m_soundfont, i)) == 0) {
-                        m_preset = i;
-                        std::cout << "Instrument loaded: " << instr.getInfo().getName() << " from " << dls.getInfo().getName() << "\n";
-                        return;
-                    }
-                }
-            }
-        }*/
     }
 
     virtual std::uint32_t renderBlock(std::int16_t *buffer, std::uint32_t count, float volume) noexcept {
@@ -100,7 +89,7 @@ int main(int argc, char **argv) {
     });
     std::cout << "Loading segment...";
     auto segment = ctx.loadSegment(argv[1]);
-    std::cout << " done. Beginning rendering...\n";
+    std::cout << " done.\nBeginning rendering... ";
 
     ctx.playSegment(*segment);
     int sampleRate = 44100;
@@ -108,9 +97,13 @@ int main(int argc, char **argv) {
     if (argc > 3) {
         length = std::stoi(argv[3]) * sampleRate;
     }
+
+    // Each instrument is going to sum its output into the buffer,
+    // so we have to start from a blank state, hence calloc
     std::int16_t* buffer = (std::int16_t*)calloc(length, sizeof(std::int16_t));
     for (std::uint64_t i = 0; i < length; i += sampleRate) {
         ctx.renderBlock(buffer + i, sampleRate);
+        //std::cout << ceil((i / (float)length) * 100) << "% ";
     }
     
     // Close all soundfont handles
@@ -129,6 +122,6 @@ int main(int argc, char **argv) {
     sf_writef_short(sndfile, buffer, length);
     sf_close(sndfile);
     free(buffer);
-    std::cout << "done.";
+    std::cout << "Rendering done.";
     return 0;
 }

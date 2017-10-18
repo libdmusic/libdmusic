@@ -97,6 +97,7 @@ static bool MusicValueToMIDI(std::uint32_t chord, const std::vector<DMUS_IO_SUBC
         return true;
     }
 
+    assert(note.bPlayModeFlags == DMUS_PLAYMODE_CHORD_ROOT | DMUS_PLAYMODE_CHORD_INTERVALS | DMUS_PLAYMODE_SCALE_INTERVALS);
     // TODO: The subchord level should be obtained from the part reference,
     // but in Gothic's soundtrack it's always set to the first level.
 
@@ -134,20 +135,31 @@ static bool MusicValueToMIDI(std::uint32_t chord, const std::vector<DMUS_IO_SUBC
     // Explanation: the accidentals are represented as a two's complement 4bit value.
     // We first take only the last four bits from the word, then we shift it left
     // while keeping it unsigned, so that when we convert it into a signed byte
-    // it has the correct sign. Then, we leverage on the fact that signed types
-    // use arithmetic shifting instead of plain shifting to restore the value
-    // to the correct range.
-    int accidentals = (std::int8_t)((note.wMusicValue & 0x000F) << 4) / 16;
+    // it has the correct sign. Then we divide by 16 to simulate an arithmetic
+    // right shift of 4, to bring the value back into the correct range
+    int accidentals = (std::int8_t)(note.wMusicValue & 0x000F);
+    if (accidentals > 7) { accidentals = (accidentals - 16); }
 
-    int noteValue = /*subchord.bChordRoot*/((chord & 0xFF000000) >> 24) + 12 * octave;
+    int noteValue = ((chord & 0xFF000000) >> 24) + 12 * octave;
     std::uint8_t chordOffset = 0;
     std::uint8_t scaleOffset = 0;
+    if (chordTone == 1 && scaleTone == 1) {
+        noteValue += 5;
+        noteValue += accidentals;
+        *value = noteValue;
+        std::cout << (int)noteValue << "\n";
+        return true;
+    }
     if (getOffsetFromScale(chordTone, subchord.dwChordPattern, &chordOffset)) {
         noteValue += chordOffset;
-    } else if (getOffsetFromScale(scaleTone, subchord.dwScalePattern, &scaleOffset)) {
+    } else if (getOffsetFromScale(chordTone, subchord.dwScalePattern, &scaleOffset)) {
         noteValue += scaleOffset;
     } else {
         return false;
+    }
+
+    if (getOffsetFromScale(scaleTone, subchord.dwScalePattern, &scaleOffset)) {
+        noteValue += scaleOffset;
     }
 
     noteValue += accidentals;
@@ -159,6 +171,7 @@ static bool MusicValueToMIDI(std::uint32_t chord, const std::vector<DMUS_IO_SUBC
     }
 
     *value = noteValue;
+    std::cout << (int)noteValue << "\n"; 
     return true;
 }
 
@@ -171,7 +184,7 @@ void PlayingContext::renderBlock(std::int16_t *data, std::uint32_t count, float 
     std::uint32_t offset = 0;
     while (offset < count) {
         // Segment looping, we have to wait for a band to be loaded
-        if (m_segmentQueue.empty() && m_primarySegment != nullptr && m_performanceChannels.size() > 0) {
+        if (m_segmentQueue.empty() && m_primarySegment != nullptr && m_performanceChannels.size() > 0 && m_subchords.size() > 0) {
             if (m_primarySegment->numLoops > 0 || m_primarySegment->infiniteLoop) {
                 Pattern pttn;
                 if (m_primarySegment->getRandomPattern(m_grooveLevel, &pttn)) {
@@ -232,10 +245,12 @@ void PlayingContext::renderBlock(std::int16_t *data, std::uint32_t count, float 
                 goto fill_buffer;
             } else {
                 for (const auto& channel : m_performanceChannels) {
-                    const auto& player = channel.second;
-                    player->renderBlock(data + offset, (std::uint32_t)nextMessageTimeOffsetInSamples);
+                    if (channel.first < 20) {
+                        const auto& player = channel.second;
+                        player->renderBlock(data + offset, nextMessageTimeOffsetInSamples, volume);
+                    }
                 }
-                offset += (std::uint32_t)nextMessageTimeOffsetInSamples;
+                offset += nextMessageTimeOffsetInSamples;
                 m_musicTime += nextMessageTimeOffset;
                 if (messageIsfromSegment) {
                     m_segmentQueue.pop();
@@ -253,8 +268,10 @@ fill_buffer:
     int remainingSamples = count - offset;
     if (remainingSamples > 0) {
         for (const auto& channel : m_performanceChannels) {
-            const auto& player = channel.second;
-            player->renderBlock(data + offset, remainingSamples);
+            if (channel.first < 20) {
+                const auto& player = channel.second;
+                player->renderBlock(data + offset, remainingSamples);
+            }
         }
         m_musicTime += (remainingSamples * pulsesPerSample);
     }
@@ -268,6 +285,10 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
         const auto& header = track.getHeader();
         std::string ckid = std::string(header.ckid),
             fccType = std::string(header.fccType);
+
+        ckid.resize(4);
+        fccType.resize(4);
+
         if (ckid == "tetr") {
             auto tempoTrack = std::static_pointer_cast<TempoTrack>(track.getData());
             for (const auto& item : tempoTrack->getItems()) {
@@ -282,7 +303,7 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
                 assert(message != nullptr);
                 m_messageQueue.push(message);
             }
-        } else if (ckid == "" && fccType == "sttr") {
+        } else if (*header.ckid == 0 && fccType == "sttr") {
             auto styleTrack = std::static_pointer_cast<StyleTrack>(track.getData());
             for (const auto& style : styleTrack->getStyles()) {
                 const std::uint16_t timestamp = style.first;
@@ -326,7 +347,7 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
                 auto message = std::make_shared<TempoChangeMessage>(0, styleForm->getHeader().dblTempo);
                 m_messageQueue.push(message);
             }
-        } else if (ckid == "" && fccType == "DMBT") {
+        } else if (*header.ckid == 0 && fccType == "DMBT") {
             auto bandTrack = std::static_pointer_cast<BandTrack>(track.getData());
             for (const auto& band : bandTrack->getBands()) {
                 DMUS_IO_BAND_ITEM_HEADER2 header = band.first;
@@ -335,7 +356,7 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
                 auto message = std::make_shared<BandChangeMessage>(*this, header.lBandTimePhysical, bandForm);
                 m_messageQueue.push(message);
             }
-        } else if (ckid == "" && fccType == "cord") {
+        } else if (*header.ckid == 0 && fccType == "cord") {
             auto chordTrack = std::static_pointer_cast<ChordTrack>(track.getData());
             for (const auto& chord : chordTrack->getChords()) {
                 const auto& chordHeader = chord.first;
