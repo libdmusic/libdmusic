@@ -152,13 +152,23 @@ static bool MusicValueToMIDI(std::uint32_t chord, const std::vector<DMUS_IO_SUBC
     }
     if (getOffsetFromScale(chordTone, subchord.dwChordPattern, &chordOffset)) {
         noteValue += chordOffset;
-    } else if (getOffsetFromScale(chordTone, subchord.dwScalePattern, &scaleOffset)) {
-        noteValue += scaleOffset;
+    // Is it possible to not find chordTone?
+    // } else if (getOffsetFromScale(chordTone, subchord.dwScalePattern, &scaleOffset)) {
+    //     noteValue += scaleOffset;
     } else {
         return false;
     }
 
-    if (getOffsetFromScale(scaleTone, subchord.dwScalePattern, &scaleOffset)) {
+    // Start scale offset from resolved chordTone.
+    // Let's draw an example:
+    //      * chordTone is 2, scaleTone is 1
+    //      * in normal chord chordTone 2 is resolved to 5th grade in scale
+    //      * plus scaleTone 1 it makes 6th grade of the scale
+    //      * depending on scale, it might be 8 semitones (minor) or 9 semitones (major)
+    // So, scaleOffset depends on chord's grade
+    // That works even if chord's grade doesn't fit into scale
+    // Chord grade might be off of the scale, so if scaleOffset = 0, don't ruin it
+    if (scaleTone && getOffsetFromScale(scaleTone, subchord.dwScalePattern >> chordOffset, &scaleOffset)) {
         noteValue += scaleOffset;
     }
 
