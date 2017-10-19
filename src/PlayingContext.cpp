@@ -143,13 +143,6 @@ static bool MusicValueToMIDI(std::uint32_t chord, const std::vector<DMUS_IO_SUBC
     int noteValue = ((chord & 0xFF000000) >> 24) + 12 * octave;
     std::uint8_t chordOffset = 0;
     std::uint8_t scaleOffset = 0;
-    if (chordTone == 1 && scaleTone == 1) {
-        noteValue += 5;
-        noteValue += accidentals;
-        *value = noteValue;
-        std::cout << (int)noteValue << "\n";
-        return true;
-    }
     if (getOffsetFromScale(chordTone, subchord.dwChordPattern, &chordOffset)) {
         noteValue += chordOffset;
     // Is it possible to not find chordTone?
