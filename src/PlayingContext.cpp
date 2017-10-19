@@ -167,7 +167,8 @@ static bool MusicValueToMIDI(std::uint32_t chord, const std::vector<DMUS_IO_SUBC
     //      * depending on scale, it might be 8 semitones (minor) or 9 semitones (major)
     // So, scaleOffset depends on chord's grade
     // That works even if chord's grade doesn't fit into scale
-    if (getOffsetFromScale(scaleTone, subchord.dwScalePattern >> chordOffset, &scaleOffset)) {
+    // Chord grade might be off of the scale, so if scaleOffset = 0, don't ruin it
+    if (scaleTone && getOffsetFromScale(scaleTone, subchord.dwScalePattern >> chordOffset, &scaleOffset)) {
         noteValue += scaleOffset;
     }
 
