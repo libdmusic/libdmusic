@@ -7,6 +7,7 @@
 #include <sf2cute.hpp>
 #include <climits>
 #include <cassert>
+#include <cmath>
 #include "decode.h"
 
 using namespace DirectMusic;
