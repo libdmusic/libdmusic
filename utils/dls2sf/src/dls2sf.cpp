@@ -24,6 +24,47 @@ static Riff::Chunk loadChunk(std::string path) {
     return ch;
 }
 
+static double dwordTimecentsToSeconds(std::int32_t tc) {
+    return exp2((double)tc / (1200.0 * 65536.0));
+}
+
+static std::int16_t secondsToWordTimecents(double secs) {
+    return (std::int16_t)(1200*log2(secs));
+}
+
+// FIXME: Only "envelope" articulators are supported
+static void insertArticulator(const DLS::Articulator& articulator, std::vector<SFModulatorItem>& mods, std::vector<SFGeneratorItem>& gens) {
+    for (const auto& connBlock : articulator.getConnectionBlocks()) {
+        if (connBlock.usControl == (DLS::ArticulatorControl)0 &&
+            connBlock.usSource == DLS::ArticulatorSource::None &&
+            connBlock.usTransform == DLS::ArticulatorTransform::None) {
+            SFGenerator gen;
+            switch (connBlock.usDestination) {
+            case DLS::ArticulatorDestination::EG1AttachTime:
+                gen = SFGenerator::kAttackVolEnv; break;
+            case DLS::ArticulatorDestination::EG1DecayTime:
+                gen = SFGenerator::kDecayVolEnv; break;
+            case DLS::ArticulatorDestination::EG1ReleaseTime:
+                gen = SFGenerator::kReleaseVolEnv; break;
+            case DLS::ArticulatorDestination::EG1SustainLevel:
+                gen = SFGenerator::kSustainVolEnv; break;
+
+            case DLS::ArticulatorDestination::EG2AttachTime:
+                gen = SFGenerator::kAttackModEnv; break;
+            case DLS::ArticulatorDestination::EG2DecayTime:
+                gen = SFGenerator::kDecayModEnv; break;
+            case DLS::ArticulatorDestination::EG2ReleaseTime:
+                gen = SFGenerator::kReleaseModEnv; break;
+            case DLS::ArticulatorDestination::EG2SustainLevel:
+                gen = SFGenerator::kSustainModEnv; break;
+            }
+            double secs = dwordTimecentsToSeconds(connBlock.lScale);
+            std::int16_t newValue = secondsToWordTimecents(secs);
+            gens.push_back(SFGeneratorItem(gen, GenAmountType(newValue)));
+        }
+    }
+}
+
 int main(int argc, char **argv) {
     if (argc < 3) {
         std::cerr << "Usage: dls2sf <inputfile> <outputfile>" << std::endl;
@@ -106,6 +147,11 @@ int main(int argc, char **argv) {
             std::vector<SFModulatorItem> modItems;
             std::shared_ptr<SFSample> sample;
             std::uint16_t keyrangeLow, keyrangeHigh, velrangeLow, velrangeHigh;
+            genItems.push_back(SFGeneratorItem(SFGenerator::kAttackVolEnv, GenAmountType(secondsToWordTimecents(0.4))));
+
+            for (const auto& art : instr.getArticulators()) {
+                insertArticulator(art, modItems, genItems);
+            }
 
             if (hdr.RangeKey.usHigh - hdr.RangeKey.usLow <= 0) {
                 // Sometimes, the range is just 0-0, I assume that means
