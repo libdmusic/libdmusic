@@ -6,6 +6,7 @@
 #include <dmusic/dls/DownloadableSound.h>
 #include <sf2cute.hpp>
 #include <climits>
+#include <cassert>
 #include "decode.h"
 
 using namespace DirectMusic;
@@ -153,15 +154,10 @@ int main(int argc, char **argv) {
                 insertArticulator(art, modItems, genItems);
             }
 
-            if (hdr.RangeKey.usHigh - hdr.RangeKey.usLow <= 0) {
-                // Sometimes, the range is just 0-0, I assume that means
-                // it spans the entire keyboard
-                keyrangeLow = 0;
-                keyrangeHigh = 127;
-            } else {
-                keyrangeLow = hdr.RangeKey.usLow;
-                keyrangeHigh = hdr.RangeKey.usHigh;
-            }
+            assert(hdr.RangeKey.usHigh >= hdr.RangeKey.usLow);
+
+            keyrangeLow = hdr.RangeKey.usLow;
+            keyrangeHigh = hdr.RangeKey.usHigh;
 
             if (hdr.RangeVelocity.usHigh - hdr.RangeVelocity.usLow <= 0) {
                 velrangeLow = 0;
