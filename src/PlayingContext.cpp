@@ -240,15 +240,15 @@ void PlayingContext::renderBlock(std::int16_t *data, std::uint32_t count, float 
             goto fill_buffer;
         } else {
             pulsesPerSecond = PulsesPerQuarterNote * (m_tempo / 60);
-            pulsesPerSample = pulsesPerSecond / m_sampleRate;
-            double nextMessageTimeOffset = nextMessage->getMessageTime() - m_musicTime;
+            pulsesPerSample = pulsesPerSecond / (m_sampleRate * m_audioChannels);
+            std::uint32_t nextMessageTimeOffset = nextMessage->getMessageTime() - m_musicTime;
             assert(nextMessageTimeOffset >= 0);
             std::uint32_t nextMessageTimeOffsetInSamples = (std::uint32_t)(nextMessageTimeOffset / pulsesPerSample);
             if (nextMessageTimeOffsetInSamples + offset > count) {
                 goto fill_buffer;
             } else {
                 for (const auto& channel : m_performanceChannels) {
-                    if (channel.first < 20) {
+                    {
                         const auto& player = channel.second;
                         player->renderBlock(data + offset, nextMessageTimeOffsetInSamples, volume);
                     }

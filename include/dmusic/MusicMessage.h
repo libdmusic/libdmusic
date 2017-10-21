@@ -20,7 +20,10 @@ namespace DirectMusic {
         std::uint32_t m_messageTime;
 
         void changeTempo(PlayingContext& ctx, double tempo);
-        std::shared_ptr<InstrumentPlayer> createInstrument(PlayingContext& ctx, std::uint8_t bank_lo, std::uint8_t bank_hi, std::uint8_t patch, const DirectMusic::DLS::DownloadableSound& dls);
+        std::shared_ptr<InstrumentPlayer> createInstrument(PlayingContext& ctx,
+            std::uint8_t bank_lo, std::uint8_t bank_hi, std::uint8_t patch,
+            const DirectMusic::DLS::DownloadableSound& dls,
+            float volume, float pan);
         void setInstrument(PlayingContext& ctx, std::uint32_t channel, std::shared_ptr<InstrumentPlayer> instr);
         void setGrooveLevel(PlayingContext& ctx, std::uint8_t level);
         const std::map<std::uint32_t, std::shared_ptr<InstrumentPlayer>>& getChannels(PlayingContext& ctx);

@@ -20,7 +20,9 @@ namespace DirectMusic {
         std::uint8_t, std::uint8_t, std::uint8_t,
         const DirectMusic::DLS::DownloadableSound&,
         std::uint32_t,
-        std::uint32_t)>;
+        std::uint32_t,
+        float,
+        float)>;
 
     using MessageQueue = std::priority_queue<std::shared_ptr<MusicMessage>, std::vector<std::shared_ptr<MusicMessage>>, MusicMessageComparer>;
 
@@ -34,10 +36,11 @@ namespace DirectMusic {
         };
 
         struct Segment {
-            //std::vector<std::shared_ptr<MusicMessage>> messages;
             bool infiniteLoop;
             std::uint32_t numLoops;
             std::vector<Pattern> patterns;
+            double initialTempo;
+            std::uint32_t initialGroove;
 
             bool getRandomPattern(std::uint8_t grooveLevel, Pattern* output) const;
         };
@@ -46,7 +49,7 @@ namespace DirectMusic {
         std::uint32_t m_sampleRate, m_audioChannels;
         Loader& m_loader;
         std::map<std::uint32_t, std::shared_ptr<InstrumentPlayer>> m_performanceChannels;
-        double m_musicTime;
+        std::uint32_t m_musicTime;
         double m_tempo;
         std::uint8_t m_grooveLevel;
         std::uint32_t m_chord;
@@ -76,7 +79,7 @@ namespace DirectMusic {
             m_audioChannels(audioChannels),
             m_instrumentFactory(instrumentFactory),
             m_loader(*(new Loader())),
-            m_musicTime(0.0),
+            m_musicTime(0),
             m_grooveLevel(1),
             m_tempo(100),
             m_primarySegment(nullptr) {}

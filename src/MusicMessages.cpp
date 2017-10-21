@@ -10,8 +10,8 @@ void MusicMessage::changeTempo(PlayingContext& ctx, double tempo) {
     ctx.m_tempo = tempo;
 }
 
-std::shared_ptr<InstrumentPlayer> MusicMessage::createInstrument(PlayingContext& ctx, std::uint8_t bank_lo, std::uint8_t bank_hi, std::uint8_t patch, const DirectMusic::DLS::DownloadableSound& dls) {
-    return ctx.m_instrumentFactory(bank_lo, bank_hi, patch, dls, ctx.m_sampleRate, ctx.m_audioChannels);
+std::shared_ptr<InstrumentPlayer> MusicMessage::createInstrument(PlayingContext& ctx, std::uint8_t bank_lo, std::uint8_t bank_hi, std::uint8_t patch, const DirectMusic::DLS::DownloadableSound& dls, float volume, float pan) {
+    return ctx.m_instrumentFactory(bank_lo, bank_hi, patch, dls, ctx.m_sampleRate, ctx.m_audioChannels, volume, pan);
 }
 
 void MusicMessage::setInstrument(PlayingContext& ctx, std::uint32_t channel, std::shared_ptr<InstrumentPlayer> instr) {
@@ -45,11 +45,13 @@ BandChangeMessage::BandChangeMessage(PlayingContext& ctx, std::uint32_t time, co
             std::uint8_t bankHi = (header.dwPatch & 0x00FF0000) >> 0x10;
             std::uint8_t bankLo = (header.dwPatch & 0x0000FF00) >> 0x8;
             std::uint8_t patch = (header.dwPatch & 0x000000FF);
+            float volume = header.bVolume / 255.0f;
+            float pan = ((float)(header.bPan) - 63.0f) / 64.0f;
 
             auto dls = ctx.loadInstrumentCollection(ref->getFile());
             
             assert(dls != nullptr);
-            instruments[header.dwPChannel] = createInstrument(ctx, bankLo, bankHi, patch, *dls);
+            instruments[header.dwPChannel] = createInstrument(ctx, bankLo, bankHi, patch, *dls, volume, pan);
         }
     }
 }
