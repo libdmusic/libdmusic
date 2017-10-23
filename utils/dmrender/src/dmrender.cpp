@@ -94,26 +94,33 @@ public:
 
 int main(int argc, char **argv) {
     if (argc < 3) {
-        std::cerr << "Usage: dmrender [inputfile] [outputfile] <length in seconds>\n";
+        std::cerr << "Usage: dmrender [inputfile] [outputfile] <length in seconds> <channels>\n";
         return 1;
+    }
+
+    int sampleRate = 44100;
+    int channels = 1;
+    std::uint64_t length = 60 * sampleRate; // Render 60 seconds of sound if nothing else is specified
+    if (argc > 3) {
+        length = std::stoi(argv[3]) * sampleRate;
+    }
+
+    if (argc > 4) {
+        channels = std::stoi(argv[4]);
+        length = length * channels;
     }
 
     // Store soundfonts based on their name
     std::map<std::string, tsf*> soundfonts;
-    PlayingContext ctx(44100, 1, [soundfonts](std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patch,
-        const DownloadableSound& dls, std::uint32_t sampleRate, std::uint32_t channels, float vol, float pan) {
-        return std::static_pointer_cast<InstrumentPlayer>(std::make_shared<MyInstrumentPlayer>(soundfonts, bankLo, bankHi, patch, dls, sampleRate, channels, vol, pan));
+    PlayingContext ctx(44100, channels, [soundfonts](std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patch,
+        const DownloadableSound& dls, std::uint32_t sampleRate, std::uint32_t chans, float vol, float pan) {
+        return std::static_pointer_cast<InstrumentPlayer>(std::make_shared<MyInstrumentPlayer>(soundfonts, bankLo, bankHi, patch, dls, sampleRate, chans, vol, pan));
     });
     std::cout << "Loading segment...";
     auto segment = ctx.loadSegment(argv[1]);
-    std::cout << " done.\nBeginning rendering... ";
-
+    std::cout << " done.\nStart playback... ";
     ctx.playSegment(*segment);
-    int sampleRate = 44100;
-    std::uint64_t length = 60 * sampleRate * 1; // Render 60 seconds of sound if nothing else is specified, 2 channels
-    if (argc > 3) {
-        length = std::stoi(argv[3]) * sampleRate * 1;
-    }
+    std::cout << " done.\nBegin rendering... ";
 
     // Each instrument is going to sum its output into the buffer,
     // so we have to start from a blank state, hence calloc
@@ -129,7 +136,7 @@ int main(int argc, char **argv) {
     }
 
     SF_INFO info;
-    info.channels = 1;
+    info.channels = channels;
     info.format = SF_FORMAT_WAV | SF_FORMAT_PCM_16;
     info.samplerate = 44100;
     info.frames = 0;
