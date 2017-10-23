@@ -171,7 +171,7 @@ CommandTrack::CommandTrack(const Chunk& c) {
     int offset = 0;
     std::uint32_t cmdSize = littleEndianRead<std::uint32_t>(data + offset);
     offset += 4;
-    while (offset + cmdSize < c.getData().size()) {
+    for (int i = 0; i < ((c.getData().size() - 4) / cmdSize); i++) {
         m_commands.push_back(DMUS_IO_COMMAND(data + offset));
         offset += cmdSize;
     }
