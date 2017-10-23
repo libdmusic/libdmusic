@@ -244,6 +244,11 @@ void PlayingContext::renderBlock(std::int16_t *data, std::uint32_t count, float 
             std::uint32_t nextMessageTimeOffset = nextMessage->getMessageTime() - m_musicTime;
             assert(nextMessageTimeOffset >= 0);
             std::uint32_t nextMessageTimeOffsetInSamples = (std::uint32_t)(nextMessageTimeOffset / pulsesPerSample);
+            if (nextMessageTimeOffsetInSamples % m_audioChannels != 0) {
+                nextMessageTimeOffsetInSamples++;
+                nextMessageTimeOffset = (std::uint32_t)(nextMessageTimeOffsetInSamples * pulsesPerSample);
+            }
+
             if (nextMessageTimeOffsetInSamples + offset > count) {
                 goto fill_buffer;
             } else {
