@@ -20,7 +20,9 @@ namespace DirectMusic {
         std::uint8_t, std::uint8_t, std::uint8_t,
         const DirectMusic::DLS::DownloadableSound&,
         std::uint32_t,
-        std::uint32_t)>;
+        std::uint32_t,
+        float,
+        float)>;
 
     using MessageQueue = std::priority_queue<std::shared_ptr<MusicMessage>, std::vector<std::shared_ptr<MusicMessage>>, MusicMessageComparer>;
 
