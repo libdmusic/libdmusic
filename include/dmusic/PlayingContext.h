@@ -39,8 +39,11 @@ namespace DirectMusic {
             bool infiniteLoop;
             std::uint32_t numLoops;
             std::vector<Pattern> patterns;
+            std::vector<std::shared_ptr<MusicMessage>> messages;
+            std::uint32_t length;
+
             double initialTempo;
-            std::uint32_t initialGroove;
+            DMUS_IO_TIMESIG initialSignature;
 
             bool getRandomPattern(std::uint8_t grooveLevel, Pattern* output) const;
         };
@@ -59,6 +62,10 @@ namespace DirectMusic {
         MessageQueue m_messageQueue;
         MessageQueue m_segmentQueue;
         std::unique_ptr<Segment> m_primarySegment = nullptr;
+
+        std::uint32_t m_segmentStartTime;
+
+        bool MusicValueToMIDI(DMUS_IO_STYLENOTE note, DMUS_IO_STYLEPART part, std::uint8_t* value) const;
 
         template<typename T>
         static std::shared_ptr<T> genObjFromChunkData(const std::vector<std::uint8_t>& data) {
@@ -82,7 +89,8 @@ namespace DirectMusic {
             m_musicTime(0),
             m_grooveLevel(1),
             m_tempo(100),
-            m_primarySegment(nullptr) {}
+            m_segmentStartTime(0),
+            m_primarySegment(nullptr) { }
 
         /// Renders the following audio block
         void renderBlock(std::int16_t *data, std::uint32_t count, float volume = 1) noexcept;

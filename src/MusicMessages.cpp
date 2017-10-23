@@ -1,7 +1,7 @@
 #include "MusicMessages.h"
 #include <dmusic/Structs.h>
 #include <dmusic/PlayingContext.h>
-#include <assert.h>
+#include <cassert>
 #include <cstdlib>
 
 using namespace DirectMusic;
@@ -18,8 +18,40 @@ void MusicMessage::setInstrument(PlayingContext& ctx, std::uint32_t channel, std
     ctx.m_performanceChannels[channel] = instr;
 }
 
+// From the Microsoft DX8 SDK docs
+static std::uint32_t getMusicOffset(std::uint32_t mtGridStart, std::int16_t nTimeOffset, DMUS_IO_TIMESIG TimeSig) {
+    const std::uint32_t DMUS_PPQ = PlayingContext::PulsesPerQuarterNote;
+    return nTimeOffset +
+        (
+        (mtGridStart / TimeSig.wGridsPerBeat) * ((DMUS_PPQ * 4) / TimeSig.bBeat)
+            +
+            (mtGridStart % TimeSig.wGridsPerBeat) * (((DMUS_PPQ * 4) / TimeSig.bBeat) / TimeSig.wGridsPerBeat)
+            );
+}
+
 void MusicMessage::setGrooveLevel(PlayingContext& ctx, std::uint8_t level) {
     ctx.m_grooveLevel = level;
+    if (ctx.m_primarySegment != nullptr) {
+        ctx.m_segmentQueue = MessageQueue();
+        PlayingContext::Pattern pttn;
+        if (ctx.m_primarySegment->getRandomPattern(level, &pttn)) {
+            for (const auto& partTuple : pttn.parts) {
+                const auto& partRef = partTuple.first;
+                const auto& part = partTuple.second;
+                for (const auto& note : part.getNotes()) {
+                    std::uint8_t midiNote;
+                    if (ctx.MusicValueToMIDI(note, part.getHeader(), &midiNote)) {
+                        std::uint32_t timeStart = getMusicOffset(note.mtGridStart, note.nTimeOffset, ctx.m_signature);
+                        auto noteOnMessage = std::make_shared<NoteOnMessage>(timeStart + ctx.m_musicTime, midiNote, note.bVelocity, 0, partRef.wLogicalPartID);
+                        auto noteOffMessage = std::make_shared<NoteOffMessage>(timeStart + ctx.m_musicTime + note.mtDuration, midiNote, partRef.wLogicalPartID);
+
+                        ctx.m_segmentQueue.push(noteOnMessage);
+                        ctx.m_segmentQueue.push(noteOffMessage);
+                    }
+                }
+            }
+        }
+    }
 }
 
 const std::map<std::uint32_t, std::shared_ptr<InstrumentPlayer>>& MusicMessage::getChannels(PlayingContext& ctx) {

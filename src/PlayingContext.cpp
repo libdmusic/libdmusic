@@ -1,8 +1,8 @@
 #include <dmusic/PlayingContext.h>
 #include <dmusic/Tracks.h>
 #include "MusicMessages.h"
-#include <assert.h>
-#include <math.h>
+#include <cassert>
+#include <cmath>
 #include <bitset>
 
 using namespace DirectMusic;
@@ -41,7 +41,7 @@ static std::uint32_t getNextGridSubdivision(std::uint32_t musicTime, Subdivision
     }
     divisionCoeff *= timeSignature.wGridsPerBeat;
 
-    std::uint32_t nextGridDivision = (std::uint32_t)(ceil((double)musicTime / divisionCoeff));
+    std::uint32_t nextGridDivision = (std::uint32_t)(ceil((float)musicTime / divisionCoeff));
     std::uint32_t nextBeatDivision = nextGridDivision * timeSignature.wGridsPerBeat;
     std::uint32_t nextMeasureDivision = nextBeatDivision * timeSignature.bBeatsPerMeasure;
 
@@ -53,17 +53,6 @@ static std::uint32_t getNextGridSubdivision(std::uint32_t musicTime, Subdivision
     case Subdivision::Measure:
         return nextMeasureDivision * divisionCoeff;
     }
-}
-
-// From the Microsoft DX8 SDK docs
-static std::uint32_t getMusicOffset(std::uint32_t mtGridStart, std::int16_t nTimeOffset, DMUS_IO_TIMESIG TimeSig) {
-    const std::uint32_t DMUS_PPQ = PlayingContext::PulsesPerQuarterNote;
-    return nTimeOffset +
-        (
-        (mtGridStart / TimeSig.wGridsPerBeat) * ((DMUS_PPQ * 4) / TimeSig.bBeat)
-            +
-            (mtGridStart % TimeSig.wGridsPerBeat) * (((DMUS_PPQ * 4) / TimeSig.bBeat) / TimeSig.wGridsPerBeat)
-            );
 }
 
 // Returns true if the specified degree is present in a certain scale, and puts the distance from the
@@ -88,7 +77,7 @@ static bool getOffsetFromScale(std::uint8_t degree, std::uint32_t scale, std::ui
     }
 }
 
-static bool MusicValueToMIDI(std::uint32_t chord, const std::vector<DMUS_IO_SUBCHORD>& subchords, DMUS_IO_STYLENOTE note, DMUS_IO_STYLEPART part, std::uint8_t* value) {
+bool PlayingContext::MusicValueToMIDI(DMUS_IO_STYLENOTE note, DMUS_IO_STYLEPART part, std::uint8_t* value) const {
     assert(value != nullptr);
 
     if (note.bPlayModeFlags == DMUS_PLAYMODE_FIXED) {
@@ -118,7 +107,7 @@ static bool MusicValueToMIDI(std::uint32_t chord, const std::vector<DMUS_IO_SUBC
     |-------|-|-|-||-|-||-|-|-||-|-|
         C    W W W HW W HW W W HW W -----> C Major scale
     */
-    DMUS_IO_SUBCHORD subchord = subchords[0];
+    DMUS_IO_SUBCHORD subchord = m_subchords[0];
 
     /* Had to dig hard for this one: https://msdn.microsoft.com/en-us/library/ms898477.aspx
     Here is how to interpret wMusicValue:
@@ -140,7 +129,7 @@ static bool MusicValueToMIDI(std::uint32_t chord, const std::vector<DMUS_IO_SUBC
     int accidentals = (std::int8_t)(note.wMusicValue & 0x000F);
     if (accidentals > 7) { accidentals = (accidentals - 16); }
 
-    int noteValue = ((chord & 0xFF000000) >> 24) + 12 * octave;
+    int noteValue = ((m_chord & 0xFF000000) >> 24) + 12 * octave;
     std::uint8_t chordOffset = 0;
     std::uint8_t scaleOffset = 0;
     if (getOffsetFromScale(chordTone, subchord.dwChordPattern, &chordOffset)) {
@@ -174,7 +163,6 @@ static bool MusicValueToMIDI(std::uint32_t chord, const std::vector<DMUS_IO_SUBC
     }
 
     *value = noteValue;
-    std::cout << (int)noteValue << "\n"; 
     return true;
 }
 
@@ -186,38 +174,13 @@ void PlayingContext::renderBlock(std::int16_t *data, std::uint32_t count, float 
 
     std::uint32_t offset = 0;
     while (offset < count) {
-        // Segment looping, we have to wait for a band to be loaded
-        if (m_segmentQueue.empty() && m_primarySegment != nullptr && m_performanceChannels.size() > 0 && m_subchords.size() > 0) {
-            if (m_primarySegment->numLoops > 0 || m_primarySegment->infiniteLoop) {
-                Pattern pttn;
-                if (m_primarySegment->getRandomPattern(m_grooveLevel, &pttn)) {
-                    for (const auto& partTuple : pttn.parts) {
-                        const auto& partRef = partTuple.first;
-                        const auto& part = partTuple.second;
+        if (m_primarySegment != nullptr && m_musicTime - m_segmentStartTime > m_primarySegment->length) {
+            m_segmentStartTime = m_musicTime;
+            m_tempo = m_primarySegment->initialTempo;
+            m_signature = m_primarySegment->initialSignature;
 
-                        /*if (partRef.wLogicalPartID == 0) */{
-                            for (const auto& note : part.getNotes()) {
-                                std::uint8_t midiNote;
-                                if (MusicValueToMIDI(m_chord, m_subchords, note, part.getHeader(), &midiNote)) {
-                                    std::uint32_t timeStart = getMusicOffset(note.mtGridStart, note.nTimeOffset, part.getHeader().timeSig);
-                                    auto noteOnMessage = std::make_shared<NoteOnMessage>(m_musicTime + timeStart, midiNote, note.bVelocity, 0, partRef.wLogicalPartID);
-                                    assert(noteOnMessage != nullptr);
-                                    m_segmentQueue.push(noteOnMessage);
-
-                                    auto noteOffMessage = std::make_shared<NoteOffMessage>(m_musicTime + timeStart + note.mtDuration, midiNote, partRef.wLogicalPartID);
-                                    assert(noteOffMessage != nullptr);
-                                    m_segmentQueue.push(noteOffMessage);
-                                }
-                            }
-                        }
-                    }
-
-                    if (!m_primarySegment->infiniteLoop) {
-                        m_primarySegment->numLoops--;
-                    }
-                }
-            } else {
-                m_primarySegment = nullptr;
+            for (const auto& msg : m_primarySegment->messages) {
+                m_messageQueue.push(msg);
             }
         }
 
@@ -284,6 +247,14 @@ fill_buffer:
 
 void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS flags, std::int64_t startTime*/) {
     m_queueMutex.lock();
+
+    m_primarySegment = std::make_unique<Segment>();
+    m_primarySegment->numLoops = segment.getHeader().dwRepeats;
+    m_primarySegment->infiniteLoop = false;
+    m_primarySegment->length = segment.getHeader().mtLength;
+
+    m_segmentStartTime = m_musicTime;
+
     for (const auto& track : segment.getTracks()) {
         const auto& header = track.getHeader();
         std::string ckid = std::string(header.ckid),
@@ -298,6 +269,7 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
                 auto message = std::make_shared<TempoChangeMessage>(item.lTime, item.dblTempo);
                 assert(message != nullptr);
                 m_messageQueue.push(message);
+                m_primarySegment->messages.push_back(message);
             }
         } else if (ckid == "cmnd") {
             auto commandTrack = std::static_pointer_cast<CommandTrack>(track.getData());
@@ -305,6 +277,7 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
                 auto message = std::make_shared<GrooveLevelMessage>(command.mtTime, command.bGrooveLevel, command.bGrooveRange);
                 assert(message != nullptr);
                 m_messageQueue.push(message);
+                m_primarySegment->messages.push_back(message);
             }
         } else if (*header.ckid == 0 && fccType == "sttr") {
             auto styleTrack = std::static_pointer_cast<StyleTrack>(track.getData());
@@ -315,9 +288,6 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
                 std::string styleFile = refs.getFile();
                 auto styleForm = loadStyle(std::string(styleFile.begin(), styleFile.end()));
                 assert(styleForm != nullptr);
-                m_primarySegment = std::make_unique<Segment>();
-                m_primarySegment->numLoops = segment.getHeader().dwRepeats;
-                m_primarySegment->infiniteLoop = false;
                 std::map<GUID, StylePart, GuidComparer> parts;
                 for (const auto& part : styleForm->getParts()) {
                     parts[part.getHeader().guidPartID] = part;
@@ -340,15 +310,23 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
                     m_primarySegment->patterns.push_back(pttn);
                 }
 
+                m_primarySegment->initialSignature = styleForm->getHeader().timeSig;
+                m_primarySegment->initialTempo = styleForm->getHeader().dblTempo;
+
+                m_tempo = styleForm->getHeader().dblTempo;
+                m_signature = styleForm->getHeader().timeSig;
+
                 // Load the style's band
+                bool firstBand = true;
                 for (const auto& band : styleForm->getBands()) {
                     auto message = std::make_shared<BandChangeMessage>(*this, 0, band);
                     m_messageQueue.push(message);
+                    m_primarySegment->messages.push_back(message);
+                    if (firstBand) {
+                        message->Execute(*this);
+                        firstBand = false;
+                    }
                 }
-
-                // Load the style's tempo
-                auto message = std::make_shared<TempoChangeMessage>(0, styleForm->getHeader().dblTempo);
-                m_messageQueue.push(message);
             }
         } else if (*header.ckid == 0 && fccType == "DMBT") {
             auto bandTrack = std::static_pointer_cast<BandTrack>(track.getData());
@@ -358,6 +336,7 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
 
                 auto message = std::make_shared<BandChangeMessage>(*this, header.lBandTimePhysical, bandForm);
                 m_messageQueue.push(message);
+                m_primarySegment->messages.push_back(message);
             }
         } else if (*header.ckid == 0 && fccType == "cord") {
             auto chordTrack = std::static_pointer_cast<ChordTrack>(track.getData());
@@ -366,6 +345,7 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
                 const auto& chordBody = chord.second;
                 auto message = std::make_shared<ChordMessage>(chordHeader.mtTime, chordTrack->getHeader(), chordBody);
                 m_messageQueue.push(message);
+                m_primarySegment->messages.push_back(message);
             }
         }
     }
@@ -387,7 +367,7 @@ bool PlayingContext::Segment::getRandomPattern(std::uint8_t grooveLevel, Pattern
         *output = patterns[suitablePatterns[0]];
         return true;
     } else {
-        int idx = rand();
+        int idx = std::rand();
         *output = patterns[suitablePatterns[idx % suitablePatterns.size()]];
         return true;
     }
