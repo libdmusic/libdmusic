@@ -57,7 +57,6 @@ public:
             m_soundfont = soundfonts.at(soundfontFile);
         }
         m_preset = tsf_get_presetindex(m_soundfont, 0, patch);
-        m_preset = 0;
         assert(m_preset >= 0);
     }
 
