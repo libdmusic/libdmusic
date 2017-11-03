@@ -23,7 +23,7 @@ namespace DirectMusic {
         /// WARNING: this method is very performance-sensitive; it is important
         /// that it does what it has to do in the least amount of time, and
         /// it must NOT throw.
-        virtual std::uint32_t renderBlock(std::int16_t *buffer, std::uint32_t count, float volume = 1) noexcept = 0;
+        virtual std::uint32_t renderBlock(std::int16_t *buffer, std::uint32_t count, float volume = 1, bool mix = true) noexcept = 0;
 
         /// Instructs the synthesizer to start playing a note
         virtual void noteOn(std::uint8_t note, std::uint8_t velocity) = 0;

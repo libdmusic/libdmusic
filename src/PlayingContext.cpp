@@ -174,7 +174,6 @@ static bool MusicValueToMIDI(std::uint32_t chord, const std::vector<DMUS_IO_SUBC
     }
 
     *value = noteValue;
-    std::cout << (int)noteValue << "\n"; 
     return true;
 }
 
@@ -252,10 +251,12 @@ void PlayingContext::renderBlock(std::int16_t *data, std::uint32_t count, float 
             if (nextMessageTimeOffsetInSamples + offset > count) {
                 goto fill_buffer;
             } else {
+                bool first = true;
                 for (const auto& channel : m_performanceChannels) {
                     {
                         const auto& player = channel.second;
-                        player->renderBlock(data + offset, nextMessageTimeOffsetInSamples, volume);
+                        player->renderBlock(data + offset, nextMessageTimeOffsetInSamples, volume, !first);
+                        first = false;
                     }
                 }
                 offset += nextMessageTimeOffsetInSamples;
@@ -275,10 +276,12 @@ fill_buffer:
     // process the already-playing instruments
     int remainingSamples = count - offset;
     if (remainingSamples > 0) {
+        bool first = true;
         for (const auto& channel : m_performanceChannels) {
             {
                 const auto& player = channel.second;
-                player->renderBlock(data + offset, remainingSamples);
+                player->renderBlock(data + offset, remainingSamples, volume, !first);
+                first = false;
             }
         }
         m_musicTime += (remainingSamples * pulsesPerSample);

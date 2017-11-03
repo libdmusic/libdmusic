@@ -11,6 +11,7 @@
 #include <cmath>
 #define TSF_IMPLEMENTATION
 #include "tsf.h"
+#include "args.hxx"
 
 using namespace DirectMusic;
 using namespace DirectMusic::DLS;
@@ -22,6 +23,8 @@ private:
     float m_vol;
     float m_pan;
     int m_channels;
+    int m_samplerate;
+    bool m_singleFont;
     float gainToDecibels(float gain) {
         return 10 * log10(gain);
     }
@@ -37,7 +40,9 @@ public:
         , m_soundfont(nullptr)
         , m_vol(volume)
         , m_pan(pan)
-        , m_channels(channels) {
+        , m_channels(channels)
+        , m_samplerate(sampleRate)
+        , m_singleFont(false) {
         assert(channels <= 2);
         std::uint32_t bank = (bankHi << 16) + bankLo;
 
@@ -60,8 +65,42 @@ public:
         assert(m_preset >= 0);
     }
 
-    virtual std::uint32_t renderBlock(std::int16_t *buffer, std::uint32_t count, float volume) noexcept {
-        tsf_render_short(m_soundfont, buffer, count / m_channels, 1);
+    MyInstrumentPlayer(tsf* soundfont,
+        std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patch,
+        const DownloadableSound& dls,
+        std::uint32_t sampleRate,
+        std::uint32_t channels,
+        float volume,
+        float pan)
+        : InstrumentPlayer(bankLo, bankHi, patch, dls, sampleRate, channels, volume, pan)
+        , m_soundfont(nullptr)
+        , m_vol(volume)
+        , m_channels(channels)
+        , m_singleFont(true) {
+        assert(channels <= 2);
+        std::uint32_t bank = (bankHi << 16) + bankLo;
+
+        m_pan = pan < -1 ? -1 : pan > 1 ? 1 : pan;
+        m_soundfont = soundfont;
+
+        m_preset = tsf_get_presetindex(m_soundfont, 0, patch);
+        assert(m_preset >= 0);
+
+        float volFactorRight = sqrt((m_pan + 1) / 2);
+        float volFactorLeft = sqrt((-m_pan + 1) / 2);
+
+        tsf_set_preset_panning(m_soundfont, m_preset, volFactorLeft, volFactorRight);
+        tsf_set_preset_gain(m_soundfont, m_preset, gainToDecibels(volume));
+    }
+
+    virtual std::uint32_t renderBlock(std::int16_t *buffer, std::uint32_t count, float volume, bool mix) noexcept {
+        if (m_singleFont) {
+            if (!mix) {
+                tsf_render_short(m_soundfont, buffer, count / m_channels, 0);
+            }
+        } else {
+            tsf_render_short(m_soundfont, buffer, count / m_channels, mix ? 1 : 0);
+        }
         return count;
     }
 
@@ -92,56 +131,101 @@ public:
 };
 
 int main(int argc, char **argv) {
-    if (argc < 3) {
-        std::cerr << "Usage: dmrender [inputfile] [outputfile] <length in seconds> <channels>\n";
+    args::ArgumentParser parser("dmrender renders DirectMusic segments into audio files");
+    args::HelpFlag help(parser, "help", "Display this help menu", { 'h', "help" });
+    args::ValueFlag<int> chunkLength(parser, "length", "The length in seconds of the audio to render", { 'l', "length" });
+    args::ValueFlag<int> samplingRate(parser, "sampling rate", "The sampling rate to use", { 's', "sample" });
+    args::ValueFlag<int> numChannels(parser, "channels", "The number of channels to use", { 'c', "channels" });
+    args::ValueFlag<std::string> sfont(parser, "soundfont", "The SoundFont file to use during rendering", { 'f', "soundfont" });
+    args::Flag vorbis(parser, "ogg vorbis", "The output file is going to be an Ogg/Vorbis file instead of an uncompressed Microsoft WAVE file", { 'O', "ogg" });
+    args::Positional<std::string> segmentName(parser, "segment", "The segment to render");
+    args::Positional<std::string> outputFile(parser, "output", "The output file");
+
+    try {
+        parser.ParseCLI(argc, argv);
+    } catch (args::Help) {
+        std::cout << parser;
+        return 0;
+    } catch (args::ParseError e) {
+        std::cerr << e.what() << std::endl;
+        std::cerr << parser;
+        return 1;
+    } catch (args::ValidationError e) {
+        std::cerr << e.what() << std::endl;
+        std::cerr << parser;
         return 1;
     }
 
-    int sampleRate = 44100;
-    int channels = 1;
-    std::uint64_t length = 60 * sampleRate; // Render 60 seconds of sound if nothing else is specified
-    if (argc > 3) {
-        length = std::stoi(argv[3]) * sampleRate;
+    if (!segmentName) {
+        std::cerr << "dmrender: No input specified." << std::endl;
+        return 1;
+    }
+   
+    if (!outputFile) {
+        std::cerr << "dmrender: No output file specified" << std::endl;
+        return 1;
     }
 
-    if (argc > 4) {
-        channels = std::stoi(argv[4]);
-        length = length * channels;
-    }
+    int sampleRate = samplingRate ? args::get(samplingRate) : 44100;
+    int channels = numChannels ? args::get(numChannels) : 1;
+    std::uint64_t length = (chunkLength ? args::get(chunkLength) : 60) * sampleRate;
 
     // Store soundfonts based on their name
-    std::map<std::string, tsf*> soundfonts;
-    PlayingContext ctx(44100, channels, [soundfonts](std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patch,
-        const DownloadableSound& dls, std::uint32_t sampleRate, std::uint32_t chans, float vol, float pan) {
-        return std::static_pointer_cast<InstrumentPlayer>(std::make_shared<MyInstrumentPlayer>(soundfonts, bankLo, bankHi, patch, dls, sampleRate, chans, vol, pan));
-    });
+    tsf* soundfont = nullptr;
+    std::map<std::string, tsf*> soundfontMap;
+    std::unique_ptr<PlayingContext> ctx = nullptr;
+
+    if (sfont) {
+        soundfont = tsf_load_filename(args::get(sfont).c_str());
+
+        TSFOutputMode outputMode = channels == 1 ? TSF_MONO : TSF_STEREO_INTERLEAVED;
+        tsf_set_output(soundfont, outputMode, sampleRate, -3);
+
+        ctx = std::make_unique<PlayingContext>(sampleRate, channels, [soundfont](std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patch,
+            const DownloadableSound& dls, std::uint32_t sampleRate, std::uint32_t chans, float vol, float pan) {
+            return std::static_pointer_cast<InstrumentPlayer>(std::make_shared<MyInstrumentPlayer>(soundfont, bankLo, bankHi, patch, dls, sampleRate, chans, vol, pan));
+        });
+    } else {
+        ctx = std::make_unique<PlayingContext>(sampleRate, channels, [soundfontMap](std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patch,
+            const DownloadableSound& dls, std::uint32_t sampleRate, std::uint32_t chans, float vol, float pan) {
+            return std::static_pointer_cast<InstrumentPlayer>(std::make_shared<MyInstrumentPlayer>(soundfontMap, bankLo, bankHi, patch, dls, sampleRate, chans, vol, pan));
+        });
+    }
     std::cout << "Loading segment...";
-    auto segment = ctx.loadSegment(argv[1]);
+    auto segment = ctx->loadSegment(args::get(segmentName));
     std::cout << " done.\nStart playback... ";
-    ctx.playSegment(*segment);
+    ctx->playSegment(*segment);
     std::cout << " done.\nBegin rendering... ";
 
     // Each instrument is going to sum its output into the buffer,
     // so we have to start from a blank state, hence calloc
-    std::int16_t* buffer = (std::int16_t*)calloc(length, sizeof(std::int16_t));
+    std::int16_t* buffer = (std::int16_t*)malloc(length * sizeof(std::int16_t));
     for (std::uint64_t i = 0; i < length; i += sampleRate) {
-        ctx.renderBlock(buffer + i, sampleRate);
+        ctx->renderBlock(buffer + i, sampleRate);
         std::cout << ceil((i / (float)length) * 100) << "% ";
     }
     
     // Close all soundfont handles
-    for (const auto& kvp : soundfonts) {
+    for (const auto& kvp : soundfontMap) {
         tsf_close(kvp.second);
+    }
+    if (soundfont != nullptr) {
+        tsf_close(soundfont);
     }
 
     SF_INFO info;
     info.channels = channels;
-    info.format = SF_FORMAT_WAV | SF_FORMAT_PCM_16;
-    info.samplerate = 44100;
+    info.format = vorbis ? SF_FORMAT_OGG | SF_FORMAT_VORBIS : SF_FORMAT_WAV | SF_FORMAT_PCM_16;
+    info.samplerate = sampleRate;
     info.frames = 0;
     info.sections = 0;
     info.seekable = 0;
-    SNDFILE* sndfile = sf_open(argv[2], SFM_WRITE, &info);
+    SNDFILE* sndfile = sf_open(args::get(outputFile).c_str(), SFM_WRITE, &info);
+    if (sndfile == nullptr) {
+        std::string err = std::string(sf_strerror(sndfile));
+        std::cerr << "Error encountered while opening file: " << err << std::endl;
+        return 1;
+    }
     sf_write_short(sndfile, buffer, length);
     sf_close(sndfile);
     free(buffer);

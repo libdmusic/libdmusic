@@ -19,7 +19,8 @@ endif()
 
 file(GLOB SRC
   "src/*.cpp"
-  "src/*.h")
+  "src/*.h"
+  "src/*.hxx")
 
 add_executable(dmrender ${SRC})
 target_link_libraries(dmrender dmusic sndfile-shared)
