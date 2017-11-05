@@ -36,6 +36,6 @@ $ make
 Acknowledgements
 ----------------
 
-`dmrender` uses [TinySoundFont](https://github.com/schellingb/TinySoundFont) for SoundFont rendering and [libsndfile](http://www.mega-nerd.com/libsndfile/)
+`dmrender` uses [TinySoundFont](https://github.com/schellingb/TinySoundFont) for SoundFont rendering, [libsndfile](http://www.mega-nerd.com/libsndfile/) and [args](https://github.com/Taywee/args).
 
 `dls2sf`, `sampledump` and `dmrender` use [libsndfile](http://www.mega-nerd.com/libsndfile/) for wave output and conversion.

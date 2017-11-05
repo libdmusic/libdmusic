@@ -163,6 +163,7 @@ bool PlayingContext::MusicValueToMIDI(DMUS_IO_STYLENOTE note, DMUS_IO_STYLEPART 
     }
 
     *value = noteValue;
+    TRACE_VERBOSE((int)value);
     return true;
 }
 
@@ -207,13 +208,20 @@ void PlayingContext::renderBlock(std::int16_t *data, std::uint32_t count, float 
             std::uint32_t nextMessageTimeOffset = nextMessage->getMessageTime() - m_musicTime;
             assert(nextMessageTimeOffset >= 0);
             std::uint32_t nextMessageTimeOffsetInSamples = (std::uint32_t)(nextMessageTimeOffset / pulsesPerSample);
+            if (nextMessageTimeOffsetInSamples % m_audioChannels != 0) {
+                nextMessageTimeOffsetInSamples++;
+                nextMessageTimeOffset = (std::uint32_t)(nextMessageTimeOffsetInSamples * pulsesPerSample);
+            }
+
             if (nextMessageTimeOffsetInSamples + offset > count) {
                 goto fill_buffer;
             } else {
+                bool first = true;
                 for (const auto& channel : m_performanceChannels) {
                     {
                         const auto& player = channel.second;
-                        player->renderBlock(data + offset, nextMessageTimeOffsetInSamples, volume);
+                        player->renderBlock(data + offset, nextMessageTimeOffsetInSamples, volume, !first);
+                        first = false;
                     }
                 }
                 offset += nextMessageTimeOffsetInSamples;
@@ -233,10 +241,12 @@ fill_buffer:
     // process the already-playing instruments
     int remainingSamples = count - offset;
     if (remainingSamples > 0) {
+        bool first = true;
         for (const auto& channel : m_performanceChannels) {
             {
                 const auto& player = channel.second;
-                player->renderBlock(data + offset, remainingSamples);
+                player->renderBlock(data + offset, remainingSamples, volume, !first);
+                first = false;
             }
         }
         m_musicTime += (remainingSamples * pulsesPerSample);
@@ -246,6 +256,7 @@ fill_buffer:
 }
 
 void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS flags, std::int64_t startTime*/) {
+    TRACE("Begin segment play");
     m_queueMutex.lock();
 
     m_primarySegment = std::make_unique<Segment>();

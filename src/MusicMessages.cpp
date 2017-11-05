@@ -64,6 +64,7 @@ void MusicMessage::changeChord(PlayingContext& ctx, std::uint32_t chord, const s
 }
 
 void TempoChangeMessage::Execute(PlayingContext& ctx) {
+    TRACE("Tempo change");
     this->changeTempo(ctx, m_tempo);
 }
 
@@ -89,12 +90,14 @@ BandChangeMessage::BandChangeMessage(PlayingContext& ctx, std::uint32_t time, co
 }
 
 void BandChangeMessage::Execute(PlayingContext& ctx) {
+    TRACE("Band change");
     for (const auto& kvpair : instruments) {
         setInstrument(ctx, kvpair.first, kvpair.second);
     }
 }
 
 void GrooveLevelMessage::Execute(PlayingContext& ctx) {
+    TRACE("Groove change");
     if (m_range == 0) {
         setGrooveLevel(ctx, m_level);
     } else {
@@ -104,10 +107,12 @@ void GrooveLevelMessage::Execute(PlayingContext& ctx) {
 }
 
 void ChordMessage::Execute(PlayingContext& ctx) {
+    TRACE("Chord change");
     changeChord(ctx, this->m_chord, this->m_subchords);
 }
 
 void NoteOnMessage::Execute(PlayingContext& ctx) {
+    TRACE_VERBOSE("Note on");
     const auto& channels = getChannels(ctx);
     assert(channels.find(m_channel) != channels.end());
     if (m_velRange == 0) {
@@ -119,6 +124,7 @@ void NoteOnMessage::Execute(PlayingContext& ctx) {
 }
 
 void NoteOffMessage::Execute(PlayingContext& ctx) {
+    TRACE_VERBOSE("Note off");
     const auto& channels = getChannels(ctx);
     assert(channels.find(m_channel) != channels.end());
     channels.at(m_channel)->noteOff(m_note, 0);
