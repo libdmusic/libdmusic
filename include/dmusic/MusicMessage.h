@@ -15,6 +15,8 @@ namespace DirectMusic {
         std::uint32_t getMessageTime() const { return m_messageTime; };
 
         virtual void Execute(PlayingContext& ctx) = 0;
+        virtual int getPriority() { return 0; }
+        virtual std::shared_ptr<MusicMessage> Clone(std::uint32_t newTime) = 0;
 
     protected:
         std::uint32_t m_messageTime;
@@ -28,11 +30,13 @@ namespace DirectMusic {
         void setGrooveLevel(PlayingContext& ctx, std::uint8_t level);
         const std::map<std::uint32_t, std::shared_ptr<InstrumentPlayer>>& getChannels(PlayingContext& ctx);
         void changeChord(PlayingContext& ctx, std::uint32_t chord, const std::vector<DMUS_IO_SUBCHORD>& subchords);
+        void enqueueNextSegment(PlayingContext& ctx);
     };
 
     struct MusicMessageComparer {
         bool operator()(const std::shared_ptr<MusicMessage>& lhs, const std::shared_ptr<MusicMessage>& rhs) const {
-            return lhs->getMessageTime() > rhs->getMessageTime();
+            std::uint32_t ltime = lhs->getMessageTime(), rtime = rhs->getMessageTime();
+            return ltime == rtime ? lhs->getPriority() < rhs->getPriority() : ltime > rtime;
         }
     };
 }

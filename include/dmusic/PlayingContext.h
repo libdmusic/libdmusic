@@ -40,10 +40,9 @@ namespace DirectMusic {
             std::uint32_t numLoops;
             std::vector<Pattern> patterns;
             std::vector<std::shared_ptr<MusicMessage>> messages;
-            std::uint32_t length;
-
             double initialTempo;
             DMUS_IO_TIMESIG initialSignature;
+            std::uint32_t length;
 
             bool getRandomPattern(std::uint8_t grooveLevel, Pattern* output) const;
         };
@@ -59,9 +58,8 @@ namespace DirectMusic {
         std::vector<DMUS_IO_SUBCHORD> m_subchords;
         DMUS_IO_TIMESIG m_signature;
         std::mutex m_queueMutex;
-        MessageQueue m_messageQueue;
-        MessageQueue m_segmentQueue;
-        std::unique_ptr<Segment> m_primarySegment = nullptr;
+        MessageQueue m_messageQueue, m_patternMessageQueue;
+        std::unique_ptr<Segment> m_primarySegment = nullptr, m_nextSegment = nullptr;
 
         std::uint32_t m_segmentStartTime;
 
@@ -73,6 +71,8 @@ namespace DirectMusic {
             DirectMusic::Riff::Chunk c(data.data());
             return std::make_shared<T>(c);
         }
+
+        void enqueueSegment(const std::unique_ptr<Segment>& segment);
 
     public:
         static const std::uint32_t PulsesPerQuarterNote = 768;

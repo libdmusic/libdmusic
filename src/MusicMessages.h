@@ -13,6 +13,10 @@ namespace DirectMusic {
         : MusicMessage(time), 
         m_tempo(tempo) { }
 
+        virtual std::shared_ptr<MusicMessage> Clone(std::uint32_t newTime) {
+            return std::make_shared<TempoChangeMessage>(newTime, m_tempo);
+        }
+
         virtual void Execute(PlayingContext& ctx);
 
     private:
@@ -21,7 +25,14 @@ namespace DirectMusic {
     
     class BandChangeMessage : public MusicMessage {
     public:
+        BandChangeMessage(std::uint32_t time, std::map<std::uint32_t, std::shared_ptr<InstrumentPlayer>> instr)
+            : MusicMessage(time)
+            , instruments(instr) {}
         BandChangeMessage(PlayingContext& ctx, std::uint32_t time, const DirectMusic::BandForm& form);
+
+        virtual std::shared_ptr<MusicMessage> Clone(std::uint32_t newTime) {
+            return std::make_shared<BandChangeMessage>(newTime, instruments);
+        }
 
         virtual void Execute(PlayingContext& ctx);
 
@@ -37,7 +48,12 @@ namespace DirectMusic {
             // The specs say that if the range is odd, the actual range is to be considered as range - 1
             m_range(grooveRange % 2 == 0 ? grooveRange : grooveRange  - 1) {};
 
+        virtual std::shared_ptr<MusicMessage> Clone(std::uint32_t newTime) {
+            return std::make_shared<GrooveLevelMessage>(newTime, m_level, m_range);
+        }
+
         virtual void Execute(PlayingContext& ctx);
+        virtual int getPriority() { return -1; };
 
     private:
         std::uint8_t m_level, m_range;
@@ -50,7 +66,12 @@ namespace DirectMusic {
             m_chord(chord),
             m_subchords(subchords) {};
 
+        virtual std::shared_ptr<MusicMessage> Clone(std::uint32_t newTime) {
+            return std::make_shared<ChordMessage>(newTime, m_chord, m_subchords);
+        }
+
         virtual void Execute(PlayingContext& ctx);
+        virtual int getPriority() { return 1; };
 
     private:
         std::uint32_t m_chord;
@@ -66,6 +87,10 @@ namespace DirectMusic {
             m_velRange(velRange),
             m_channel(channel) {}
 
+        virtual std::shared_ptr<MusicMessage> Clone(std::uint32_t newTime) {
+            return std::make_shared<NoteOnMessage>(newTime, m_note, m_vel, m_velRange, m_channel);
+        }
+
         virtual void Execute(PlayingContext& ctx);
 
     private:
@@ -80,10 +105,26 @@ namespace DirectMusic {
             m_note(note),
             m_channel(channel) {}
 
+        virtual std::shared_ptr<MusicMessage> Clone(std::uint32_t newTime) {
+            return std::make_shared<NoteOffMessage>(newTime, m_note, m_channel);
+        }
+
         virtual void Execute(PlayingContext& ctx);
 
     private:
         std::uint8_t m_note;
         std::uint32_t m_channel;
+    };
+
+    class SegmentEndMessage : public MusicMessage {
+    public:
+        SegmentEndMessage(std::uint32_t time)
+            : MusicMessage(time) {}
+
+        virtual std::shared_ptr<MusicMessage> Clone(std::uint32_t newTime) {
+            return std::make_shared<SegmentEndMessage>(newTime);
+        }
+
+        virtual void Execute(PlayingContext& ctx);
     };
 }
