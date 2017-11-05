@@ -174,6 +174,7 @@ static bool MusicValueToMIDI(std::uint32_t chord, const std::vector<DMUS_IO_SUBC
     }
 
     *value = noteValue;
+    TRACE_VERBOSE((int)value);
     return true;
 }
 
@@ -291,6 +292,7 @@ fill_buffer:
 }
 
 void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS flags, std::int64_t startTime*/) {
+    TRACE("Begin segment play");
     m_queueMutex.lock();
     for (const auto& track : segment.getTracks()) {
         const auto& header = track.getHeader();

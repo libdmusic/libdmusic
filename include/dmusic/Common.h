@@ -20,6 +20,18 @@
 /// Use this macro to read a FourCC into a char array
 #define READFOURCC(s, f) {memcpy(f, data + offsetof(s, f), 4);}
 
+#ifdef DMUSIC_TRACE
+#   define TRACE(x) std::cout << "[libdmusic " << __FILE__ << ":" << __LINE__ << ":" << __func__ << "] " << (x) << "\n";
+#   ifdef DMUSIC_TRACE_VERBOSE
+#       define TRACE_VERBOSE(x) std::cout << "[libdmusic " << __FILE__ << ":" << __LINE__ << ":" << __func__ << "] " << (x) << "\n";
+#   else
+#       define TRACE_VERBOSE(x)
+#   endif
+#else
+#define TRACE(x)
+#define TRACE_VERBOSE(x)
+#endif
+
 namespace DirectMusic {
     /**
     * Read an integral type from the given pointer as little endian data
