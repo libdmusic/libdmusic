@@ -3,6 +3,7 @@
 #include <dmusic/PlayingContext.h>
 #include <cassert>
 #include <cstdlib>
+#include <cmath>
 
 using namespace DirectMusic;
 
