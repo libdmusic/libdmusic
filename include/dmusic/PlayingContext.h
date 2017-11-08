@@ -117,5 +117,8 @@ namespace DirectMusic {
         }
 
         double getTime() const { return m_musicTime; }
+
+        int getSampleRate() const { return m_sampleRate; }
+        int getAudioChannels() const { return m_audioChannels; }
     };
 }

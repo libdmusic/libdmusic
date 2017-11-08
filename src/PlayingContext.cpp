@@ -294,6 +294,7 @@ fill_buffer:
 void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS flags, std::int64_t startTime*/) {
     TRACE("Begin segment play");
     m_queueMutex.lock();
+
     for (const auto& track : segment.getTracks()) {
         const auto& header = track.getHeader();
         std::string ckid = std::string(header.ckid),

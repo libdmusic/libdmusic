@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include_directories(../../include)
+include_directories(../common)
 include_directories(lib/portaudio/include)
 
 add_subdirectory(lib/portaudio)

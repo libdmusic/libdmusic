@@ -9,8 +9,10 @@
 #include <cassert>
 #include <portaudio.h>
 #include <cmath>
+#include <cstdio>
+#include <args.hxx>
 #define TSF_IMPLEMENTATION
-#include "tsf.h"
+#include <tsf.h>
 
 using namespace DirectMusic;
 using namespace DirectMusic::DLS;
@@ -129,7 +131,7 @@ public:
     virtual void pitchBend(std::int16_t val) {}
 };
 
-static int patestCallback(const void *inputBuffer, void *outputBuffer,
+static int paCallback(const void *inputBuffer, void *outputBuffer,
     unsigned long framesPerBuffer,
     const PaStreamCallbackTimeInfo* timeInfo,
     PaStreamCallbackFlags statusFlags,
@@ -139,47 +141,100 @@ static int patestCallback(const void *inputBuffer, void *outputBuffer,
     std::int16_t *out = (std::int16_t*)outputBuffer;
     unsigned int i;
     (void)inputBuffer; /* Prevent unused variable warning. */
+    int samples = framesPerBuffer * data->getAudioChannels();
 
-    data->renderBlock(out, framesPerBuffer * 2, 1);
+    data->renderBlock(out, samples, 1);
     return 0;
 }
 
 int main(int argc, char **argv) {
-    int sampleRate = 44100;
-    int channels = 2;
+    args::ArgumentParser parser("dmplay plays DirectMusic segments in real time");
+    args::HelpFlag help(parser, "help", "Display this help menu", { 'h', "help" });
+    args::ValueFlag<int> samplingRate(parser, "sampling rate", "The sampling rate to use", { 's', "sample" });
+    args::ValueFlag<int> numChannels(parser, "channels", "The number of channels to use", { 'c', "channels" });
+    args::ValueFlag<std::string> sfont(parser, "soundfont", "The SoundFont file to use during rendering", { 'f', "soundfont" });
+    args::Positional<std::string> segmentName(parser, "segment", "The segment to render");
+
+    try {
+        parser.ParseCLI(argc, argv);
+    } catch (args::Help) {
+        std::cout << parser;
+        return 0;
+    } catch (args::ParseError e) {
+        std::cerr << e.what() << std::endl;
+        std::cerr << parser;
+        return 1;
+    } catch (args::ValidationError e) {
+        std::cerr << e.what() << std::endl;
+        std::cerr << parser;
+        return 1;
+    }
+
+    if (!segmentName) {
+        std::cerr << "dmplay: No input specified." << std::endl;
+        return 1;
+    }
+
+    int sampleRate = samplingRate ? args::get(samplingRate) : 44100;
+    int channels = numChannels ? args::get(numChannels) : 2;
 
     // Store soundfonts based on their name
-    tsf* soundfont = tsf_load_filename("Orchestra.sf2");
+    tsf* soundfont = nullptr;
+    std::map<std::string, tsf*> soundfontMap;
+    std::unique_ptr<PlayingContext> ctx = nullptr;
 
-    TSFOutputMode outputMode = TSF_STEREO_INTERLEAVED;
-    tsf_set_output(soundfont, outputMode, sampleRate, -3);
-    PlayingContext ctx(sampleRate, channels, [soundfont](std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patch,
-        const DownloadableSound& dls, std::uint32_t sampleRate, std::uint32_t chans, float vol, float pan) {
-        return std::static_pointer_cast<InstrumentPlayer>(std::make_shared<MyInstrumentPlayer>(soundfont, bankLo, bankHi, patch, dls, sampleRate, chans, vol, pan));
-    });
+    if (sfont) {
+        soundfont = tsf_load_filename(args::get(sfont).c_str());
+
+        TSFOutputMode outputMode = channels == 1 ? TSF_MONO : TSF_STEREO_INTERLEAVED;
+        tsf_set_output(soundfont, outputMode, sampleRate, -3);
+
+        ctx = std::make_unique<PlayingContext>(sampleRate, channels, [soundfont](std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patch,
+            const DownloadableSound& dls, std::uint32_t sampleRate, std::uint32_t chans, float vol, float pan) {
+            return std::static_pointer_cast<InstrumentPlayer>(std::make_shared<MyInstrumentPlayer>(soundfont, bankLo, bankHi, patch, dls, sampleRate, chans, vol, pan));
+        });
+    } else {
+        ctx = std::make_unique<PlayingContext>(sampleRate, channels, [soundfontMap](std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patch,
+            const DownloadableSound& dls, std::uint32_t sampleRate, std::uint32_t chans, float vol, float pan) {
+            return std::static_pointer_cast<InstrumentPlayer>(std::make_shared<MyInstrumentPlayer>(soundfontMap, bankLo, bankHi, patch, dls, sampleRate, chans, vol, pan));
+        });
+    }
     std::cout << "Loading segment...";
-    auto segment = ctx.loadSegment(argv[1]);
+    auto segment = ctx->loadSegment(args::get(segmentName));
     std::cout << " done.\nStart playback... ";
-    ctx.playSegment(*segment);
+    ctx->playSegment(*segment);
     std::cout << " done.\nBegin rendering... ";
 
     PaStream *stream;
     PaError err;
     err = Pa_Initialize();
+    if (err != paNoError) goto error;
     /* Open an audio I/O stream. */
-    err = Pa_OpenDefaultStream(&stream, 0, 2, paInt16, sampleRate, 256, patestCallback, &ctx);
-    if (err != paNoError)
-        printf("PortAudio error: %s\n", Pa_GetErrorText(err));
+    err = Pa_OpenDefaultStream(&stream, 0, 2, paInt16, sampleRate, 256, paCallback, &ctx);
+    if (err != paNoError) goto error;
     err = Pa_StartStream(stream);
+    if (err != paNoError) goto error;
+    std::cout << "Rendering started. Press enter to stop.\n";
+    getchar();
+    
+    err = Pa_CloseStream(stream);
+    if (err != paNoError) goto error;
 
-    while (true) {
-        Pa_Sleep(100);
+    err = Pa_Terminate();
+    if (err != paNoError) goto error;
+
+    // Close all soundfont handles
+    for (const auto& kvp : soundfontMap) {
+        tsf_close(kvp.second);
     }
-
     if (soundfont != nullptr) {
         tsf_close(soundfont);
     }
 
-    std::cout << "Rendering done.";
+    std::cout << "Rendering stopped.";
     return 0;
+
+error:
+    std::cerr << "PortAudio error: " << Pa_GetErrorText(err) << "\n";
+    return 1;
 }

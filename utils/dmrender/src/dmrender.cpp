@@ -10,8 +10,8 @@
 #include <sndfile.h>
 #include <cmath>
 #define TSF_IMPLEMENTATION
-#include "tsf.h"
-#include "args.hxx"
+#include <tsf.h>
+#include <args.hxx>
 
 using namespace DirectMusic;
 using namespace DirectMusic::DLS;
