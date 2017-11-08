@@ -210,7 +210,7 @@ int main(int argc, char **argv) {
     err = Pa_Initialize();
     if (err != paNoError) goto error;
     /* Open an audio I/O stream. */
-    err = Pa_OpenDefaultStream(&stream, 0, 2, paInt16, sampleRate, 256, paCallback, &ctx);
+    err = Pa_OpenDefaultStream(&stream, 0, channels, paInt16, sampleRate, 256, paCallback, ctx.get());
     if (err != paNoError) goto error;
     err = Pa_StartStream(stream);
     if (err != paNoError) goto error;
