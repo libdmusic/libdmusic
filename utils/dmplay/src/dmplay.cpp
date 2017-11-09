@@ -115,6 +115,10 @@ public:
         tsf_note_off(m_soundfont, m_preset, note);
     }
 
+    virtual void allNotesOff() {
+        tsf_all_notes_off(m_soundfont, m_preset);
+    }
+
     /// Sends a "channel pressure" message
     virtual void channelPressure(std::uint8_t val) {}
 

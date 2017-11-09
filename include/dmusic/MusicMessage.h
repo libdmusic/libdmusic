@@ -27,6 +27,7 @@ namespace DirectMusic {
             const DirectMusic::DLS::DownloadableSound& dls,
             float volume, float pan);
         void setInstrument(PlayingContext& ctx, std::uint32_t channel, std::shared_ptr<InstrumentPlayer> instr);
+        void playPattern(PlayingContext& ctx);
         void setGrooveLevel(PlayingContext& ctx, std::uint8_t level);
         const std::map<std::uint32_t, std::shared_ptr<InstrumentPlayer>>& getChannels(PlayingContext& ctx);
         void changeChord(PlayingContext& ctx, std::uint32_t chord, const std::vector<DMUS_IO_SUBCHORD>& subchords);

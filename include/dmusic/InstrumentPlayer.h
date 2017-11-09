@@ -31,6 +31,9 @@ namespace DirectMusic {
         /// Instructs the synthesizer to stop playing a note
         virtual void noteOff(std::uint8_t note, std::uint8_t velocity) = 0;
 
+        /// Instructs the synthesizer to stop all playing notes (similar to MIDI PANIC)
+        virtual void allNotesOff() = 0;
+
         /// Sends a "channel pressure" message
         virtual void channelPressure(std::uint8_t val) = 0;
 

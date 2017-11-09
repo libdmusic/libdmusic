@@ -157,6 +157,9 @@ TSFDEF void tsf_bank_note_on(tsf* f, int bank, int preset_number, int key, float
 TSFDEF void tsf_note_off(tsf* f, int preset_index, int key);
 TSFDEF void tsf_bank_note_off(tsf* f, int bank, int preset_number, int key);
 
+// Stop playing all notes
+TSFDEF void tsf_all_notes_off(tsf* f, int preset_index);
+
 // Render output samples into a buffer
 // You can either render as signed 16-bit values (tsf_render_short) or
 // as 32-bit float values (tsf_render_float)
@@ -1280,6 +1283,26 @@ TSFDEF void tsf_note_off(tsf* f, int preset_index, int key)
 		//Stop all voices with matching preset, key and the smallest play index which was enumerated above
 		if (v != vMatchFirst && v != vMatchLast &&
 			(v->playIndex != vMatchFirst->playIndex || v->playingPreset != preset_index || v->playingKey != key || v->ampenv.segment >= TSF_SEGMENT_RELEASE)) continue;
+		tsf_voice_end(v, f->outSampleRate);
+	}
+}
+
+TSFDEF void tsf_all_notes_off(tsf* f, int preset_index)
+{
+	struct tsf_voice *v = f->voices, *vEnd = v + f->voiceNum, *vMatchFirst = TSF_NULL, *vMatchLast;
+	for (; v != vEnd; v++)
+	{
+		//Find the first and last entry in the voices list with matching preset, key and look up the smallest play index
+		if (v->playingPreset != preset_index || v->ampenv.segment >= TSF_SEGMENT_RELEASE) continue;
+		else if (!vMatchFirst || v->playIndex < vMatchFirst->playIndex) vMatchFirst = vMatchLast = v;
+		else if (v->playIndex == vMatchFirst->playIndex) vMatchLast = v;
+	}
+	if (!vMatchFirst) return;
+	for (v = vMatchFirst; v <= vMatchLast; v++)
+	{
+		//Stop all voices with matching preset, key and the smallest play index which was enumerated above
+		if (v != vMatchFirst && v != vMatchLast &&
+			(v->playIndex != vMatchFirst->playIndex || v->playingPreset != preset_index || v->ampenv.segment >= TSF_SEGMENT_RELEASE)) continue;
 		tsf_voice_end(v, f->outSampleRate);
 	}
 }

@@ -127,4 +127,18 @@ namespace DirectMusic {
 
         virtual void Execute(PlayingContext& ctx);
     };
+
+    class PatternEndMessage : public MusicMessage {
+    public:
+        PatternEndMessage(std::uint32_t time)
+            : MusicMessage(time) {}
+
+        virtual std::shared_ptr<MusicMessage> Clone(std::uint32_t newTime) {
+            return std::make_shared<PatternEndMessage>(newTime);
+        }
+
+        virtual int getPriority() { return -2; }
+
+        virtual void Execute(PlayingContext& ctx);
+    };
 }
