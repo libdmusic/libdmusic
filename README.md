@@ -26,16 +26,35 @@ The `dmrender` utility is able to render an arbitrary amount of audio data from 
 Compiling
 ---------
 
-````
+````sh
 $ git clone --recursive https://github.com/frabert/libdmusic
 $ cd libdmusic
 $ cmake .
 $ make
 ````
 
+Usage
+-----
+
+Currently, in order to render segments you need to convert DLS files to SF2 manually.
+Unix shell scripts are shipped to make it easier to convert the Gothic2 files:
+
+````sh
+$ ./convert_dls_newworld.sh /path/to/G2 Orchestra.sf2
+$ ./dmplay /path/to/G2/_work/Data/Music/newworld/LOB_DayStd.sgt -f Orchestra.sf2
+````
+
+If you want to playback G1 music files, you need to invoke `dls2sf` manually:
+````sh
+$ ./dls2sf /path/to/G1/music/files/Orchestra.dls Orchestra.sf2
+$ ./dmplay /path/to/G1/music/files/OC_Day_Std.sgt -f Orchestra.sf2
+````
+
 Acknowledgements
 ----------------
 
-`dmrender` uses [TinySoundFont](https://github.com/schellingb/TinySoundFont) for SoundFont rendering, [libsndfile](http://www.mega-nerd.com/libsndfile/) and [args](https://github.com/Taywee/args).
+`dmrender` and `dmplay` use [TinySoundFont](https://github.com/schellingb/TinySoundFont) for SoundFont rendering and [args](https://github.com/Taywee/args).
 
-`dls2sf`, `sampledump` and `dmrender` use [libsndfile](http://www.mega-nerd.com/libsndfile/) for wave output and conversion.
+`dls2sf` and `dmrender` use [libsndfile](http://www.mega-nerd.com/libsndfile/) for wave output and conversion.
+
+`dmplay` uses [portaudio](http://www.portaudio.com/) for realtime audio playback.

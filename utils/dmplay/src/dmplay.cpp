@@ -7,11 +7,12 @@
 #include <dmusic/Tracks.h>
 #include <dmusic/dls/DownloadableSound.h>
 #include <cassert>
-#include <sndfile.h>
+#include <portaudio.h>
 #include <cmath>
+#include <cstdio>
+#include <args.hxx>
 #define TSF_IMPLEMENTATION
 #include <tsf.h>
-#include <args.hxx>
 
 using namespace DirectMusic;
 using namespace DirectMusic::DLS;
@@ -130,16 +131,29 @@ public:
     virtual void pitchBend(std::int16_t val) {}
 };
 
+static int paCallback(const void *inputBuffer, void *outputBuffer,
+    unsigned long framesPerBuffer,
+    const PaStreamCallbackTimeInfo* timeInfo,
+    PaStreamCallbackFlags statusFlags,
+    void *userData) {
+    /* Cast data passed through stream to our structure. */
+    PlayingContext* data = (PlayingContext*)userData;
+    std::int16_t *out = (std::int16_t*)outputBuffer;
+    unsigned int i;
+    (void)inputBuffer; /* Prevent unused variable warning. */
+    int samples = framesPerBuffer * data->getAudioChannels();
+
+    data->renderBlock(out, samples, 1);
+    return 0;
+}
+
 int main(int argc, char **argv) {
-    args::ArgumentParser parser("dmrender renders DirectMusic segments into audio files");
+    args::ArgumentParser parser("dmplay plays DirectMusic segments in real time");
     args::HelpFlag help(parser, "help", "Display this help menu", { 'h', "help" });
-    args::ValueFlag<int> chunkLength(parser, "length", "The length in seconds of the audio to render", { 'l', "length" });
     args::ValueFlag<int> samplingRate(parser, "sampling rate", "The sampling rate to use", { 's', "sample" });
     args::ValueFlag<int> numChannels(parser, "channels", "The number of channels to use", { 'c', "channels" });
     args::ValueFlag<std::string> sfont(parser, "soundfont", "The SoundFont file to use during rendering", { 'f', "soundfont" });
-    args::Flag vorbis(parser, "ogg vorbis", "The output file is going to be an Ogg/Vorbis file instead of an uncompressed Microsoft WAVE file", { 'O', "ogg" });
     args::Positional<std::string> segmentName(parser, "segment", "The segment to render");
-    args::Positional<std::string> outputFile(parser, "output", "The output file");
 
     try {
         parser.ParseCLI(argc, argv);
@@ -157,18 +171,12 @@ int main(int argc, char **argv) {
     }
 
     if (!segmentName) {
-        std::cerr << "dmrender: No input specified." << std::endl;
-        return 1;
-    }
-   
-    if (!outputFile) {
-        std::cerr << "dmrender: No output file specified" << std::endl;
+        std::cerr << "dmplay: No input specified." << std::endl;
         return 1;
     }
 
     int sampleRate = samplingRate ? args::get(samplingRate) : 44100;
-    int channels = numChannels ? args::get(numChannels) : 1;
-    std::uint64_t length = (chunkLength ? args::get(chunkLength) : 60) * sampleRate;
+    int channels = numChannels ? args::get(numChannels) : 2;
 
     // Store soundfonts based on their name
     tsf* soundfont = nullptr;
@@ -197,14 +205,24 @@ int main(int argc, char **argv) {
     ctx->playSegment(*segment);
     std::cout << " done.\nBegin rendering... ";
 
-    // Each instrument is going to sum its output into the buffer,
-    // so we have to start from a blank state, hence calloc
-    std::int16_t* buffer = (std::int16_t*)malloc(length * sizeof(std::int16_t));
-    for (std::uint64_t i = 0; i < length; i += sampleRate) {
-        ctx->renderBlock(buffer + i, sampleRate);
-        std::cout << ceil((i / (float)length) * 100) << "% ";
-    }
+    PaStream *stream;
+    PaError err;
+    err = Pa_Initialize();
+    if (err != paNoError) goto error;
+    /* Open an audio I/O stream. */
+    err = Pa_OpenDefaultStream(&stream, 0, channels, paInt16, sampleRate, 256, paCallback, ctx.get());
+    if (err != paNoError) goto error;
+    err = Pa_StartStream(stream);
+    if (err != paNoError) goto error;
+    std::cout << "Rendering started. Press enter to stop.\n";
+    getchar();
     
+    err = Pa_CloseStream(stream);
+    if (err != paNoError) goto error;
+
+    err = Pa_Terminate();
+    if (err != paNoError) goto error;
+
     // Close all soundfont handles
     for (const auto& kvp : soundfontMap) {
         tsf_close(kvp.second);
@@ -213,22 +231,10 @@ int main(int argc, char **argv) {
         tsf_close(soundfont);
     }
 
-    SF_INFO info;
-    info.channels = channels;
-    info.format = vorbis ? SF_FORMAT_OGG | SF_FORMAT_VORBIS : SF_FORMAT_WAV | SF_FORMAT_PCM_16;
-    info.samplerate = sampleRate;
-    info.frames = 0;
-    info.sections = 0;
-    info.seekable = 0;
-    SNDFILE* sndfile = sf_open(args::get(outputFile).c_str(), SFM_WRITE, &info);
-    if (sndfile == nullptr) {
-        std::string err = std::string(sf_strerror(sndfile));
-        std::cerr << "Error encountered while opening file: " << err << std::endl;
-        return 1;
-    }
-    sf_write_short(sndfile, buffer, length);
-    sf_close(sndfile);
-    free(buffer);
-    std::cout << "Rendering done.";
+    std::cout << "Rendering stopped.";
     return 0;
+
+error:
+    std::cerr << "PortAudio error: " << Pa_GetErrorText(err) << "\n";
+    return 1;
 }

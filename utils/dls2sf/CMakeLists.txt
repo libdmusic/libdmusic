@@ -23,5 +23,9 @@ file(GLOB SRC
   "src/*.cpp"
   "src/*.h")
 
+file(GLOB SCRIPTS "scripts/*")
+
+file(COPY ${SCRIPTS} DESTINATION "${CMAKE_BINARY_DIR}/bin/")
+
 add_executable(dls2sf ${SRC})
 target_link_libraries(dls2sf dmusic sf2cute sndfile-shared)
