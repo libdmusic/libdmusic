@@ -1289,21 +1289,12 @@ TSFDEF void tsf_note_off(tsf* f, int preset_index, int key)
 
 TSFDEF void tsf_all_notes_off(tsf* f, int preset_index)
 {
-	struct tsf_voice *v = f->voices, *vEnd = v + f->voiceNum, *vMatchFirst = TSF_NULL, *vMatchLast;
+	struct tsf_voice *v = f->voices, *vEnd = v + f->voiceNum;
 	for (; v != vEnd; v++)
 	{
-		//Find the first and last entry in the voices list with matching preset, key and look up the smallest play index
-		if (v->playingPreset != preset_index || v->ampenv.segment >= TSF_SEGMENT_RELEASE) continue;
-		else if (!vMatchFirst || v->playIndex < vMatchFirst->playIndex) vMatchFirst = vMatchLast = v;
-		else if (v->playIndex == vMatchFirst->playIndex) vMatchLast = v;
-	}
-	if (!vMatchFirst) return;
-	for (v = vMatchFirst; v <= vMatchLast; v++)
-	{
-		//Stop all voices with matching preset, key and the smallest play index which was enumerated above
-		if (v != vMatchFirst && v != vMatchLast &&
-			(v->playIndex != vMatchFirst->playIndex || v->playingPreset != preset_index || v->ampenv.segment >= TSF_SEGMENT_RELEASE)) continue;
-		tsf_voice_end(v, f->outSampleRate);
+		if (v->playingPreset == preset_index && v->ampenv.segment < TSF_SEGMENT_RELEASE){
+			tsf_voice_end(v, f->outSampleRate);
+		}
 	}
 }
 
