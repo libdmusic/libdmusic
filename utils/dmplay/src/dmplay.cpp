@@ -218,8 +218,19 @@ int main(int argc, char **argv) {
     if (err != paNoError) goto error;
     err = Pa_StartStream(stream);
     if (err != paNoError) goto error;
-    std::cout << "Rendering started. Press enter to stop.\n";
-    getchar();
+    std::cout << "Rendering started. Insert the next segment to be played, or 'exit' to end playback.\n";
+    while (true) {
+        std::string input;
+        std::cin >> input;
+        if (input == "exit") {
+            break;
+        }
+        std::cout << "Loading segment...";
+        segment = ctx->loadSegment(input);
+        std::cout << " done.\nStart playback... ";
+        ctx->playSegment(*segment);
+        std::cout << " done.\nBegin rendering... ";
+    }
     
     err = Pa_CloseStream(stream);
     if (err != paNoError) goto error;

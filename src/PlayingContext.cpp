@@ -99,12 +99,10 @@ void PlayingContext::enqueueSegment(const std::unique_ptr<Segment>& segment) {
 
 void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS flags, std::int64_t startTime*/) {
     TRACE("Begin segment play");
-    m_queueMutex.lock();
 
-    // FIXME: This needs to change to implement playing different segments
-    m_primarySegment = std::make_unique<Segment>();
-    m_primarySegment->length = segment.getHeader().mtLength;
-    m_primarySegment->messages.push_back(std::make_shared<SegmentEndMessage>(m_primarySegment->length));
+    auto newSegment = std::make_unique<Segment>();
+    newSegment->length = segment.getHeader().mtLength;
+    newSegment->messages.push_back(std::make_shared<SegmentEndMessage>(newSegment->length));
 
     for (const auto& track : segment.getTracks()) {
         const auto& header = track.getHeader();
@@ -119,14 +117,14 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
             for (const auto& item : tempoTrack->getItems()) {
                 auto message = std::make_shared<TempoChangeMessage>(item.lTime, item.dblTempo);
                 assert(message != nullptr);
-                m_primarySegment->messages.push_back(message);
+                newSegment->messages.push_back(message);
             }
         } else if (ckid == "cmnd") {
             auto commandTrack = std::static_pointer_cast<CommandTrack>(track.getData());
             for (const auto& command : commandTrack->getCommands()) {
                 auto message = std::make_shared<GrooveLevelMessage>(command.mtTime, command.bGrooveLevel, command.bGrooveRange);
                 assert(message != nullptr);
-                m_primarySegment->messages.push_back(message);
+                newSegment->messages.push_back(message);
             }
         } else if (*header.ckid == 0 && fccType == "sttr") {
             auto styleTrack = std::static_pointer_cast<StyleTrack>(track.getData());
@@ -137,8 +135,8 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
                 std::string styleFile = refs.getFile();
                 auto styleForm = loadStyle(std::string(styleFile.begin(), styleFile.end()));
                 assert(styleForm != nullptr);
-                m_primarySegment->numLoops = segment.getHeader().dwRepeats;
-                m_primarySegment->infiniteLoop = false;
+                newSegment->numLoops = segment.getHeader().dwRepeats;
+                newSegment->infiniteLoop = false;
                 std::map<GUID, StylePart, GuidComparer> parts;
                 for (const auto& part : styleForm->getParts()) {
                     parts[part.getHeader().guidPartID] = part;
@@ -158,11 +156,11 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
                         pttn.parts.push_back(std::make_pair(partRef, part));
                     }
 
-                    m_primarySegment->patterns.push_back(pttn);
+                    newSegment->patterns.push_back(pttn);
                 }
 
-                m_primarySegment->initialSignature = styleForm->getHeader().timeSig;
-                m_primarySegment->initialTempo = styleForm->getHeader().dblTempo;
+                newSegment->initialSignature = styleForm->getHeader().timeSig;
+                newSegment->initialTempo = styleForm->getHeader().dblTempo;
 
                 m_tempo = styleForm->getHeader().dblTempo;
                 m_signature = styleForm->getHeader().timeSig;
@@ -171,12 +169,12 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
                 bool firstBand = true;
                 for (const auto& band : styleForm->getBands()) {
                     auto message = std::make_shared<BandChangeMessage>(*this, 0, band);
-                    m_primarySegment->messages.push_back(message);
+                    newSegment->messages.push_back(message);
                 }
 
                 // Load the style's tempo
-                m_primarySegment->initialTempo = styleForm->getHeader().dblTempo;
-                m_primarySegment->initialSignature = styleForm->getHeader().timeSig;
+                newSegment->initialTempo = styleForm->getHeader().dblTempo;
+                newSegment->initialSignature = styleForm->getHeader().timeSig;
             }
         } else if (*header.ckid == 0 && fccType == "DMBT") {
             auto bandTrack = std::static_pointer_cast<BandTrack>(track.getData());
@@ -185,7 +183,7 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
                 BandForm bandForm = band.second;
 
                 auto message = std::make_shared<BandChangeMessage>(*this, header.lBandTimePhysical, bandForm);
-                m_primarySegment->messages.push_back(message);
+                newSegment->messages.push_back(message);
             }
         } else if (*header.ckid == 0 && fccType == "cord") {
             auto chordTrack = std::static_pointer_cast<ChordTrack>(track.getData());
@@ -193,11 +191,18 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
                 const auto& chordHeader = chord.first;
                 const auto& chordBody = chord.second;
                 auto message = std::make_shared<ChordMessage>(chordHeader.mtTime, chordTrack->getHeader(), chordBody);
-                m_primarySegment->messages.push_back(message);
+                newSegment->messages.push_back(message);
             }
         }
     }
-    enqueueSegment(m_primarySegment);
+
+    m_queueMutex.lock();
+    if (m_primarySegment == nullptr) {
+        m_primarySegment = std::move(newSegment);
+        enqueueSegment(m_primarySegment);
+    } else {
+        m_nextSegment = std::move(newSegment);
+    }
     m_queueMutex.unlock();
 }
 
