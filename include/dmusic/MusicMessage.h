@@ -32,6 +32,7 @@ namespace DirectMusic {
         const std::map<std::uint32_t, std::shared_ptr<InstrumentPlayer>>& getChannels(PlayingContext& ctx);
         void changeChord(PlayingContext& ctx, std::uint32_t chord, const std::vector<DMUS_IO_SUBCHORD>& subchords);
         void enqueueNextSegment(PlayingContext& ctx);
+        bool isNextSegmentAvailable(PlayingContext& ctx);
     };
 
     struct MusicMessageComparer {

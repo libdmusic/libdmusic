@@ -162,8 +162,7 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
                 newSegment->initialSignature = styleForm->getHeader().timeSig;
                 newSegment->initialTempo = styleForm->getHeader().dblTempo;
 
-                m_tempo = styleForm->getHeader().dblTempo;
-                m_signature = styleForm->getHeader().timeSig;
+                //m_signature = styleForm->getHeader().timeSig;
 
                 // Load the style's band
                 bool firstBand = true;

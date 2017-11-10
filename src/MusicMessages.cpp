@@ -208,11 +208,11 @@ void MusicMessage::playPattern(PlayingContext& ctx) {
         PlayingContext::Pattern pttn;
         if (ctx.m_primarySegment->getRandomPattern(ctx.m_grooveLevel, &pttn)) {
             std::uint32_t patternLength = pttn.header.wNbrMeasures * getMeasureLength(pttn.header.timeSig);
-            for (const auto& partTuple: pttn.parts) {
+            for (const auto& partTuple : pttn.parts) {
                 const auto& partRef = partTuple.first;
                 const auto& part = partTuple.second;
 
-                for (const auto& note: part.getNotes()) {
+                for (const auto& note : part.getNotes()) {
                     std::uint8_t midiNote;
                     std::uint32_t timeStart = getMusicOffset(note.mtGridStart, note.nTimeOffset, part.getHeader().timeSig);
                     if (MusicValueToMIDI(ctx.m_chord, ctx.m_subchords, note, part.getHeader(), &midiNote)) {
@@ -249,21 +249,17 @@ void MusicMessage::changeChord(PlayingContext& ctx, std::uint32_t chord, const s
 }
 
 void MusicMessage::enqueueNextSegment(PlayingContext& ctx) {
-    if (ctx.m_primarySegment == nullptr) {
-        if (ctx.m_nextSegment != nullptr) {
-            ctx.enqueueSegment(ctx.m_nextSegment);
-            ctx.m_primarySegment = std::move(ctx.m_nextSegment);
-            ctx.m_nextSegment = nullptr;
-        }
-    } else {
-        if (ctx.m_nextSegment != nullptr) {
-            ctx.enqueueSegment(ctx.m_nextSegment);
-            ctx.m_primarySegment = std::move(ctx.m_nextSegment);
-            ctx.m_nextSegment = nullptr;
-        } else {
-            ctx.enqueueSegment(ctx.m_primarySegment);
-        }
+    if (ctx.m_nextSegment != nullptr) {
+        ctx.enqueueSegment(ctx.m_nextSegment);
+        ctx.m_primarySegment = std::move(ctx.m_nextSegment);
+        ctx.m_nextSegment = nullptr;
+    } else if (ctx.m_primarySegment != nullptr) {
+        ctx.enqueueSegment(ctx.m_primarySegment);
     }
+}
+
+bool MusicMessage::isNextSegmentAvailable(PlayingContext& ctx) {
+    return ctx.m_nextSegment != nullptr;
 }
 
 void TempoChangeMessage::Execute(PlayingContext& ctx) {
@@ -306,6 +302,7 @@ void GrooveLevelMessage::Execute(PlayingContext& ctx) {
         std::int8_t offset = (std::rand() % m_range) - (m_range / 2);
         setGrooveLevel(ctx, m_level - offset);
     }
+    if (isNextSegmentAvailable(ctx)) enqueueNextSegment(ctx);
 }
 
 void ChordMessage::Execute(PlayingContext& ctx) {
@@ -340,4 +337,5 @@ void SegmentEndMessage::Execute(PlayingContext& ctx) {
 void PatternEndMessage::Execute(PlayingContext& ctx) {
     TRACE("Pattern end");
     playPattern(ctx);
+    if(isNextSegmentAvailable(ctx)) enqueueNextSegment(ctx);
 }
