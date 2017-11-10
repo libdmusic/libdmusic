@@ -168,6 +168,7 @@ static bool MusicValueToMIDI(std::uint32_t chord, const std::vector<DMUS_IO_SUBC
         // } else if (getOffsetFromScale(chordTone, subchord.dwScalePattern, &scaleOffset)) {
         //     noteValue += scaleOffset;
     } else {
+        TRACE_VERBOSE("Note not found: " << noteValue);
         return false;
     }
 
