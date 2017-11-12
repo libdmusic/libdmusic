@@ -57,4 +57,6 @@ Acknowledgements
 
 `dls2sf` and `dmrender` use [libsndfile](http://www.mega-nerd.com/libsndfile/) for wave output and conversion.
 
+`dls2sf` uses [sf2cute](https://github.com/gocha/sf2cute) for SoundFont output.
+
 `dmplay` uses [portaudio](http://www.portaudio.com/) for realtime audio playback.
