@@ -206,7 +206,7 @@ void MusicMessage::playPattern(PlayingContext& ctx) {
 
     if (ctx.m_primarySegment != nullptr && ctx.m_performanceChannels.size() > 0 && ctx.m_subchords.size() > 0) {
         PlayingContext::Pattern pttn;
-        if (ctx.m_primarySegment->getRandomPattern(ctx.m_grooveLevel, &pttn)) {
+        if (ctx.getRandomPattern(*ctx.m_primarySegment, ctx.m_grooveLevel, &pttn)) {
             std::uint32_t patternLength = pttn.header.wNbrMeasures * getMeasureLength(pttn.header.timeSig);
             for (const auto& partTuple : pttn.parts) {
                 const auto& partRef = partTuple.first;
@@ -245,7 +245,7 @@ const std::map<std::uint32_t, std::shared_ptr<InstrumentPlayer>>& MusicMessage::
 
 void MusicMessage::changeChord(PlayingContext& ctx, std::uint32_t chord, const std::vector<DMUS_IO_SUBCHORD>& subchords) {
     ctx.m_chord = chord;
-    ctx.m_subchords = subchords;
+    ctx.m_subchords = std::move(subchords);
 }
 
 void MusicMessage::enqueueNextSegment(PlayingContext& ctx) {

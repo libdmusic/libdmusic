@@ -29,13 +29,17 @@ namespace DirectMusic {
     /// This the main interface to the DirectMusic emulation layer
     class PlayingContext {
         friend class MusicMessage;
+
     private:
         struct Pattern {
             DMUS_IO_PATTERN header;
             std::vector<std::pair<DMUS_IO_PARTREF, StylePart>> parts;
         };
 
-        struct Segment {
+    public:
+        class Segment {
+            friend class PlayingContext;
+        private:
             bool infiniteLoop;
             std::uint32_t numLoops;
             std::vector<Pattern> patterns;
@@ -43,9 +47,10 @@ namespace DirectMusic {
             double initialTempo;
             DMUS_IO_TIMESIG initialSignature;
             std::uint32_t length;
-
-            bool getRandomPattern(std::uint8_t grooveLevel, Pattern* output) const;
         };
+
+    private:
+        bool getRandomPattern(const Segment& segm, std::uint8_t grooveLevel, Pattern* output) const;
 
         PlayerFactory m_instrumentFactory;
         std::uint32_t m_sampleRate, m_audioChannels;
@@ -59,11 +64,9 @@ namespace DirectMusic {
         DMUS_IO_TIMESIG m_signature;
         std::mutex m_queueMutex;
         MessageQueue m_messageQueue, m_patternMessageQueue;
-        std::unique_ptr<Segment> m_primarySegment = nullptr, m_nextSegment = nullptr;
+        std::shared_ptr<Segment> m_primarySegment = nullptr, m_nextSegment = nullptr;
 
         std::uint32_t m_segmentStartTime;
-
-        bool MusicValueToMIDI(DMUS_IO_STYLENOTE note, DMUS_IO_STYLEPART part, std::uint8_t* value) const;
 
         template<typename T>
         static std::shared_ptr<T> genObjFromChunkData(const std::vector<std::uint8_t>& data) {
@@ -72,9 +75,17 @@ namespace DirectMusic {
             return std::make_shared<T>(c);
         }
 
-        void enqueueSegment(const std::unique_ptr<Segment>& segment);
+        void enqueueSegment(const std::shared_ptr<Segment>& segment);
 
     public:
+        enum class SegmentTiming {
+            Grid,    //< Aligns the segment to play at a grid boundary
+            Beat,    //< Aligns the segment to play at a beat boundary
+            Measure, //< Aligns the segment to play at a measure boundary
+            Pattern, //< Aligns the segment to play at a pattern boundary
+            Queue    //< Aligns the segment to play at the end of the currently playing segment
+        };
+
         static const std::uint32_t PulsesPerQuarterNote = 768;
 
         /// Creates a new playing contest with the specified sampling rate and
@@ -95,8 +106,12 @@ namespace DirectMusic {
         /// Renders the following audio block
         void renderBlock(std::int16_t *data, std::uint32_t count, float volume = 1) noexcept;
 
+        /// Prepares a segment for being played
+        std::shared_ptr<Segment> prepareSegment(const SegmentForm& segment);
+
         /// Begins the playback of a segment
-        void playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS flags, std::int64_t startTime = 0*/);
+        void playSegment(const SegmentForm& segment, SegmentTiming timing = SegmentTiming::Pattern);
+        void playSegment(std::shared_ptr<Segment> segment, SegmentTiming timing = SegmentTiming::Pattern);
         /*
         void playTransition(const SegmentForm& segment,
                             DMUS_COMMANDT_TYPES command,

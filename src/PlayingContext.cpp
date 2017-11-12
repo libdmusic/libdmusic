@@ -87,7 +87,7 @@ fill_buffer:
     m_queueMutex.unlock();
 }
 
-void PlayingContext::enqueueSegment(const std::unique_ptr<Segment>& segment) {
+void PlayingContext::enqueueSegment(const std::shared_ptr<Segment>& segment) {
     assert(segment != nullptr);
     TRACE("Segment enqueued");
     m_messageQueue = MessageQueue();
@@ -97,10 +97,54 @@ void PlayingContext::enqueueSegment(const std::unique_ptr<Segment>& segment) {
     }
 }
 
-void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS flags, std::int64_t startTime*/) {
-    TRACE("Begin segment play");
+// Loads tempo change information into the message vector
+static void loadTempoTrack(const TrackForm& track, std::vector<std::shared_ptr<MusicMessage>>& messageVector) {
+    auto tempoTrack = std::static_pointer_cast<TempoTrack>(track.getData());
+    for (const auto& item : tempoTrack->getItems()) {
+        auto message = std::make_shared<TempoChangeMessage>(item.lTime, item.dblTempo);
+        assert(message != nullptr);
+        messageVector.push_back(message);
+    }
+}
 
-    auto newSegment = std::make_unique<Segment>();
+// Loads commands information (for now only groove level changes) into the message vector
+static void loadCommandTrack(const TrackForm& track, std::vector<std::shared_ptr<MusicMessage>>& messageVector) {
+    auto commandTrack = std::static_pointer_cast<CommandTrack>(track.getData());
+    for (const auto& command : commandTrack->getCommands()) {
+        auto message = std::make_shared<GrooveLevelMessage>(command.mtTime, command.bGrooveLevel, command.bGrooveRange);
+        assert(message != nullptr);
+        messageVector.push_back(message);
+    }
+}
+
+// Loads band change information into the message vector
+static void loadBandTrack(const TrackForm& track, std::vector<std::shared_ptr<MusicMessage>>& messageVector, PlayingContext& ctx) {
+    auto bandTrack = std::static_pointer_cast<BandTrack>(track.getData());
+    for (const auto& band : bandTrack->getBands()) {
+        DMUS_IO_BAND_ITEM_HEADER2 header = band.first;
+        BandForm bandForm = band.second;
+
+        auto message = std::make_shared<BandChangeMessage>(ctx, header.lBandTimePhysical, bandForm);
+        messageVector.push_back(message);
+    }
+}
+
+// Loads chord change information into the message vector
+static void loadChordTrack(const TrackForm& track, std::vector<std::shared_ptr<MusicMessage>>& messageVector) {
+    auto chordTrack = std::static_pointer_cast<ChordTrack>(track.getData());
+    for (const auto& chord : chordTrack->getChords()) {
+        const auto& chordHeader = chord.first;
+        const auto& chordBody = chord.second;
+        auto message = std::make_shared<ChordMessage>(chordHeader.mtTime, chordTrack->getHeader(), std::move(chordBody));
+        messageVector.push_back(message);
+    }
+}
+
+std::shared_ptr<PlayingContext::Segment> PlayingContext::prepareSegment(const SegmentForm& segment) {
+    TRACE("Preparing segment");
+    auto newSegment = std::make_shared<Segment>();
+    newSegment->numLoops = segment.getHeader().dwRepeats;
+    newSegment->infiniteLoop = false;
     newSegment->length = segment.getHeader().mtLength;
     newSegment->messages.push_back(std::make_shared<SegmentEndMessage>(newSegment->length));
 
@@ -113,19 +157,9 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
         fccType.resize(4);
 
         if (ckid == "tetr") {
-            auto tempoTrack = std::static_pointer_cast<TempoTrack>(track.getData());
-            for (const auto& item : tempoTrack->getItems()) {
-                auto message = std::make_shared<TempoChangeMessage>(item.lTime, item.dblTempo);
-                assert(message != nullptr);
-                newSegment->messages.push_back(message);
-            }
+            loadTempoTrack(track, newSegment->messages);
         } else if (ckid == "cmnd") {
-            auto commandTrack = std::static_pointer_cast<CommandTrack>(track.getData());
-            for (const auto& command : commandTrack->getCommands()) {
-                auto message = std::make_shared<GrooveLevelMessage>(command.mtTime, command.bGrooveLevel, command.bGrooveRange);
-                assert(message != nullptr);
-                newSegment->messages.push_back(message);
-            }
+            loadCommandTrack(track, newSegment->messages);
         } else if (*header.ckid == 0 && fccType == "sttr") {
             auto styleTrack = std::static_pointer_cast<StyleTrack>(track.getData());
             for (const auto& style : styleTrack->getStyles()) {
@@ -135,8 +169,6 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
                 std::string styleFile = refs.getFile();
                 auto styleForm = loadStyle(std::string(styleFile.begin(), styleFile.end()));
                 assert(styleForm != nullptr);
-                newSegment->numLoops = segment.getHeader().dwRepeats;
-                newSegment->infiniteLoop = false;
                 std::map<GUID, StylePart, GuidComparer> parts;
                 for (const auto& part : styleForm->getParts()) {
                     parts[part.getHeader().guidPartID] = part;
@@ -159,11 +191,6 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
                     newSegment->patterns.push_back(pttn);
                 }
 
-                newSegment->initialSignature = styleForm->getHeader().timeSig;
-                newSegment->initialTempo = styleForm->getHeader().dblTempo;
-
-                //m_signature = styleForm->getHeader().timeSig;
-
                 // Load the style's band
                 bool firstBand = true;
                 for (const auto& band : styleForm->getBands()) {
@@ -176,39 +203,47 @@ void PlayingContext::playSegment(const SegmentForm& segment/*, DMUS_SEGF_FLAGS f
                 newSegment->initialSignature = styleForm->getHeader().timeSig;
             }
         } else if (*header.ckid == 0 && fccType == "DMBT") {
-            auto bandTrack = std::static_pointer_cast<BandTrack>(track.getData());
-            for (const auto& band : bandTrack->getBands()) {
-                DMUS_IO_BAND_ITEM_HEADER2 header = band.first;
-                BandForm bandForm = band.second;
-
-                auto message = std::make_shared<BandChangeMessage>(*this, header.lBandTimePhysical, bandForm);
-                newSegment->messages.push_back(message);
-            }
+            loadBandTrack(track, newSegment->messages, *this);
         } else if (*header.ckid == 0 && fccType == "cord") {
-            auto chordTrack = std::static_pointer_cast<ChordTrack>(track.getData());
-            for (const auto& chord : chordTrack->getChords()) {
-                const auto& chordHeader = chord.first;
-                const auto& chordBody = chord.second;
-                auto message = std::make_shared<ChordMessage>(chordHeader.mtTime, chordTrack->getHeader(), chordBody);
-                newSegment->messages.push_back(message);
-            }
+            loadChordTrack(track, newSegment->messages);
         }
     }
 
+    return newSegment;
+}
+
+void PlayingContext::playSegment(const SegmentForm& segment, SegmentTiming timing) {
+    TRACE("Begin segment play");
+
+    auto newSegment = prepareSegment(segment);
+
     m_queueMutex.lock();
     if (m_primarySegment == nullptr) {
-        m_primarySegment = std::move(newSegment);
+        m_primarySegment = newSegment;
         enqueueSegment(m_primarySegment);
     } else {
-        m_nextSegment = std::move(newSegment);
+        m_nextSegment = newSegment;
     }
     m_queueMutex.unlock();
 }
 
-bool PlayingContext::Segment::getRandomPattern(std::uint8_t grooveLevel, Pattern* output) const {
+void PlayingContext::playSegment(std::shared_ptr<Segment> segment, SegmentTiming timing) {
+    TRACE("Begin segment play");
+
+    m_queueMutex.lock();
+    if (m_primarySegment == nullptr) {
+        m_primarySegment = segment;
+        enqueueSegment(m_primarySegment);
+    } else {
+        m_nextSegment = segment;
+    }
+    m_queueMutex.unlock();
+}
+
+bool PlayingContext::getRandomPattern(const Segment& segm, std::uint8_t grooveLevel, Pattern* output) const {
     std::vector<int> suitablePatterns;
-    for (int i = 0; i < patterns.size(); i++) {
-        const auto& pattern = patterns[i];
+    for (int i = 0; i < segm.patterns.size(); i++) {
+        const auto& pattern = segm.patterns[i];
         if (pattern.header.bGrooveBottom <= grooveLevel && pattern.header.bGrooveTop >= grooveLevel) {
             suitablePatterns.push_back(i);
         }
@@ -217,11 +252,11 @@ bool PlayingContext::Segment::getRandomPattern(std::uint8_t grooveLevel, Pattern
     if (suitablePatterns.size() == 0) {
         return false;
     } else if (suitablePatterns.size() == 1) {
-        *output = patterns[suitablePatterns[0]];
+        *output = segm.patterns[suitablePatterns[0]];
         return true;
     } else {
         int idx = std::rand();
-        *output = patterns[suitablePatterns[idx % suitablePatterns.size()]];
+        *output = segm.patterns[suitablePatterns[idx % suitablePatterns.size()]];
         return true;
     }
 }

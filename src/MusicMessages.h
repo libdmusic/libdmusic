@@ -61,7 +61,7 @@ namespace DirectMusic {
 
     class ChordMessage : public MusicMessage {
     public:
-        ChordMessage(std::uint32_t time, std::uint32_t chord, const std::vector<DMUS_IO_SUBCHORD>& subchords)
+        ChordMessage(std::uint32_t time, std::uint32_t chord, const std::vector<DMUS_IO_SUBCHORD> subchords)
             : MusicMessage(time),
             m_chord(chord),
             m_subchords(subchords) {};
@@ -75,7 +75,7 @@ namespace DirectMusic {
 
     private:
         std::uint32_t m_chord;
-        const std::vector<DMUS_IO_SUBCHORD>& m_subchords;
+        const std::vector<DMUS_IO_SUBCHORD> m_subchords;
     };
 
     class NoteOnMessage : public MusicMessage {
