@@ -9,6 +9,8 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 option(DMUSIC_BUILD_UTILS "Build various conversion utilities" ON)
+option(DMUSIC_TRACE "Enable tracing messages" OFF)
+option(DMUSIC_TRACE_VERBOSE "Enable verbose tracing messages" OFF)
 
 include_directories(include)
 
