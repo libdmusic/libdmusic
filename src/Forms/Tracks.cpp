@@ -329,12 +329,14 @@ TempoTrack::TempoTrack(const Chunk& c) {
     if (c.getId() != "tetr")
         throw DirectMusic::InvalidChunkException("tetr", c.getId() + " " + c.getListId());
     const std::uint8_t *data = c.getData().data();
-    const std::uint8_t *start = data;
-    std::uint32_t structSize = littleEndianRead<std::uint32_t>(data);
-    data += 4;
-    while ((data - start) + structSize < c.getData().size()) {
-        m_items.push_back(DMUS_IO_TEMPO_ITEM(data));
-        data += structSize;
+    int offset = 0;
+    std::uint32_t structSize = littleEndianRead<std::uint32_t>(data + offset);
+    offset += 4;
+    for (int i = 0; i < ((c.getData().size() - 4) / structSize); i++) {
+        offset += structSize;
+        offset -= sizeof(DMUS_IO_TEMPO_ITEM);
+        m_items.push_back(DMUS_IO_TEMPO_ITEM(data + offset));
+        offset += sizeof(DMUS_IO_TEMPO_ITEM);
     }
 }
 
