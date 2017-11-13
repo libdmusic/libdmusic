@@ -244,7 +244,9 @@ bool PlayingContext::getRandomPattern(const Segment& segm, std::uint8_t grooveLe
     std::vector<int> suitablePatterns;
     for (int i = 0; i < segm.patterns.size(); i++) {
         const auto& pattern = segm.patterns[i];
-        if (pattern.header.bGrooveBottom <= grooveLevel && pattern.header.bGrooveTop >= grooveLevel) {
+        if (pattern.header.bGrooveBottom <= grooveLevel &&
+            pattern.header.bGrooveTop >= grooveLevel &&
+            pattern.header.wEmbellishment == DMUS_EMBELLISHT_NORMAL) {
             suitablePatterns.push_back(i);
         }
     }
