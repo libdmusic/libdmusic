@@ -18,9 +18,6 @@ namespace DirectMusic {
         float m_pan;
         int m_channels;
         int m_samplerate;
-        float gainToDecibels(float gain) {
-            return 10 * log10(gain);
-        }
 
         SoundFontPlayer(tsf* soundfont,
             std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patch,

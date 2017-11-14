@@ -7,6 +7,10 @@
 using namespace DirectMusic;
 using namespace DirectMusic::DLS;
 
+static float gainToDecibels(float gain) {
+    return 10 * log10(gain);
+}
+
 SoundFontPlayer::SoundFontPlayer(tsf* soundfont,
     std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patch,
     const DirectMusic::DLS::DownloadableSound& dls,
