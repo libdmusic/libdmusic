@@ -11,6 +11,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 option(DMUSIC_BUILD_UTILS "Build various DirectMusic utilities" ON)
 option(DMUSIC_TRACE "Enable tracing messages" OFF)
 option(DMUSIC_TRACE_VERBOSE "Enable verbose tracing messages" OFF)
+option(DMUSIC_TSF_SUPPORT "Enable reference InstrumentPlayer based on TinySoundFont" ON)
 
 include_directories(include)
 
@@ -25,6 +26,10 @@ add_library(dmusic STATIC ${LIB_SRC})
 
 if (DMUSIC_BUILD_UTILS)
   add_subdirectory(utils)
+endif ()
+
+if (DMUSIC_TSF_SUPPORT)
+  target_compile_definitions(dmusic PRIVATE DMUSIC_TSF_SUPPORT=1)
 endif ()
 
 if(DMUSIC_TRACE)

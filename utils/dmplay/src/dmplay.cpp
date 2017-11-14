@@ -4,6 +4,10 @@
 #include <map>
 #include <dmusic/PlayingContext.h>
 #include <dmusic/InstrumentPlayer.h>
+#ifndef DMUSIC_TSF_SUPPORT
+#define DMUSIC_TSF_SUPPORT 1
+#endif
+#include <dmusic/SoundFontPlayer.h>
 #include <dmusic/Tracks.h>
 #include <dmusic/dls/DownloadableSound.h>
 #include <cassert>
@@ -143,7 +147,6 @@ static int paCallback(const void *inputBuffer, void *outputBuffer,
     /* Cast data passed through stream to our structure. */
     PlayingContext* data = (PlayingContext*)userData;
     std::int16_t *out = (std::int16_t*)outputBuffer;
-    unsigned int i;
     (void)inputBuffer; /* Prevent unused variable warning. */
     int samples = framesPerBuffer * data->getAudioChannels();
 
@@ -183,20 +186,11 @@ int main(int argc, char **argv) {
     int channels = numChannels ? args::get(numChannels) : 2;
 
     // Store soundfonts based on their name
-    tsf* soundfont = nullptr;
     std::map<std::string, tsf*> soundfontMap;
     std::unique_ptr<PlayingContext> ctx = nullptr;
 
     if (sfont) {
-        soundfont = tsf_load_filename(args::get(sfont).c_str());
-
-        TSFOutputMode outputMode = channels == 1 ? TSF_MONO : TSF_STEREO_INTERLEAVED;
-        tsf_set_output(soundfont, outputMode, sampleRate, -3);
-
-        ctx = std::make_unique<PlayingContext>(sampleRate, channels, [soundfont](std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patch,
-            const DownloadableSound& dls, std::uint32_t sampleRate, std::uint32_t chans, float vol, float pan) {
-            return std::static_pointer_cast<InstrumentPlayer>(std::make_shared<MyInstrumentPlayer>(soundfont, bankLo, bankHi, patch, dls, sampleRate, chans, vol, pan));
-        });
+        ctx = std::make_unique<PlayingContext>(sampleRate, channels, SoundFontPlayer::createFactory(args::get(sfont)));
     } else {
         ctx = std::make_unique<PlayingContext>(sampleRate, channels, [soundfontMap](std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patch,
             const DownloadableSound& dls, std::uint32_t sampleRate, std::uint32_t chans, float vol, float pan) {
@@ -241,9 +235,6 @@ int main(int argc, char **argv) {
     // Close all soundfont handles
     for (const auto& kvp : soundfontMap) {
         tsf_close(kvp.second);
-    }
-    if (soundfont != nullptr) {
-        tsf_close(soundfont);
     }
 
     std::cout << "Rendering stopped.";
