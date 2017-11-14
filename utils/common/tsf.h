@@ -105,6 +105,10 @@ TSFDEF const char* tsf_get_presetname(const tsf* f, int preset_index);
 // Returns the name of a preset by bank and preset number
 TSFDEF const char* tsf_bank_get_presetname(const tsf* f, int bank, int preset_number);
 
+TSFDEF void tsf_increase_refcount(tsf* f);
+
+TSFDEF int tsf_decrease_refcount(tsf* f);
+
 // Supported output modes by the render methods
 enum TSFOutputMode
 {
@@ -259,6 +263,7 @@ struct tsf
 	enum TSFOutputMode outputmode;
 	float globalGainDB, globalPanFactorLeft, globalPanFactorRight;
 
+    int refcount;
 };
 
 #ifndef TSF_NO_STDIO
@@ -502,6 +507,20 @@ static void tsf_region_envtosecs(struct tsf_envelope* p, TSF_BOOL sustainIsGain)
 	if (p->sustain < 0.0f) p->sustain = 0.0f;
 	else if (sustainIsGain) p->sustain = 100.0f * tsf_decibelsToGain(-p->sustain / 10.0f);
 	else p->sustain = p->sustain / 10.0f;
+}
+
+void tsf_increase_refcount(tsf* res) {
+    res->refcount++;
+}
+
+int tsf_decrease_refcount(tsf* res) {
+    res->refcount--;
+    if (res->refcount == 0) {
+        tsf_close(res);
+        return 1;
+    } else {
+        return 0;
+    }
 }
 
 static void tsf_load_presets(tsf* res, struct tsf_hydra *hydra)
@@ -1111,6 +1130,7 @@ TSFDEF tsf* tsf_load(struct tsf_stream* stream)
 	TSF_FREE(hydra.pgens); TSF_FREE(hydra.insts); TSF_FREE(hydra.ibags);
 	TSF_FREE(hydra.imods); TSF_FREE(hydra.igens); TSF_FREE(hydra.shdrs);
 	TSF_FREE(fontSamples);
+    res->refcount = 0;
 	return res;
 }
 
