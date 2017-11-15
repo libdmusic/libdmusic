@@ -87,7 +87,7 @@ fill_buffer:
     m_queueMutex.unlock();
 }
 
-void PlayingContext::enqueueSegment(const std::shared_ptr<Segment>& segment) {
+void PlayingContext::enqueueSegment(const std::shared_ptr<SegmentInfo>& segment) {
     assert(segment != nullptr);
     TRACE("Segment enqueued");
     m_messageQueue = MessageQueue();
@@ -140,9 +140,9 @@ static void loadChordTrack(const TrackForm& track, std::vector<std::shared_ptr<M
     }
 }
 
-std::shared_ptr<PlayingContext::Segment> PlayingContext::prepareSegment(const SegmentForm& segment) {
+std::shared_ptr<SegmentInfo> PlayingContext::prepareSegment(const SegmentForm& segment) {
     TRACE("Preparing segment");
-    auto newSegment = std::make_shared<Segment>();
+    auto newSegment = std::make_shared<SegmentInfo>();
     newSegment->numLoops = segment.getHeader().dwRepeats;
     newSegment->infiniteLoop = false;
     newSegment->length = segment.getHeader().mtLength;
@@ -227,7 +227,7 @@ void PlayingContext::playSegment(const SegmentForm& segment, SegmentTiming timin
     m_queueMutex.unlock();
 }
 
-void PlayingContext::playSegment(std::shared_ptr<Segment> segment, SegmentTiming timing) {
+void PlayingContext::playSegment(std::shared_ptr<SegmentInfo> segment, SegmentTiming timing) {
     TRACE("Begin segment play");
 
     m_queueMutex.lock();
@@ -240,7 +240,7 @@ void PlayingContext::playSegment(std::shared_ptr<Segment> segment, SegmentTiming
     m_queueMutex.unlock();
 }
 
-bool PlayingContext::getRandomPattern(const Segment& segm, std::uint8_t grooveLevel, Pattern* output) const {
+bool PlayingContext::getRandomPattern(const SegmentInfo& segm, std::uint8_t grooveLevel, Pattern* output) const {
     std::vector<int> suitablePatterns;
     for (int i = 0; i < segm.patterns.size(); i++) {
         const auto& pattern = segm.patterns[i];

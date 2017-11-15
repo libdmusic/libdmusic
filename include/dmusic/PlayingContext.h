@@ -26,9 +26,12 @@ namespace DirectMusic {
 
     using MessageQueue = std::priority_queue<std::shared_ptr<MusicMessage>, std::vector<std::shared_ptr<MusicMessage>>, MusicMessageComparer>;
 
+    class SegmentInfo;
+
     /// This the main interface to the DirectMusic emulation layer
     class PlayingContext {
         friend class MusicMessage;
+        friend class SegmentInfo;
 
     private:
         struct Pattern {
@@ -36,21 +39,7 @@ namespace DirectMusic {
             std::vector<std::pair<DMUS_IO_PARTREF, StylePart>> parts;
         };
 
-    public:
-        class Segment {
-            friend class PlayingContext;
-        private:
-            bool infiniteLoop;
-            std::uint32_t numLoops;
-            std::vector<Pattern> patterns;
-            std::vector<std::shared_ptr<MusicMessage>> messages;
-            double initialTempo;
-            DMUS_IO_TIMESIG initialSignature;
-            std::uint32_t length;
-        };
-
-    private:
-        bool getRandomPattern(const Segment& segm, std::uint8_t grooveLevel, Pattern* output) const;
+        bool getRandomPattern(const SegmentInfo& segm, std::uint8_t grooveLevel, Pattern* output) const;
 
         PlayerFactory m_instrumentFactory;
         std::uint32_t m_sampleRate, m_audioChannels;
@@ -64,7 +53,7 @@ namespace DirectMusic {
         DMUS_IO_TIMESIG m_signature;
         std::mutex m_queueMutex;
         MessageQueue m_messageQueue, m_patternMessageQueue;
-        std::shared_ptr<Segment> m_primarySegment = nullptr, m_nextSegment = nullptr;
+        std::shared_ptr<SegmentInfo> m_primarySegment = nullptr, m_nextSegment = nullptr;
 
         std::uint32_t m_segmentStartTime;
 
@@ -75,9 +64,10 @@ namespace DirectMusic {
             return std::make_shared<T>(c);
         }
 
-        void enqueueSegment(const std::shared_ptr<Segment>& segment);
+        void enqueueSegment(const std::shared_ptr<SegmentInfo>& segment);
 
     public:
+
         enum class SegmentTiming {
             Grid,    //< Aligns the segment to play at a grid boundary
             Beat,    //< Aligns the segment to play at a beat boundary
@@ -107,11 +97,11 @@ namespace DirectMusic {
         void renderBlock(std::int16_t *data, std::uint32_t count, float volume = 1) noexcept;
 
         /// Prepares a segment for being played
-        std::shared_ptr<Segment> prepareSegment(const SegmentForm& segment);
+        std::shared_ptr<SegmentInfo> prepareSegment(const SegmentForm& segment);
 
         /// Begins the playback of a segment
         void playSegment(const SegmentForm& segment, SegmentTiming timing = SegmentTiming::Pattern);
-        void playSegment(std::shared_ptr<Segment> segment, SegmentTiming timing = SegmentTiming::Pattern);
+        void playSegment(std::shared_ptr<SegmentInfo> segment, SegmentTiming timing = SegmentTiming::Pattern);
         /*
         void playTransition(const SegmentForm& segment,
                             DMUS_COMMANDT_TYPES command,
@@ -143,5 +133,17 @@ namespace DirectMusic {
 
         int getSampleRate() const { return m_sampleRate; }
         int getAudioChannels() const { return m_audioChannels; }
+    };
+
+    class SegmentInfo {
+        friend class PlayingContext;
+    private:
+        bool infiniteLoop;
+        std::uint32_t numLoops;
+        std::vector<PlayingContext::Pattern> patterns;
+        std::vector<std::shared_ptr<MusicMessage>> messages;
+        double initialTempo;
+        DMUS_IO_TIMESIG initialSignature;
+        std::uint32_t length;
     };
 }
