@@ -55,7 +55,7 @@ namespace DirectMusic {
         /// Sends a "pitch bend" message
         virtual void pitchBend(std::int16_t val);
 
-        static PlayerFactory createFactory(std::string soundFont);
+        static PlayerFactory createFactory(const std::string& soundFont);
     };
 }
 

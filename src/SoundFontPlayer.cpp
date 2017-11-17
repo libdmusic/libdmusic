@@ -80,7 +80,7 @@ void SoundFontPlayer::programChange(std::uint8_t program) {}
 /// Sends a "pitch bend" message
 void SoundFontPlayer::pitchBend(std::int16_t val) {}
 
-PlayerFactory SoundFontPlayer::createFactory(std::string file) {
+PlayerFactory SoundFontPlayer::createFactory(const std::string& file) {
     tsf* soundfont = tsf_load_filename(file.c_str());
 
     return [soundfont](std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patch,

@@ -7,11 +7,11 @@
 #include <mutex>
 #include <functional>
 #include <utility>
+#include <fstream>
 #include "Structs.h"
 #include "InstrumentPlayer.h"
 #include "Enums.h"
 #include "Forms.h"
-#include "Loader.h"
 #include "dls/DownloadableSound.h"
 #include "MusicMessage.h"
 
@@ -43,7 +43,7 @@ namespace DirectMusic {
 
         PlayerFactory m_instrumentFactory;
         std::uint32_t m_sampleRate, m_audioChannels;
-        Loader& m_loader;
+        std::function<std::vector<std::uint8_t>(const std::string&)> m_loader;
         std::map<std::uint32_t, std::shared_ptr<InstrumentPlayer>> m_performanceChannels;
         std::uint32_t m_musicTime;
         double m_tempo;
@@ -73,7 +73,8 @@ namespace DirectMusic {
             Beat,    //< Aligns the segment to play at a beat boundary
             Measure, //< Aligns the segment to play at a measure boundary
             Pattern, //< Aligns the segment to play at a pattern boundary
-            Queue    //< Aligns the segment to play at the end of the currently playing segment
+            Queue,    //< Aligns the segment to play at the end of the currently playing segment
+            Immediate //< Plays the segment immediately
         };
 
         static const std::uint32_t PulsesPerQuarterNote = 768;
@@ -86,12 +87,24 @@ namespace DirectMusic {
             : m_sampleRate(sampleRate),
             m_audioChannels(audioChannels),
             m_instrumentFactory(instrumentFactory),
-            m_loader(*(new Loader())),
             m_musicTime(0),
             m_grooveLevel(1),
             m_tempo(100),
             m_segmentStartTime(0),
-            m_primarySegment(nullptr) { }
+            m_primarySegment(nullptr)
+        {
+            m_loader = [](const std::string& file) -> std::vector<std::uint8_t> {
+                std::ifstream inputStream(file, std::ios::binary | std::ios::ate);
+                if (!inputStream.is_open()) {
+                    return std::vector<std::uint8_t>();
+                }
+                std::vector<std::uint8_t> buffer(inputStream.tellg());
+                inputStream.seekg(0);
+                inputStream.read((char*)buffer.data(), buffer.size());
+                inputStream.close();
+                return buffer;
+            };
+        }
 
         /// Renders the following audio block
         void renderBlock(std::int16_t *data, std::uint32_t count, float volume = 1) noexcept;
@@ -109,23 +122,23 @@ namespace DirectMusic {
                             std::shared_ptr<ChordmapForm> chordmap = nullptr);*/
 
         /// Overrides the default loader with a custom one
-        void provideLoader(const Loader& l) { m_loader = l; };
+        void provideLoader(std::function<std::vector<std::uint8_t>(const std::string&)> l) { m_loader = l; };
 
         /// Loads a segment file
         std::shared_ptr<SegmentForm> loadSegment(const std::string& file) const {
-            std::vector<std::uint8_t> data = m_loader.loadFile(file);
+            std::vector<std::uint8_t> data = m_loader(file);
             return genObjFromChunkData<SegmentForm>(data);
         }
 
         /// Loads a style file
         std::shared_ptr<StyleForm> loadStyle(const std::string& file) const {
-            std::vector<std::uint8_t> data = m_loader.loadFile(file);
+            std::vector<std::uint8_t> data = m_loader(file);
             return genObjFromChunkData<StyleForm>(data);
         }
 
         /// Loads an instrument collection
         std::shared_ptr<DirectMusic::DLS::DownloadableSound> loadInstrumentCollection(const std::string& file) const {
-            std::vector<std::uint8_t> data = m_loader.loadFile(file);
+            std::vector<std::uint8_t> data = m_loader(file);
             return genObjFromChunkData<DirectMusic::DLS::DownloadableSound>(data);
         }
 
