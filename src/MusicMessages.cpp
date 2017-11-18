@@ -4,6 +4,7 @@
 #include <cassert>
 #include <cstdlib>
 #include <cmath>
+#include <exception>
 
 using namespace DirectMusic;
 
@@ -67,6 +68,8 @@ static std::uint32_t getNextGridSubdivision(std::uint32_t musicTime, Subdivision
         return nextGridDivision * divisionCoeff;
     case Subdivision::Measure:
         return nextMeasureDivision * divisionCoeff;
+    default:
+        throw std::runtime_error("Invalid subdivision");
     }
 }
 
