@@ -12,7 +12,7 @@ set(BUILD_PROGRAMS OFF CACHE STRING "" FORCE)
 set(BUILD_EXAMPLES OFF CACHE STRING "" FORCE)
 set(BUILD_TESTING OFF CACHE STRING "" FORCE)
 
-if (NOT TARGET sndfile-shared)
+if ((NOT TARGET sndfile-shared) AND (NOT TARGET sndfile-static))
     add_subdirectory(../dls2sf/lib/libsndfile ${CMAKE_BINARY_DIR}/bin2)
 endif()
 
