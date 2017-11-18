@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <cstdint>
+#include <exception>
 #include <dmusic/Riff.h>
 #include <dmusic/dls/DownloadableSound.h>
 
@@ -10,7 +11,7 @@ using namespace DirectMusic;
 static Riff::Chunk loadChunk(std::string path) {
     std::ifstream inputStream(path, std::ios::binary | std::ios::ate);
     if (!inputStream.is_open()) {
-        throw "Couldn't open file";
+        throw std::runtime_error("Couldn't open file");
     }
     std::vector<std::uint8_t> buffer(inputStream.tellg());
     inputStream.seekg(0);

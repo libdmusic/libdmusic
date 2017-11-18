@@ -1,3 +1,4 @@
+#include <exception>
 #include <dmusic/Forms.h>
 #include <dmusic/Tracks.h>
 #include <dmusic/Exceptions.h>
@@ -81,7 +82,7 @@ static BandItem parseBandItem(const Chunk& c) {
         }
     }
 
-    throw "Invalid band item";
+    throw std::runtime_error("Invalid band item");
 }
 
 BandTrack::BandTrack(const Chunk& c) {
@@ -150,7 +151,7 @@ static Chordmap parseChordmap(const Chunk& c) {
         }
     }
 
-    throw "Invalid chordmap";
+    throw std::runtime_error("Invalid chordmap");
 }
 
 ChordmapTrack::ChordmapTrack(const Chunk& c) {
@@ -188,7 +189,7 @@ static LyricsEvent readLyricsEvent(const Chunk& c) {
         }
     }
 
-    throw "Invalid lyrics event";
+    throw std::runtime_error("Invalid lyrics event");
 }
 
 LyricsTrack::LyricsTrack(const Chunk& c) {
@@ -310,7 +311,7 @@ static StyleReference readStyleReference(const Chunk& c) {
         }
     }
 
-    throw "Invalid style reference";
+    throw std::runtime_error("Invalid style reference");
 }
 
 StyleTrack::StyleTrack(const Chunk& c) {

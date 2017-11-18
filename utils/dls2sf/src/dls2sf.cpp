@@ -8,6 +8,7 @@
 #include <climits>
 #include <cassert>
 #include <cmath>
+#include <exception>
 #include "decode.h"
 
 using namespace DirectMusic;
@@ -16,7 +17,7 @@ using namespace sf2cute;
 static Riff::Chunk loadChunk(std::string path) {
     std::ifstream inputStream(path, std::ios::binary | std::ios::ate);
     if (!inputStream.is_open()) {
-        throw "Couldn't open file " + path;
+        throw std::runtime_error("Couldn't open file " + path);
     }
     std::vector<std::uint8_t> buffer(inputStream.tellg());
     inputStream.seekg(0);
