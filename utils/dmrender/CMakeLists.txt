@@ -11,8 +11,6 @@ include_directories(../dls2sf/lib/libsndfile/src)
 set(BUILD_PROGRAMS OFF CACHE STRING "" FORCE)
 set(BUILD_EXAMPLES OFF CACHE STRING "" FORCE)
 set(BUILD_TESTING OFF CACHE STRING "" FORCE)
-set(BUILD_STATIC_LIBS OFF CACHE STRING "" FORCE)
-set(BUILD_SHARED_LIBS ON CACHE STRING "" FORCE)
 
 if (NOT TARGET sndfile-shared)
     add_subdirectory(../dls2sf/lib/libsndfile ${CMAKE_BINARY_DIR}/bin2)
