@@ -118,6 +118,7 @@ namespace DirectMusic {
         return ret;
     }
 
+#pragma pack(push, 1)
     struct GUID {
         std::uint32_t Data1;
         std::uint16_t Data2;
@@ -133,11 +134,9 @@ namespace DirectMusic {
             FIELDINIT(GUID, Data4, std::uint64_t);
         }
     };
+#pragma pack(pop)
 
-    class GuidComparer {
-    public:
-        bool operator()(const GUID& lhs, const GUID& rhs) const {
-            return memcmp(&lhs, &rhs, sizeof(rhs)) < 0;
-        }
-    };
+    inline bool operator<(const GUID& lhs, const GUID& rhs) {
+        return memcmp(&lhs, &rhs, sizeof(rhs)) < 0;
+    }
 }

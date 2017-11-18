@@ -169,7 +169,7 @@ std::shared_ptr<SegmentInfo> PlayingContext::prepareSegment(const SegmentForm& s
                 std::string styleFile = refs.getFile();
                 auto styleForm = loadStyle(std::string(styleFile.begin(), styleFile.end()));
                 assert(styleForm != nullptr);
-                std::map<GUID, StylePart, GuidComparer> parts;
+                std::map<GUID, StylePart> parts;
                 for (const auto& part : styleForm->getParts()) {
                     parts[part.getHeader().guidPartID] = part;
                 }
