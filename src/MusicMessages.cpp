@@ -282,7 +282,7 @@ BandChangeMessage::BandChangeMessage(PlayingContext& ctx, std::uint32_t time, co
             float volume = header.bVolume / 255.0f;
             float pan = ((float)(header.bPan) - 63.0f) / 64.0f;
 
-            auto dls = ctx.loadInstrumentCollection(ref->getFile());
+            auto dls = ctx.loadInstrumentCollection(ref->getGuid(), ref->getFile());
 
             assert(dls != nullptr);
             instruments[header.dwPChannel] = createInstrument(ctx, bankLo, bankHi, patch, *dls, volume, pan);

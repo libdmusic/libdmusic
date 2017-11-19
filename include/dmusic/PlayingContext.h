@@ -8,6 +8,7 @@
 #include <functional>
 #include <utility>
 #include <fstream>
+#include "Common.h"
 #include "Structs.h"
 #include "InstrumentPlayer.h"
 #include "Enums.h"
@@ -55,6 +56,9 @@ namespace DirectMusic {
         MessageQueue m_messageQueue, m_patternMessageQueue;
         std::shared_ptr<SegmentInfo> m_primarySegment = nullptr, m_nextSegment = nullptr;
 
+        std::map<GUID, std::shared_ptr<DirectMusic::DLS::DownloadableSound>> m_bands;
+        std::map<GUID, std::shared_ptr<StyleForm>> m_styles;
+
         std::uint32_t m_segmentStartTime;
 
         template<typename T>
@@ -69,10 +73,10 @@ namespace DirectMusic {
     public:
 
         enum class SegmentTiming {
-            Grid,    //< Aligns the segment to play at a grid boundary
-            Beat,    //< Aligns the segment to play at a beat boundary
-            Measure, //< Aligns the segment to play at a measure boundary
-            Pattern, //< Aligns the segment to play at a pattern boundary
+            Grid,     //< Aligns the segment to play at a grid boundary
+            Beat,     //< Aligns the segment to play at a beat boundary
+            Measure,  //< Aligns the segment to play at a measure boundary
+            Pattern,  //< Aligns the segment to play at a pattern boundary
             Queue,    //< Aligns the segment to play at the end of the currently playing segment
             Immediate //< Plays the segment immediately
         };
@@ -131,16 +135,10 @@ namespace DirectMusic {
         }
 
         /// Loads a style file
-        std::shared_ptr<StyleForm> loadStyle(const std::string& file) const {
-            std::vector<std::uint8_t> data = m_loader(file);
-            return genObjFromChunkData<StyleForm>(data);
-        }
+        std::shared_ptr<StyleForm> loadStyle(const GUID& guid, const std::string& file);
 
         /// Loads an instrument collection
-        std::shared_ptr<DirectMusic::DLS::DownloadableSound> loadInstrumentCollection(const std::string& file) const {
-            std::vector<std::uint8_t> data = m_loader(file);
-            return genObjFromChunkData<DirectMusic::DLS::DownloadableSound>(data);
-        }
+        std::shared_ptr<DirectMusic::DLS::DownloadableSound> loadInstrumentCollection(const GUID& guid, const std::string& file);
 
         double getTime() const { return m_musicTime; }
 

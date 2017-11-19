@@ -167,7 +167,7 @@ std::shared_ptr<SegmentInfo> PlayingContext::prepareSegment(const SegmentForm& s
                 const ReferenceList refs = style.second;
 
                 std::string styleFile = refs.getFile();
-                auto styleForm = loadStyle(std::string(styleFile.begin(), styleFile.end()));
+                auto styleForm = loadStyle(refs.getGuid(), std::string(styleFile.begin(), styleFile.end()));
                 assert(styleForm != nullptr);
                 std::map<GUID, StylePart> parts;
                 for (const auto& part : styleForm->getParts()) {
@@ -261,4 +261,36 @@ bool PlayingContext::getRandomPattern(const SegmentInfo& segm, std::uint8_t groo
         *output = segm.patterns[suitablePatterns[idx % suitablePatterns.size()]];
         return true;
     }
+}
+
+std::shared_ptr<DirectMusic::DLS::DownloadableSound> PlayingContext::loadInstrumentCollection(const GUID& guid, const std::string& file) {
+    std::shared_ptr<DirectMusic::DLS::DownloadableSound> band = nullptr;
+
+    if (m_bands.find(guid) == m_bands.end()) {
+        TRACE("Band found in cache");
+        std::vector<std::uint8_t> data = m_loader(file);
+        band = genObjFromChunkData<DirectMusic::DLS::DownloadableSound>(data);
+        m_bands[guid] = band;
+    } else {
+        TRACE("Loading new band");
+        band = m_bands.at(guid);
+    }
+
+    return band;
+}
+
+std::shared_ptr<StyleForm> PlayingContext::loadStyle(const GUID& guid, const std::string& file) {
+    std::shared_ptr<StyleForm> style = nullptr;
+
+    if (m_styles.find(guid) == m_styles.end()) {
+        TRACE("Style found in cache");
+        std::vector<std::uint8_t> data = m_loader(file);
+        style = genObjFromChunkData<StyleForm>(data);
+        m_styles[guid] = style;
+    } else {
+        TRACE("Loading new style");
+        style = m_styles.at(guid);
+    }
+
+    return style;
 }
