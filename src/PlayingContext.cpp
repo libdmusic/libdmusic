@@ -15,6 +15,13 @@ void PlayingContext::renderBlock(std::int16_t *data, std::uint32_t count, float 
 
     MusicMessageComparer comparer;
 
+
+    if (m_nextSegment != nullptr && m_nextSegmentTiming == SegmentTiming::Immediate) {
+        enqueueSegment(m_nextSegment);
+        m_primarySegment = std::move(m_nextSegment);
+        m_nextSegment = nullptr;
+    }
+
     std::uint32_t offset = 0;
     while (offset < count) {
         std::shared_ptr<MusicMessage> nextMessage = nullptr;
@@ -213,18 +220,8 @@ std::shared_ptr<SegmentInfo> PlayingContext::prepareSegment(const SegmentForm& s
 }
 
 void PlayingContext::playSegment(const SegmentForm& segment, SegmentTiming timing) {
-    TRACE("Begin segment play");
-
     auto newSegment = prepareSegment(segment);
-
-    m_queueMutex.lock();
-    if (m_primarySegment == nullptr) {
-        m_primarySegment = newSegment;
-        enqueueSegment(m_primarySegment);
-    } else {
-        m_nextSegment = newSegment;
-    }
-    m_queueMutex.unlock();
+    playSegment(newSegment);
 }
 
 void PlayingContext::playSegment(std::shared_ptr<SegmentInfo> segment, SegmentTiming timing) {
@@ -236,6 +233,7 @@ void PlayingContext::playSegment(std::shared_ptr<SegmentInfo> segment, SegmentTi
         enqueueSegment(m_primarySegment);
     } else {
         m_nextSegment = segment;
+        m_nextSegmentTiming = timing;
     }
     m_queueMutex.unlock();
 }

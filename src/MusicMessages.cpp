@@ -265,6 +265,10 @@ bool MusicMessage::isNextSegmentAvailable(PlayingContext& ctx) {
     return ctx.m_nextSegment != nullptr;
 }
 
+SegmentTiming MusicMessage::getNextSegmentTiming(PlayingContext& ctx) {
+    return ctx.m_nextSegmentTiming;
+}
+
 void TempoChangeMessage::Execute(PlayingContext& ctx) {
     TRACE("Tempo change");
     this->changeTempo(ctx, m_tempo);
@@ -339,6 +343,7 @@ void SegmentEndMessage::Execute(PlayingContext& ctx) {
 
 void PatternEndMessage::Execute(PlayingContext& ctx) {
     TRACE("Pattern end");
+    if (isNextSegmentAvailable(ctx) && getNextSegmentTiming(ctx) == SegmentTiming::Pattern)
+        enqueueNextSegment(ctx);
     playPattern(ctx);
-    if(isNextSegmentAvailable(ctx)) enqueueNextSegment(ctx);
 }

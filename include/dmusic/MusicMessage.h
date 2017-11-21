@@ -8,6 +8,7 @@
 
 namespace DirectMusic {
     class PlayingContext;
+    enum class SegmentTiming;
     class MusicMessage {
     public:
         MusicMessage(std::uint32_t time)
@@ -33,6 +34,7 @@ namespace DirectMusic {
         void changeChord(PlayingContext& ctx, std::uint32_t chord, const std::vector<DMUS_IO_SUBCHORD>& subchords);
         void enqueueNextSegment(PlayingContext& ctx);
         bool isNextSegmentAvailable(PlayingContext& ctx);
+        SegmentTiming getNextSegmentTiming(PlayingContext& ctx);
     };
 
     struct MusicMessageComparer {

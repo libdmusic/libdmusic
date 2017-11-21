@@ -29,6 +29,14 @@ namespace DirectMusic {
 
     class SegmentInfo;
 
+    enum class SegmentTiming {
+        Grid,     //< Aligns the segment to play at a grid boundary
+        Beat,     //< Aligns the segment to play at a beat boundary
+        Measure,  //< Aligns the segment to play at a measure boundary
+        Pattern,  //< Aligns the segment to play at a pattern boundary
+        Immediate //< Plays the segment immediately
+    };
+
     /// This the main interface to the DirectMusic emulation layer
     class PlayingContext {
         friend class MusicMessage;
@@ -55,11 +63,10 @@ namespace DirectMusic {
         std::mutex m_queueMutex;
         MessageQueue m_messageQueue, m_patternMessageQueue;
         std::shared_ptr<SegmentInfo> m_primarySegment = nullptr, m_nextSegment = nullptr;
+        SegmentTiming m_nextSegmentTiming;
 
         std::map<GUID, std::shared_ptr<DirectMusic::DLS::DownloadableSound>> m_bands;
         std::map<GUID, std::shared_ptr<StyleForm>> m_styles;
-
-        std::uint32_t m_segmentStartTime;
 
         template<typename T>
         static std::shared_ptr<T> genObjFromChunkData(const std::vector<std::uint8_t>& data) {
@@ -71,15 +78,6 @@ namespace DirectMusic {
         void enqueueSegment(const std::shared_ptr<SegmentInfo>& segment);
 
     public:
-
-        enum class SegmentTiming {
-            Grid,     //< Aligns the segment to play at a grid boundary
-            Beat,     //< Aligns the segment to play at a beat boundary
-            Measure,  //< Aligns the segment to play at a measure boundary
-            Pattern,  //< Aligns the segment to play at a pattern boundary
-            Queue,    //< Aligns the segment to play at the end of the currently playing segment
-            Immediate //< Plays the segment immediately
-        };
 
         static const std::uint32_t PulsesPerQuarterNote = 768;
 
@@ -94,7 +92,6 @@ namespace DirectMusic {
             m_musicTime(0),
             m_grooveLevel(1),
             m_tempo(100),
-            m_segmentStartTime(0),
             m_primarySegment(nullptr)
         {
             m_loader = [](const std::string& file) -> std::vector<std::uint8_t> {
@@ -117,8 +114,8 @@ namespace DirectMusic {
         std::shared_ptr<SegmentInfo> prepareSegment(const SegmentForm& segment);
 
         /// Begins the playback of a segment
-        void playSegment(const SegmentForm& segment, SegmentTiming timing = SegmentTiming::Pattern);
-        void playSegment(std::shared_ptr<SegmentInfo> segment, SegmentTiming timing = SegmentTiming::Pattern);
+        void playSegment(const SegmentForm& segment, SegmentTiming timing = SegmentTiming::Immediate);
+        void playSegment(std::shared_ptr<SegmentInfo> segment, SegmentTiming timing = SegmentTiming::Immediate);
         /*
         void playTransition(const SegmentForm& segment,
                             DMUS_COMMANDT_TYPES command,
