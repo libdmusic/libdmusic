@@ -289,7 +289,7 @@ BandChangeMessage::BandChangeMessage(PlayingContext& ctx, std::uint32_t time, co
             auto dls = ctx.loadInstrumentCollection(ref->getGuid(), ref->getFile());
 
             assert(dls != nullptr);
-            instruments[header.dwPChannel] = createInstrument(ctx, bankLo, bankHi, patch, ref->getGuid(), *dls, volume, pan);
+            instruments[header.dwPChannel] = createInstrument(ctx, bankLo, bankHi, patch, form.getGuid(), *dls, volume, pan);
         }
     }
 }

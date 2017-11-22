@@ -33,5 +33,5 @@ fi
 for worldDirectory in $MUSICPATH/*/; do
     worldName=$(basename "$worldDirectory")
     echo "Converting *.sty files in directory $worldName"
-    "$DLS2SF" -s "$worldDirectory/"*".sty" -o "$1/soundfonts" -i "$worldDirectory/"
+    "$DLS2SF" -s "$worldDirectory/"*".sty" "$worldDirectory/"*".sgt" -o "$1/soundfonts" -i "$worldDirectory/"
 done

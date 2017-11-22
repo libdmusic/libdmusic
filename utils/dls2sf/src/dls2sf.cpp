@@ -5,6 +5,7 @@
 #include <dmusic/Riff.h>
 #include <dmusic/dls/DownloadableSound.h>
 #include <dmusic/Forms.h>
+#include <dmusic/Tracks.h>
 #include <sf2cute.hpp>
 #include <climits>
 #include <cassert>
@@ -20,7 +21,7 @@ using namespace sf2cute;
 
 template<typename T>
 struct GuidObjectComparer {
-    bool operator()(const T& lhs, const T& rhs) {
+    bool operator()(const T& lhs, const T& rhs) const {
         return lhs.getGuid() < rhs.getGuid();
     }
 };
@@ -78,6 +79,9 @@ static void insertArticulator(const DLS::Articulator& articulator, std::vector<S
         }
     }
 }
+
+static std::map<GUID, DLS::DownloadableSound> loaded_sounds;
+static std::map<GUID, std::set<DLS::DownloadableSound, GuidObjectComparer<DLS::DownloadableSound>>> loaded_bands;
 
 static void convertSounds(const std::vector<DLS::DownloadableSound>& sounds, std::ostream& ofs) {
     SoundFont sf2;
@@ -191,44 +195,58 @@ static void convertSounds(const std::vector<DLS::DownloadableSound>& sounds, std
     sf2.Write(ofs);
 }
 
-static void convertBand(const BandForm& band, const std::string& outputDir, const std::string& inputDir) {
-    std::map<GUID, std::string> files;
+static void convertBand(const BandForm& band, const std::string& inputDir) {
     for (const auto& instr : band.getInstruments()) {
-        files[instr.getReference()->getGuid()] = instr.getReference()->getFile();
+        if (instr.getReference() == nullptr) continue;
+        if (loaded_sounds.find(instr.getReference()->getGuid()) == loaded_sounds.end()) {
+            std::cout << "Loading " << instr.getReference()->getFile() << " ... ";
+            auto sound = DLS::DownloadableSound(loadChunk(inputDir + "/" + instr.getReference()->getFile()));
+            loaded_bands[band.getGuid()].insert(sound);
+            loaded_sounds[sound.getGuid()] = sound;
+            std::cout << "Done." << std::endl;
+        } else {
+            loaded_bands[band.getGuid()].insert(loaded_sounds.at(instr.getReference()->getGuid()));
+        }
     }
-
-    std::vector<DLS::DownloadableSound> sounds;
-    for (const auto& file : files) {
-        std::cout << "Loading " << file.second << " ... ";
-        sounds.push_back(DLS::DownloadableSound(loadChunk(inputDir + "/" + file.second)));
-        std::cout << "Done." << std::endl;
-    }
-
-    std::string path = outputDir + "/" + band.getGuid().toString() + ".sf2";
-    std::cout << "Writing " << path << " ... ";
-    std::ofstream ofs(path, std::ios::binary);
-    convertSounds(sounds, ofs);
-    ofs.close();
-    std::cout << "Done." << std::endl;
 }
 
-static void convertStyles(const std::vector<StyleForm>& styles, const std::string& outputDir, const std::string& inputDir) {
+static void convertStyles(const std::vector<StyleForm>& styles, const std::string& inputDir) {
     std::set<BandForm, GuidObjectComparer<BandForm>> bands;
     for (const auto& style : styles) {
         for (const auto& band : style.getBands()) {
-            bands.insert(band);
+            convertBand(band, inputDir);
         }
     }
+}
 
-    for (const auto& band : bands) {
-        convertBand(band, outputDir, inputDir);
+static void convertSegments(const std::vector<SegmentForm>& segments, const std::string& inputDir) {
+    std::set<BandForm, GuidObjectComparer<BandForm>> bands;
+    for (const auto& segment : segments) {
+        for (const auto& track : segment.getTracks()) {
+            const auto& header = track.getHeader();
+            std::string ckid = std::string(header.ckid),
+                fccType = std::string(header.fccType);
+
+            ckid.resize(4);
+            fccType.resize(4);
+
+            if (*header.ckid == 0 && fccType == "DMBT") {
+                auto bandTrack = std::static_pointer_cast<BandTrack>(track.getData());
+                for (const auto& band : bandTrack->getBands()) {
+                    DMUS_IO_BAND_ITEM_HEADER2 header = band.first;
+                    BandForm bandForm = band.second;
+
+                    convertBand(bandForm, inputDir);
+                }
+            }
+        }
     }
 }
 
 int main(int argc, char **argv) {
     args::ArgumentParser parser("dls2sf converts DLS files and DirectMusic bands to SoundFont2 files");
     args::HelpFlag help(parser, "help", "Display this help menu", { 'h', "help" });
-    args::Flag style(parser, "style", "Treats the input files as styles, and converts every band found", { 's', "style" });
+    args::Flag segment(parser, "segment", "Treats the input files as segments, and converts every band found", { 's', "segment" });
     args::ValueFlag<std::string> output(parser, "output", "Output file/path", { 'o', "output" });
     args::ValueFlag<std::string> workingPath(parser, "input directory", "Input path where sounds are located", { 'i', "input" });
     args::PositionalList<std::string> input(parser, "input files", "Input files to parse");
@@ -253,23 +271,43 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    if (style) {
+    if (segment) {
         std::string outputDir = output ? args::get(output) : ".";
         std::string wPath = workingPath ? args::get(workingPath) : ".";
+        std::vector<SegmentForm> segments;
         std::vector<StyleForm> styles;
         for (const auto& file : args::get(input)) {
             std::cout << "Loading " << file << " ... ";
-            styles.push_back(StyleForm(loadChunk(file)));
+            Riff::Chunk chnk = loadChunk(file);
+            if (chnk.getListId() == "DMSG") {
+                segments.push_back(SegmentForm(loadChunk(file)));
+            } else if (chnk.getListId() == "DMST") {
+                styles.push_back(StyleForm(loadChunk(file)));
+            } else {
+                std::cerr << "Invalid chunk type: " << chnk.getId() << " " << chnk.getListId() << std::endl;
+                return 1;
+            }
             std::cout << "Done." << std::endl;
         }
-        convertStyles(styles, outputDir, wPath);
+        convertSegments(segments, wPath);
+        convertStyles(styles, wPath);
+
+        for (const auto& band : loaded_bands) {
+            std::vector<DLS::DownloadableSound> sounds(std::begin(band.second), std::end(band.second));
+            std::string outputFile = outputDir + "/" + band.first.toString() + ".sf2";
+            std::cout << "Writing " << outputFile << " ... ";
+            std::ofstream ofs(outputFile, std::ios::binary);
+            convertSounds(sounds, ofs);
+            ofs.close();
+            std::cout << "Done.\n";
+        }
         std::cout << "All done." << std::endl;
     } else {
         std::vector<DLS::DownloadableSound> sounds;
 
         for (const auto& sound : args::get(input)) {
             std::cout << "Loading " << sound << " ... ";
-            sounds.push_back(loadChunk(sound));
+            sounds.push_back(DLS::DownloadableSound(loadChunk(sound)));
             std::cout << "Done." << std::endl;
         }
 
