@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstring>
 #include <string>
+#include <sstream>
 
 /// Use this macro to initialize struct fields which are expected to be loaded as little endian data
 #define FIELDINIT(s, f, t) {f = DirectMusic::littleEndianRead<t>(data + offsetof(s, f));}
@@ -132,6 +133,12 @@ namespace DirectMusic {
             FIELDINIT(GUID, Data2, std::uint16_t);
             FIELDINIT(GUID, Data3, std::uint16_t);
             FIELDINIT(GUID, Data4, std::uint64_t);
+        }
+
+        std::string toString() const {
+            std::stringstream str;
+            str << std::hex << "{" << Data1 << "-" << Data2 << "-" << Data3 << "-" << Data4 << "}";
+            return str.str();
         }
     };
 #pragma pack(pop)

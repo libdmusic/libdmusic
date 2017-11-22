@@ -4,15 +4,26 @@
 #include <cstdint>
 #include <dmusic/Riff.h>
 #include <dmusic/dls/DownloadableSound.h>
+#include <dmusic/Forms.h>
 #include <sf2cute.hpp>
 #include <climits>
 #include <cassert>
 #include <cmath>
+#include <map>
+#include <set>
 #include <exception>
+#include <args.hxx>
 #include "decode.h"
 
 using namespace DirectMusic;
 using namespace sf2cute;
+
+template<typename T>
+struct GuidObjectComparer {
+    bool operator()(const T& lhs, const T& rhs) {
+        return lhs.getGuid() < rhs.getGuid();
+    }
+};
 
 static Riff::Chunk loadChunk(std::string path) {
     std::ifstream inputStream(path, std::ios::binary | std::ios::ate);
@@ -68,25 +79,9 @@ static void insertArticulator(const DLS::Articulator& articulator, std::vector<S
     }
 }
 
-int main(int argc, char **argv) {
-    if (argc < 3) {
-        std::cerr << "Usage: dls2sf <inputfiles> <outputfile>" << std::endl;
-        return 1;
-    }
-    std::string outputFile = std::string(argv[argc - 1]);
-
-    std::vector<DLS::DownloadableSound> sounds;
-
-    std::cout << "Loading input files... ";
-    for (int i = 1; i < argc - 1; i++) {
-        std::string inputFile = std::string(argv[i]);
-        Riff::Chunk chunk = loadChunk(inputFile);
-        sounds.push_back(DLS::DownloadableSound(chunk));
-    }
-    std::cout << "Done.\n";
+static void convertSounds(const std::vector<DLS::DownloadableSound>& sounds, std::ostream& ofs) {
     SoundFont sf2;
 
-    std::cout << "Loading samples... ";
     // Each sample may potentially be referenced with a different basenote,
     // so we keep them here and copy them as needed.
     std::vector<std::vector<SFSample>> samples;
@@ -102,8 +97,7 @@ int main(int argc, char **argv) {
             std::vector<std::int16_t> audioData = decode(wav);
 
             if (audioData.empty()) {
-                std::cerr << "Invalid sample format for " << name << std::endl;
-                return 1;
+                throw std::runtime_error("Invalid sample format for " + name);
             }
 
             auto wavsmpl = wav.getWavesample();
@@ -132,14 +126,12 @@ int main(int argc, char **argv) {
                 fineTune)); // FIXME: we may need to do some work on this
         }
     }
-    std::cout << "Done.\n";
 
     std::vector<std::shared_ptr<SFInstrument>> instruments;
     std::vector<std::shared_ptr<SFPreset>> presets;
 
     for (int i = 0; i < sounds.size(); i++) {
         for (const DLS::Instrument& instr : sounds[i].getInstruments()) {
-            std::cout << "Converting instrument '" << instr.getInfo().getName() << "'... ";
             std::vector<SFInstrumentZone> zones;
             for (DLS::Region reg : instr.getRegions()) {
                 auto hdr = reg.getRegionHeader();
@@ -149,7 +141,7 @@ int main(int argc, char **argv) {
                 std::vector<SFModulatorItem> modItems;
                 std::shared_ptr<SFSample> sample;
                 std::uint16_t keyrangeLow, keyrangeHigh, velrangeLow, velrangeHigh;
-                genItems.push_back(SFGeneratorItem(SFGenerator::kAttackVolEnv, GenAmountType(secondsToWordTimecents(0.4))));
+                genItems.push_back(SFGeneratorItem(SFGenerator::kAttackVolEnv, GenAmountType(secondsToWordTimecents(0.1))));
 
                 for (const auto& art : instr.getArticulators()) {
                     insertArticulator(art, modItems, genItems);
@@ -193,15 +185,89 @@ int main(int argc, char **argv) {
                 std::vector<SFPresetZone>{
                 SFPresetZone(instrument)
             }));
-            std::cout << "Done: " << zones.size() << " zones loaded.\n";
         }
     }
-    std::cout << instruments.size() << " instruments converted.\n";
 
-    std::cout << "Writing output file... ";
-    std::ofstream ofs(outputFile, std::ios::binary);
     sf2.Write(ofs);
+}
+
+static void convertBand(const BandForm& band, const std::string& outputDir) {
+    std::map<GUID, std::string> files;
+    for (const auto& instr : band.getInstruments()) {
+        files[instr.getReference()->getGuid()] = instr.getReference()->getFile();
+    }
+
+    std::vector<DLS::DownloadableSound> sounds;
+    for (const auto& file : files) {
+        sounds.push_back(DLS::DownloadableSound(loadChunk(file.second)));
+    }
+
+    std::ofstream ofs(outputDir + "/" + band.getGuid().toString() + ".sf2", std::ios::binary);
+    convertSounds(sounds, ofs);
     ofs.close();
-    std::cout << "Done.\n";
+}
+
+static void convertStyles(const std::vector<StyleForm>& styles, const std::string& outputDir) {
+    std::set<BandForm, GuidObjectComparer<BandForm>> bands;
+    for (const auto& style : styles) {
+        for (const auto& band : style.getBands()) {
+            bands.insert(band);
+        }
+    }
+
+    for (const auto& band : bands) {
+        convertBand(band, outputDir);
+    }
+}
+
+int main(int argc, char **argv) {
+    args::ArgumentParser parser("dls2sf converts DLS files and DirectMusic bands to SoundFont2 files");
+    args::HelpFlag help(parser, "help", "Display this help menu", { 'h', "help" });
+    args::Flag style(parser, "style", "Treats the input files as styles, and converts every band found", { 's', "style" });
+    args::ValueFlag<std::string> output(parser, "output", "Output file/path", { 'o', "output" });
+    args::PositionalList<std::string> input(parser, "input files", "Input files to parse");
+
+    try {
+        parser.ParseCLI(argc, argv);
+    } catch (args::Help) {
+        std::cout << parser;
+        return 0;
+    } catch (args::ParseError e) {
+        std::cerr << e.what() << std::endl;
+        std::cerr << parser;
+        return 1;
+    } catch (args::ValidationError e) {
+        std::cerr << e.what() << std::endl;
+        std::cerr << parser;
+        return 1;
+    }
+
+    if (!input) {
+        std::cerr << "dls2sf: no input specified." << std::endl;
+        return 1;
+    }
+
+    if (style) {
+        std::string outputDir = output ? args::get(output) : ".";
+        std::vector<StyleForm> styles;
+        for (const auto& file : args::get(input)) {
+            styles.push_back(StyleForm(loadChunk(file)));
+        }
+        convertStyles(styles, outputDir);
+    } else {
+        std::vector<DLS::DownloadableSound> sounds;
+
+        for (const auto& sound : args::get(input)) {
+            sounds.push_back(loadChunk(sound));
+        }
+
+        if (output) {
+            std::ofstream ofs(args::get(output), std::ios::binary);
+            convertSounds(sounds, ofs);
+            ofs.close();
+        } else {
+            convertSounds(sounds, std::cout);
+        }
+    }
     return 0;
 }

@@ -17,6 +17,7 @@ endif()
 include_directories(../../include)
 include_directories(lib/sf2cute/include)
 include_directories(lib/libsndfile/src)
+include_directories(../common)
 
 file(GLOB SRC
   "src/*.cpp"
