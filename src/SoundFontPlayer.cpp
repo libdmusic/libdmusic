@@ -84,7 +84,7 @@ PlayerFactory SoundFontPlayer::createFactory(const std::string& file) {
     tsf* soundfont = tsf_load_filename(file.c_str());
 
     return [soundfont](std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patch,
-        const DownloadableSound& dls, std::uint32_t sampleRate, std::uint32_t chans, float vol, float pan) {
+        const GUID& bandGuid, const DownloadableSound& dls, std::uint32_t sampleRate, std::uint32_t chans, float vol, float pan) {
 
         TSFOutputMode outputMode = chans == 1 ? TSF_MONO : TSF_STEREO_INTERLEAVED;
         tsf_set_output(soundfont, outputMode, sampleRate, 0);
@@ -97,14 +97,14 @@ PlayerFactory SoundFontPlayer::createFactory(const std::string& file) {
 
 PlayerFactory SoundFontPlayer::createMultiFactory(const std::string& dir) {
     std::shared_ptr<std::map<GUID, tsf*>> soundfonts = std::make_shared<std::map<GUID, tsf*>>();
-    return[soundfonts, dir](std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patch,
-        const DownloadableSound& dls, std::uint32_t sampleRate, std::uint32_t chans, float vol, float pan) {
+    return [soundfonts, dir](std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patch,
+        const GUID& bandGuid, const DownloadableSound& dls, std::uint32_t sampleRate, std::uint32_t chans, float vol, float pan) {
         tsf* soundfont;
-        if (soundfonts->find(dls.getGuid()) == soundfonts->end()) {
-            soundfont = tsf_load_filename((dir + "/" + dls.getGuid().toString() + ".sf2").c_str());
-            soundfonts->operator[](dls.getGuid()) = soundfont;
+        if (soundfonts->find(bandGuid) == soundfonts->end()) {
+            soundfont = tsf_load_filename((dir + "/" + bandGuid.toString() + ".sf2").c_str());
+            soundfonts->operator[](bandGuid) = soundfont;
         } else {
-            soundfont = soundfonts->at(dls.getGuid());
+            soundfont = soundfonts->at(bandGuid);
         }
 
         TSFOutputMode outputMode = chans == 1 ? TSF_MONO : TSF_STEREO_INTERLEAVED;

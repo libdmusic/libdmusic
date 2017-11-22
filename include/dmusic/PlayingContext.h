@@ -19,6 +19,7 @@
 namespace DirectMusic {
     using PlayerFactory = std::function<std::shared_ptr<InstrumentPlayer>(
         std::uint8_t, std::uint8_t, std::uint8_t,
+        const GUID& bandId,
         const DirectMusic::DLS::DownloadableSound&,
         std::uint32_t,
         std::uint32_t,

@@ -14,8 +14,8 @@ void MusicMessage::changeTempo(PlayingContext& ctx, double tempo) {
 
 std::shared_ptr<InstrumentPlayer> MusicMessage::createInstrument(PlayingContext& ctx,
     std::uint8_t bank_lo, std::uint8_t bank_hi, std::uint8_t patch,
-    const DirectMusic::DLS::DownloadableSound& dls, float volume, float pan) {
-    return ctx.m_instrumentFactory(bank_lo, bank_hi, patch, dls, ctx.m_sampleRate, ctx.m_audioChannels, volume, pan);
+    const GUID& bandGuid, const DirectMusic::DLS::DownloadableSound& dls, float volume, float pan) {
+    return ctx.m_instrumentFactory(bank_lo, bank_hi, patch, bandGuid, dls, ctx.m_sampleRate, ctx.m_audioChannels, volume, pan);
 }
 
 void MusicMessage::setInstrument(PlayingContext& ctx, std::uint32_t channel, std::shared_ptr<InstrumentPlayer> instr) {
@@ -289,7 +289,7 @@ BandChangeMessage::BandChangeMessage(PlayingContext& ctx, std::uint32_t time, co
             auto dls = ctx.loadInstrumentCollection(ref->getGuid(), ref->getFile());
 
             assert(dls != nullptr);
-            instruments[header.dwPChannel] = createInstrument(ctx, bankLo, bankHi, patch, *dls, volume, pan);
+            instruments[header.dwPChannel] = createInstrument(ctx, bankLo, bankHi, patch, ref->getGuid(), *dls, volume, pan);
         }
     }
 }
