@@ -28,5 +28,5 @@ for worldDirectory in $MUSICPATH/*/; do
     worldName=$(basename $worldDirectory)
     echo "Converting *.dls files in directory $worldName"
     mkdir -p "$worldName"
-    "$DLS2SF" "$worldDirectory"/*.dls "$worldName/Orchestra.sf2"
+    "$DLS2SF" "$worldDirectory"/*.dls -o "$worldName/Orchestra.sf2"
 done

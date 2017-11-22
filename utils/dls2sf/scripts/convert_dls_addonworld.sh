@@ -16,4 +16,4 @@ MUSICPATH="$1/_work/Data/Music/AddonWorld"
   "$MUSICPATH/__DLS_Horn.dls" \
   "$MUSICPATH/__DLS_MonoPerc.dls" \
   "$MUSICPATH/__DLS_RareIngame.dls" \
-  "$MUSICPATH/__DLS_Violins.dls" "$2"
+  "$MUSICPATH/__DLS_Violins.dls" -o "$2"

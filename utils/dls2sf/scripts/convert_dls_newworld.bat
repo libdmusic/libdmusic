@@ -26,7 +26,7 @@ dls2sf %MUSICPATH%\DLS_Alpenhorn.dls^
   %MUSICPATH%\DLS_Percussions.dls^
   %MUSICPATH%\DLS_Piano.dls^
   %MUSICPATH%\DLS_Rare.dls^
-  %MUSICPATH%\DLS_Strings.dls %2
+  %MUSICPATH%\DLS_Strings.dls -o %2
 
 goto:_EOF
 

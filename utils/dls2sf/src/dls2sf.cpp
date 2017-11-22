@@ -191,7 +191,7 @@ static void convertSounds(const std::vector<DLS::DownloadableSound>& sounds, std
     sf2.Write(ofs);
 }
 
-static void convertBand(const BandForm& band, const std::string& outputDir) {
+static void convertBand(const BandForm& band, const std::string& outputDir, const std::string& inputDir) {
     std::map<GUID, std::string> files;
     for (const auto& instr : band.getInstruments()) {
         files[instr.getReference()->getGuid()] = instr.getReference()->getFile();
@@ -199,15 +199,20 @@ static void convertBand(const BandForm& band, const std::string& outputDir) {
 
     std::vector<DLS::DownloadableSound> sounds;
     for (const auto& file : files) {
-        sounds.push_back(DLS::DownloadableSound(loadChunk(file.second)));
+        std::cout << "Loading " << file.second << " ... ";
+        sounds.push_back(DLS::DownloadableSound(loadChunk(inputDir + "/" + file.second)));
+        std::cout << "Done." << std::endl;
     }
 
-    std::ofstream ofs(outputDir + "/" + band.getGuid().toString() + ".sf2", std::ios::binary);
+    std::string path = outputDir + "/" + band.getGuid().toString() + ".sf2";
+    std::cout << "Writing " << path << " ... ";
+    std::ofstream ofs(path, std::ios::binary);
     convertSounds(sounds, ofs);
     ofs.close();
+    std::cout << "Done." << std::endl;
 }
 
-static void convertStyles(const std::vector<StyleForm>& styles, const std::string& outputDir) {
+static void convertStyles(const std::vector<StyleForm>& styles, const std::string& outputDir, const std::string& inputDir) {
     std::set<BandForm, GuidObjectComparer<BandForm>> bands;
     for (const auto& style : styles) {
         for (const auto& band : style.getBands()) {
@@ -216,7 +221,7 @@ static void convertStyles(const std::vector<StyleForm>& styles, const std::strin
     }
 
     for (const auto& band : bands) {
-        convertBand(band, outputDir);
+        convertBand(band, outputDir, inputDir);
     }
 }
 
@@ -225,6 +230,7 @@ int main(int argc, char **argv) {
     args::HelpFlag help(parser, "help", "Display this help menu", { 'h', "help" });
     args::Flag style(parser, "style", "Treats the input files as styles, and converts every band found", { 's', "style" });
     args::ValueFlag<std::string> output(parser, "output", "Output file/path", { 'o', "output" });
+    args::ValueFlag<std::string> workingPath(parser, "input directory", "Input path where sounds are located", { 'i', "input" });
     args::PositionalList<std::string> input(parser, "input files", "Input files to parse");
 
     try {
@@ -249,16 +255,22 @@ int main(int argc, char **argv) {
 
     if (style) {
         std::string outputDir = output ? args::get(output) : ".";
+        std::string wPath = workingPath ? args::get(workingPath) : ".";
         std::vector<StyleForm> styles;
         for (const auto& file : args::get(input)) {
+            std::cout << "Loading " << file << " ... ";
             styles.push_back(StyleForm(loadChunk(file)));
+            std::cout << "Done." << std::endl;
         }
-        convertStyles(styles, outputDir);
+        convertStyles(styles, outputDir, wPath);
+        std::cout << "All done." << std::endl;
     } else {
         std::vector<DLS::DownloadableSound> sounds;
 
         for (const auto& sound : args::get(input)) {
+            std::cout << "Loading " << sound << " ... ";
             sounds.push_back(loadChunk(sound));
+            std::cout << "Done." << std::endl;
         }
 
         if (output) {

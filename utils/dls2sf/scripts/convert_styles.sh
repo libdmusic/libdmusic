@@ -25,9 +25,13 @@ if [ ! -f "$DLS2SF" ]; then
 fi
 
 mkdir -p "$1/soundfonts"
+if [ ! -d "$1/soundfonts" ]; then
+    >&2 echo "error: cannot create directory $1/soundfonts"
+    exit 1
+fi
 
 for worldDirectory in $MUSICPATH/*/; do
-    worldName=$(basename $worldDirectory)
+    worldName=$(basename "$worldDirectory")
     echo "Converting *.sty files in directory $worldName"
-    "$DLS2SF" "$worldDirectory"/*.sty "$1/soundfonts"
+    "$DLS2SF" -s "$worldDirectory/"*".sty" -o "$1/soundfonts" -i "$worldDirectory/"
 done

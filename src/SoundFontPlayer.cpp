@@ -95,4 +95,25 @@ PlayerFactory SoundFontPlayer::createFactory(const std::string& file) {
     };
 }
 
+PlayerFactory SoundFontPlayer::createMultiFactory(const std::string& dir) {
+    std::shared_ptr<std::map<GUID, tsf*>> soundfonts = std::make_shared<std::map<GUID, tsf*>>();
+    return[soundfonts, dir](std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patch,
+        const DownloadableSound& dls, std::uint32_t sampleRate, std::uint32_t chans, float vol, float pan) {
+        tsf* soundfont;
+        if (soundfonts->find(dls.getGuid()) == soundfonts->end()) {
+            soundfont = tsf_load_filename((dir + "/" + dls.getGuid().toString() + ".sf2").c_str());
+            soundfonts->operator[](dls.getGuid()) = soundfont;
+        } else {
+            soundfont = soundfonts->at(dls.getGuid());
+        }
+
+        TSFOutputMode outputMode = chans == 1 ? TSF_MONO : TSF_STEREO_INTERLEAVED;
+        tsf_set_output(soundfont, outputMode, sampleRate, 0);
+
+        return std::static_pointer_cast<InstrumentPlayer>(std::shared_ptr<SoundFontPlayer>{
+            new SoundFontPlayer(soundfont, bankLo, bankHi, patch, dls, sampleRate, chans, vol, pan)
+        });
+    };
+}
+
 #endif
