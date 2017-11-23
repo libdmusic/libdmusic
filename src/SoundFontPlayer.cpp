@@ -95,7 +95,7 @@ PlayerFactory SoundFontPlayer::createFactory(const std::string& file) {
     };
 }
 
-PlayerFactory SoundFontPlayer::createMultiFactory(const std::string& dir) {
+PlayerFactory SoundFontPlayer::createMultiFactory(const std::string dir) {
     std::shared_ptr<std::map<GUID, tsf*>> soundfonts = std::make_shared<std::map<GUID, tsf*>>();
     return [soundfonts, dir](std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patch,
         const GUID& bandGuid, const DownloadableSound& dls, std::uint32_t sampleRate, std::uint32_t chans, float vol, float pan) {
