@@ -36,19 +36,20 @@ $ make
 Usage
 -----
 
-Currently, in order to render segments you need to convert DLS files to SF2 manually.
-Unix shell scripts are shipped to make it easier to convert the Gothic2 files:
+In order to be able to render music in REGoth, the following steps have to be
+followed the first time the game is run:
 
+### Linux
 ````sh
-$ ./convert_dls_newworld.sh /path/to/G2 Orchestra.sf2
-$ ./dmplay /path/to/G2/_work/Data/Music/newworld/LOB_DayStd.sgt -f Orchestra.sf2
+$ ./convert_styles.sh /path/to/gothic /path/from/where/regoth/is/run
 ````
 
-If you want to playback G1 music files, you need to invoke `dls2sf` manually:
-````sh
-$ ./dls2sf /path/to/G1/music/files/Orchestra.dls Orchestra.sf2
-$ ./dmplay /path/to/G1/music/files/OC_Day_Std.sgt -f Orchestra.sf2
+### Windows (needs to be run in a PowerShell terminal)
+````powershell
+> ./convert_styles.ps1 /path/to/gothic /path/from/where/regoth/is/run
 ````
+
+In most cases, the path from where REGoth is run corresponds with Gothic's path.
 
 Acknowledgements
 ----------------
