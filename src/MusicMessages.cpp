@@ -283,7 +283,7 @@ BandChangeMessage::BandChangeMessage(PlayingContext& ctx, std::uint32_t time, co
             std::uint8_t bankHi = (header.dwPatch & 0x00FF0000) >> 0x10;
             std::uint8_t bankLo = (header.dwPatch & 0x0000FF00) >> 0x8;
             std::uint8_t patch = (header.dwPatch & 0x000000FF);
-            float volume = header.bVolume / 255.0f;
+            float volume = (header.bVolume * header.bVolume) / (127.0 * 127.0);
             float pan = ((float)(header.bPan) - 63.0f) / 64.0f;
 
             auto dls = ctx.loadInstrumentCollection(ref->getGuid(), ref->getFile());
@@ -309,7 +309,6 @@ void GrooveLevelMessage::Execute(PlayingContext& ctx) {
         std::int8_t offset = (std::rand() % m_range) - (m_range / 2);
         setGrooveLevel(ctx, m_level - offset);
     }
-    if (isNextSegmentAvailable(ctx)) enqueueNextSegment(ctx);
 }
 
 void ChordMessage::Execute(PlayingContext& ctx) {
