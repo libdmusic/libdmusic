@@ -1,5 +1,6 @@
 #if DMUSIC_TSF_SUPPORT
 #include <cassert>
+#include <exception>
 #include <dmusic/SoundFontPlayer.h>
 #include <memory>
 #include <cmath>
@@ -82,6 +83,9 @@ void SoundFontPlayer::pitchBend(std::int16_t val) {}
 
 PlayerFactory SoundFontPlayer::createFactory(const std::string& file) {
     tsf* soundfont = tsf_load_filename(file.c_str());
+    if (soundfont == nullptr) {
+        throw std::runtime_error("Cannot open " + file);
+    }
 
     return [soundfont](std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patch,
         const GUID& bandGuid, const DownloadableSound& dls, std::uint32_t sampleRate, std::uint32_t chans, float vol, float pan) {
@@ -101,7 +105,11 @@ PlayerFactory SoundFontPlayer::createMultiFactory(const std::string dir) {
         const GUID& bandGuid, const DownloadableSound& dls, std::uint32_t sampleRate, std::uint32_t chans, float vol, float pan) {
         tsf* soundfont;
         if (soundfonts->find(bandGuid) == soundfonts->end()) {
-            soundfont = tsf_load_filename((dir + "/" + bandGuid.toString() + ".sf2").c_str());
+            auto file = dir + "/" + bandGuid.toString() + ".sf2";
+            soundfont = tsf_load_filename(file.c_str());
+            if (soundfont == nullptr) {
+                throw std::runtime_error("Cannot open " + file);
+            }
             soundfonts->operator[](bandGuid) = soundfont;
         } else {
             soundfont = soundfonts->at(bandGuid);
