@@ -24,7 +24,7 @@ int main(int argc, char **argv) {
     args::ValueFlag<int> chunkLength(parser, "length", "The length in seconds of the audio to render", { 'l', "length" });
     args::ValueFlag<int> samplingRate(parser, "sampling rate", "The sampling rate to use", { 's', "sample" });
     args::ValueFlag<int> numChannels(parser, "channels", "The number of channels to use", { 'c', "channels" });
-    args::ValueFlag<std::string> sfont(parser, "soundfont", "The SoundFont file to use during rendering", { 'f', "soundfont" });
+    args::ValueFlag<std::string> sfont(parser, "soundfont", "The SoundFont directory to use during rendering", { 'f', "soundfont" });
     args::Flag vorbis(parser, "ogg vorbis", "The output file is going to be an Ogg/Vorbis file instead of an uncompressed Microsoft WAVE file", { 'O', "ogg" });
     args::Positional<std::string> segmentName(parser, "segment", "The segment to render");
     args::Positional<std::string> outputFile(parser, "output", "The output file");
@@ -55,7 +55,7 @@ int main(int argc, char **argv) {
     }
 
     if (!sfont) {
-        std::cerr << "dmrender: No soundfont specified" << std::endl;
+        std::cerr << "dmrender: No soundfont directory specified" << std::endl;
         return 1;
     }
 
@@ -64,19 +64,17 @@ int main(int argc, char **argv) {
     std::uint64_t length = (chunkLength ? args::get(chunkLength) : 60) * sampleRate;
 
     // Store soundfonts based on their name
-    PlayingContext ctx(sampleRate, channels, SoundFontPlayer::createFactory(args::get(sfont)));
+    PlayingContext ctx(sampleRate, channels, SoundFontPlayer::createMultiFactory(args::get(sfont)));
     std::cout << "Loading segment...";
     auto segment = ctx.loadSegment(args::get(segmentName));
     std::cout << " done.\nStart playback... ";
     ctx.playSegment(*segment);
-    std::cout << " done.\nBegin rendering... ";
+    std::cout << " done.\nBegin rendering... \n";
 
-    // Each instrument is going to sum its output into the buffer,
-    // so we have to start from a blank state, hence calloc
-    std::int16_t* buffer = (std::int16_t*)malloc(length * sizeof(std::int16_t));
+    std::int16_t* buffer = new std::int16_t[length];
     for (std::uint64_t i = 0; i < length; i += sampleRate) {
         ctx.renderBlock(buffer + i, sampleRate);
-        std::cout << ceil((i / (float)length) * 100) << "% ";
+        std::cout << "\rProgress: " <<  ceil((i / (float)length) * 100) << "%";
     }
 
     SF_INFO info;
@@ -94,7 +92,7 @@ int main(int argc, char **argv) {
     }
     sf_write_short(sndfile, buffer, length);
     sf_close(sndfile);
-    free(buffer);
-    std::cout << "Rendering done.";
+    delete buffer;
+    std::cout << "\nRendering done.";
     return 0;
 }
