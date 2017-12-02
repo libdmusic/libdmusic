@@ -4,17 +4,12 @@ project (dmrender)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+find_package(LibSndFile REQUIRED)
+get_target_property(sndfile_INCLUDE_DIRECTORIES sndfile-static INTERFACE_INCLUDE_DIRECTORIES)
+
 include_directories(../../include)
 include_directories(../common)
-include_directories(../dls2sf/lib/libsndfile/src)
-
-set(BUILD_PROGRAMS OFF CACHE STRING "" FORCE)
-set(BUILD_EXAMPLES OFF CACHE STRING "" FORCE)
-set(BUILD_TESTING OFF CACHE STRING "" FORCE)
-
-if ((NOT TARGET sndfile-shared) AND (NOT TARGET sndfile-static))
-    add_subdirectory(../dls2sf/lib/libsndfile ${CMAKE_BINARY_DIR}/bin2)
-endif()
+include_directories(${sndfile_INCLUDE_DIRECTORIES})
 
 file(GLOB SRC
   "src/*.cpp"
@@ -22,4 +17,4 @@ file(GLOB SRC
   "src/*.hxx")
 
 add_executable(dmrender ${SRC})
-target_link_libraries(dmrender dmusic sndfile-shared)
+target_link_libraries(dmrender PRIVATE dmusic PRIVATE sndfile-shared)

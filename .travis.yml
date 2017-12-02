@@ -20,6 +20,10 @@ script:
   - gcc -v && g++ -v && cmake --version
   - git submodule update --init --recursive
   - mkdir -p build
-  - cd build
-  - cmake ..
+  - mkdir -p build-sndfile
+  - cd build-sndfile
+  - cmake -D CMAKE_INSTALL_PREFIX=$HOME/libsndfile ../utils/dls2sf/lib/libsndfile
+  - make -j2 && make install
+  - cd ../build
+  - cmake -D CMAKE_PREFIX_PATH=$HOME/libsndfile ..
   - make -j2
