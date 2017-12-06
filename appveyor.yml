@@ -1,11 +1,14 @@
 version: 0.0.{build}
 image: Visual Studio 2017
 
+install:
+  - git submodule update --init --recursive
+
 build_script:
   - REM Beginning AppVeyor build from appveyor.yml
   - mkdir build-sndfile
   - cd build-sndfile
-  - cmake -D CMAKE_INSTALL_PREFIX=%APPVEYOR_BUILD_FOLDER%/libsndfile ../libdmusic/utils/dls2sf/lib/libsndfile
+  - cmake -D CMAKE_INSTALL_PREFIX=%APPVEYOR_BUILD_FOLDER%/libsndfile ../utils/dls2sf/lib/libsndfile
   - cmake --build . --target install --config RelWithDebInfo
   - cd ../libdmusic
   - mkdir build
