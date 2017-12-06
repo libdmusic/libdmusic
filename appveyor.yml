@@ -10,7 +10,7 @@ build_script:
   - cd build-sndfile
   - cmake -D CMAKE_INSTALL_PREFIX=%APPVEYOR_BUILD_FOLDER%/libsndfile ../utils/dls2sf/lib/libsndfile
   - cmake --build . --target install --config RelWithDebInfo
-  - cd ../libdmusic
+  - cd ../
   - mkdir build
   - cd build
   - cmake -D CMAKE_PREFIX_PATH=%APPVEYOR_BUILD_FOLDER%/libsndfile ..
