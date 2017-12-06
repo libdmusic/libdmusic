@@ -1,0 +1,23 @@
+version: 0.0.{build}
+image: Visual Studio 2017
+
+build_script:
+  - REM Beginning AppVeyor build from appveyor.yml
+  - mkdir build-sndfile
+  - cd build-sndfile
+  - cmake -D CMAKE_INSTALL_PREFIX=%APPVEYOR_BUILD_FOLDER%/libsndfile ../libdmusic/utils/dls2sf/lib/libsndfile
+  - cmake --build . --target install --config RelWithDebInfo
+  - cd ../libdmusic
+  - mkdir build
+  - cd build
+  - cmake -D CMAKE_PREFIX_PATH=%APPVEYOR_BUILD_FOLDER%/libsndfile ..
+  - cmake --build . --config RelWithDebInfo
+  - 7z a libdmusic.zip .\bin\RelWithDebInfo\*.exe .\bin\RelWithDebInfo\*.pdb .\bin\RelWithDebInfo\*.dll .\bin\*.ps1 .\bin\*.bat %APPVEYOR_BUILD_FOLDER%/libsndfile/bin/libsndfile-1.dll
+  - appveyor PushArtifact libdmusic.zip
+
+notifications:
+  - provider: Webhook
+    url: https://webhooks.gitter.im/e/5020e3cf2a1bbb5c8247
+    on_build_success: true
+    on_build_failure: true
+    on_build_status_changed: true
