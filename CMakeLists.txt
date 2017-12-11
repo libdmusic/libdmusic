@@ -55,7 +55,7 @@ if (DMUSIC_DLS_PLAYER)
   target_compile_definitions(dmusic PRIVATE DMUSIC_DLS_PLAYER=1 DMUSIC_HAS_SNDFILE=1)
 
   if (NOT TARGET sf2cute)
-    add_subdirectory(utils/dls2sf/sf2cute)
+    add_subdirectory(utils/dls2sf/lib/sf2cute)
   endif ()
 
   include_directories(utils/dls2sf/lib/sf2cute/include)
