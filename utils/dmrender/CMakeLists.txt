@@ -17,4 +17,10 @@ file(GLOB SRC
   "src/*.hxx")
 
 add_executable(dmrender ${SRC})
-target_link_libraries(dmrender PRIVATE dmusic PRIVATE sndfile-shared)
+target_link_libraries(dmrender dmusic)
+target_compile_definitions(dmrender PRIVATE DMUSIC_HAS_SNDFILE=1 DMUSIC_DLS_PLAYER=1)
+if(DMUSIC_COMPAT_GPL)
+  target_link_libraries(dmrender sndfile-static)
+else()
+  target_link_libraries(dmrender sndfile-shared)
+endif()

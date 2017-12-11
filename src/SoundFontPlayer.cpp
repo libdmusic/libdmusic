@@ -38,11 +38,9 @@ SoundFontPlayer::SoundFontPlayer(tsf* soundfont,
 
     tsf_set_preset_panning(m_soundfont, m_preset, volFactorLeft, volFactorRight);
     tsf_set_preset_gain(m_soundfont, m_preset, gainToDecibels(volume));
-    tsf_increase_refcount(m_soundfont);
 }
 
 SoundFontPlayer::~SoundFontPlayer() {
-    tsf_decrease_refcount(m_soundfont);
 }
 
 std::uint32_t SoundFontPlayer::renderBlock(std::int16_t *buffer, std::uint32_t count, float volume, bool mix) noexcept {

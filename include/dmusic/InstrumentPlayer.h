@@ -17,7 +17,11 @@ namespace DirectMusic {
                         std::uint32_t audioChannels,
                         float volume,
                         float pan)
-            : m_dls(dls) {};
+            : m_dls(dls)
+            , m_sampleRate(sampleRate)
+            , m_volume(volume) 
+            , m_pan(pan)
+            , m_channels(audioChannels) {};
 
         /// Renders the following `count` samples of audio
         /// WARNING: this method is very performance-sensitive; it is important
@@ -51,5 +55,9 @@ namespace DirectMusic {
 
     protected:
         const DirectMusic::DLS::DownloadableSound& m_dls;
+        const int m_sampleRate;
+        float m_volume;
+        float m_pan;
+        const int m_channels;
     };
 }

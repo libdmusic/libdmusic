@@ -16,11 +16,19 @@ include_directories(${sndfile_INCLUDE_DIRECTORIES})
 
 file(GLOB SRC
   "src/*.cpp"
-  "src/*.h")
+  "src/*.h"
+  "../../src/decode.cpp")
 
 file(GLOB SCRIPTS "scripts/*")
 
 file(COPY ${SCRIPTS} DESTINATION "${CMAKE_BINARY_DIR}/bin/")
 
 add_executable(dls2sf ${SRC})
-target_link_libraries(dls2sf PRIVATE dmusic PRIVATE sf2cute PRIVATE sndfile-shared)
+target_link_libraries(dls2sf dmusic sf2cute)
+target_compile_definitions(dls2sf PRIVATE DMUSIC_HAS_SNDFILE=1)
+
+if(DMUSIC_COMPAT_GPL)
+  target_link_libraries(dls2sf sndfile-static)
+else()
+  target_link_libraries(dls2sf sndfile-shared)
+endif()

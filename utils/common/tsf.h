@@ -173,6 +173,10 @@ TSFDEF void tsf_all_notes_off(tsf* f, int preset_index);
 TSFDEF void tsf_render_short(tsf* f, short* buffer, int samples, int flag_mixing CPP_DEFAULT0);
 TSFDEF void tsf_render_float(tsf* f, float* buffer, int samples, int flag_mixing CPP_DEFAULT0);
 
+// Copy a tsf instance from an exist one, use tsf_close to close it as well.
+// Copied tsf instances share everything with its base, except 'voices' and 'voiceNum'.
+TSFDEF tsf* tsf_copy(tsf* f);
+
 #ifdef __cplusplus
 #  undef CPP_DEFAULT0
 }
@@ -251,19 +255,19 @@ struct tsf
 	struct tsf_preset* presets;
 	float* fontSamples;
 	struct tsf_voice* voices;
-	float* outputSamples;
 
 	int presetNum;
 	int fontSampleCount;
 	int voiceNum;
-	int outputSampleSize;
 	unsigned int voicePlayIndex;
 
 	float outSampleRate;
 	enum TSFOutputMode outputmode;
 	float globalGainDB, globalPanFactorLeft, globalPanFactorRight;
 
-    int refcount;
+	float** outputSamples;
+	int* outputSampleSize;
+	int* refCount;
 };
 
 #ifndef TSF_NO_STDIO
@@ -507,20 +511,6 @@ static void tsf_region_envtosecs(struct tsf_envelope* p, TSF_BOOL sustainIsGain)
 	if (p->sustain < 0.0f) p->sustain = 0.0f;
 	else if (sustainIsGain) p->sustain = 100.0f * tsf_decibelsToGain(-p->sustain / 10.0f);
 	else p->sustain = p->sustain / 10.0f;
-}
-
-void tsf_increase_refcount(tsf* res) {
-    res->refcount++;
-}
-
-int tsf_decrease_refcount(tsf* res) {
-    res->refcount--;
-    if (res->refcount == 0) {
-        tsf_close(res);
-        return 1;
-    } else {
-        return 0;
-    }
 }
 
 static void tsf_load_presets(tsf* res, struct tsf_hydra *hydra)
@@ -1122,6 +1112,12 @@ TSFDEF tsf* tsf_load(struct tsf_stream* stream)
 		res->fontSamples = fontSamples;
 		res->fontSampleCount = fontSampleCount;
 		res->outSampleRate = 44100.0f;
+		res->outputSamples = (float**)TSF_MALLOC(sizeof(float*));
+		*res->outputSamples = TSF_NULL;
+		res->outputSampleSize = (int*)TSF_MALLOC(sizeof(int));
+		*res->outputSampleSize = 0;
+		res->refCount = (int*)TSF_MALLOC(sizeof(int));
+		*res->refCount = 1;
 		res->globalPanFactorLeft = res->globalPanFactorRight = 1.0f;
 		fontSamples = TSF_NULL; //don't free below
 		tsf_load_presets(res, &hydra);
@@ -1130,7 +1126,20 @@ TSFDEF tsf* tsf_load(struct tsf_stream* stream)
 	TSF_FREE(hydra.pgens); TSF_FREE(hydra.insts); TSF_FREE(hydra.ibags);
 	TSF_FREE(hydra.imods); TSF_FREE(hydra.igens); TSF_FREE(hydra.shdrs);
 	TSF_FREE(fontSamples);
-    res->refcount = 0;
+	return res;
+}
+
+TSFDEF tsf* tsf_copy(tsf* f)
+{
+	tsf* res = TSF_NULL;
+	if (f)
+	{
+		res = (tsf*)TSF_MALLOC(sizeof(tsf));
+		TSF_MEMCPY(res, f, sizeof(tsf));
+		res->voices = TSF_NULL;
+		res->voiceNum = 0;
+		++(*res->refCount);
+	}
 	return res;
 }
 
@@ -1138,12 +1147,18 @@ TSFDEF void tsf_close(tsf* f)
 {
 	struct tsf_preset *preset, *presetEnd;
 	if (!f) return;
-	for (preset = f->presets, presetEnd = preset + f->presetNum; preset != presetEnd; preset++)
+	if (--(*f->refCount) == 0)
+	{
+		for (preset = f->presets, presetEnd = preset + f->presetNum; preset != presetEnd; preset++)
 		TSF_FREE(preset->regions);
-	TSF_FREE(f->presets);
-	TSF_FREE(f->fontSamples);
+		TSF_FREE(f->presets);
+		TSF_FREE(f->fontSamples);
+		TSF_FREE(*f->outputSamples);
+		TSF_FREE(f->outputSamples);
+		TSF_FREE(f->outputSampleSize);
+		TSF_FREE(f->refCount);
+	}
 	TSF_FREE(f->voices);
-	TSF_FREE(f->outputSamples);
 	TSF_FREE(f);
 }
 
@@ -1328,16 +1343,16 @@ TSFDEF void tsf_render_short(tsf* f, short* buffer, int samples, int flag_mixing
 	float *floatSamples;
 	int channelSamples = (f->outputmode == TSF_MONO ? 1 : 2) * samples, floatBufferSize = channelSamples * sizeof(float);
 	short* bufferEnd = buffer + channelSamples;
-	if (floatBufferSize > f->outputSampleSize)
+	if (floatBufferSize > *f->outputSampleSize)
 	{
-		TSF_FREE(f->outputSamples);
-		f->outputSamples = (float*)TSF_MALLOC(floatBufferSize);
-		f->outputSampleSize = floatBufferSize;
+		TSF_FREE(*f->outputSamples);
+		*f->outputSamples = (float*)TSF_MALLOC(floatBufferSize);
+		*f->outputSampleSize = floatBufferSize;
 	}
 
-	tsf_render_float(f, f->outputSamples, samples, TSF_FALSE);
+	tsf_render_float(f, *f->outputSamples, samples, TSF_FALSE);
 
-	floatSamples = f->outputSamples;
+	floatSamples = *f->outputSamples;
 	if (flag_mixing) 
 		while (buffer != bufferEnd)
 		{

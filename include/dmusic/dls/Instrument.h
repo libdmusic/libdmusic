@@ -26,6 +26,7 @@ namespace DirectMusic {
         class Region {
         public:
             Region(const DirectMusic::Riff::Chunk& c);
+            Region() {};
             const RegionHeader& getRegionHeader() const { return m_rgnHeader; }
             const WaveLink& getWaveLink() const { return m_waveLink; }
             const Wavesample& getWavesample() const { return m_wavesample; }

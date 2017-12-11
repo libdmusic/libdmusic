@@ -4,10 +4,10 @@
 #include <map>
 #include <dmusic/PlayingContext.h>
 #include <dmusic/InstrumentPlayer.h>
-#ifndef DMUSIC_TSF_SUPPORT
-#define DMUSIC_TSF_SUPPORT 1
+#ifndef DMUSIC_DLS_PLAYER
+#define DMUSIC_DLS_PLAYER 1
 #endif
-#include <dmusic/SoundFontPlayer.h>
+#include <dmusic/DlsPlayer.h>
 #include <dmusic/Tracks.h>
 #include <dmusic/dls/DownloadableSound.h>
 #include <cassert>
@@ -39,7 +39,6 @@ int main(int argc, char **argv) {
     args::HelpFlag help(parser, "help", "Display this help menu", { 'h', "help" });
     args::ValueFlag<int> samplingRate(parser, "sampling rate", "The sampling rate to use", { 's', "sample" });
     args::ValueFlag<int> numChannels(parser, "channels", "The number of channels to use", { 'c', "channels" });
-    args::ValueFlag<std::string> sfont(parser, "soundfont", "The SoundFont directory to use during rendering", { 'f', "soundfont" });
     args::Positional<std::string> segmentName(parser, "segment", "The segment to render");
 
     try {
@@ -62,17 +61,12 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    if (!sfont) {
-        std::cerr << "dmplay: No soundfont directory specified." << std::endl;
-        return 1;
-    }
-
     int sampleRate = samplingRate ? args::get(samplingRate) : 44100;
     int channels = numChannels ? args::get(numChannels) : 2;
 
     // Store soundfonts based on their name
     std::map<std::string, tsf*> soundfontMap;
-    PlayingContext ctx(sampleRate, channels, SoundFontPlayer::createMultiFactory(args::get(sfont)));
+    PlayingContext ctx(sampleRate, channels, DlsPlayer::createFactory());
     std::cout << "Loading segment...";
     auto segment = ctx.loadSegment(args::get(segmentName));
     std::cout << " done.\nStart playback... ";

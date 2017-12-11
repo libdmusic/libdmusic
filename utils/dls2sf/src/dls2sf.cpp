@@ -14,7 +14,7 @@
 #include <set>
 #include <exception>
 #include <args.hxx>
-#include "decode.h"
+#include "../../src/decode.h"
 
 using namespace DirectMusic;
 using namespace sf2cute;

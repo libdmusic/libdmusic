@@ -1,11 +1,12 @@
 #pragma once
 
-#if !DMUSIC_TSF_SUPPORT
-#error "TinySoundFont rendering is not enabled"
+#if !DMUSIC_DLS_PLAYER
+#error "DlsPlayer was not enabled"
 #endif
 
 #include <cstdint>
 #include <functional>
+#include <map>
 #include "dls/DownloadableSound.h"
 #include "InstrumentPlayer.h"
 #include "PlayingContext.h"
@@ -13,26 +14,24 @@
 struct tsf;
 
 namespace DirectMusic {
-    class SoundFontPlayer : public InstrumentPlayer {
+    class DlsPlayer : public InstrumentPlayer {
     private:
         int m_preset;
-        tsf* m_soundfont;
         float m_vol;
         float m_pan;
         int m_channels;
         int m_samplerate;
+        tsf* m_soundfont;
 
-        SoundFontPlayer(tsf* soundfont,
-            std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patch,
+        static std::map<GUID, tsf*> m_soundfonts;
+
+        DlsPlayer(std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patch,
             const DirectMusic::DLS::DownloadableSound& dls,
             std::uint32_t sampleRate,
             std::uint32_t channels,
             float volume,
             float pan);
     public:
-
-        ~SoundFontPlayer();
-
         virtual std::uint32_t renderBlock(std::int16_t *buffer, std::uint32_t count, float volume, bool mix) noexcept;
 
         /// Instructs the synthesizer to start playing a note
@@ -58,7 +57,6 @@ namespace DirectMusic {
         /// Sends a "pitch bend" message
         virtual void pitchBend(std::int16_t val);
 
-        static PlayerFactory createMultiFactory(const std::string soundFontDir);
-        static PlayerFactory createFactory(const std::string& soundFont);
+        static PlayerFactory createFactory();
     };
 }

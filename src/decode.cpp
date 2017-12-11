@@ -1,3 +1,5 @@
+#if DMUSIC_HAS_SNDFILE
+
 #include "decode.h"
 #include <sndfile.h>
 #include <iostream>
@@ -88,3 +90,29 @@ std::vector<std::int16_t> decode(const Wave& sample) {
     sf_close(file);
     return out;
 }
+
+std::vector<float> decode_float(const Wave& sample) {
+    SF_INFO sfinfo;
+    sfinfo.channels = 0;
+    sfinfo.samplerate = 0;
+    sfinfo.format = 0;
+    sfinfo.frames = 0;
+    sfinfo.sections = 0;
+    sfinfo.seekable = 0;
+    std::vector<float> out;
+
+    std::vector<std::uint8_t> input = sample.getWaveFile();
+
+    Userdata data{ input, 0 };
+    SNDFILE* file = sf_open_virtual(&virtio, SFM_READ, &sfinfo, &data);
+    if (!file) return out;
+    float smp;
+    sf_count_t count;
+    while (count = sf_read_float(file, &smp, 1)) {
+        out.push_back(smp);
+    }
+    sf_close(file);
+    return out;
+}
+
+#endif
