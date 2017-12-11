@@ -27,6 +27,7 @@ namespace DirectMusic {
 
         DlsPlayer(std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patch,
             const DirectMusic::DLS::DownloadableSound& dls,
+            const GUID& bandId,
             std::uint32_t sampleRate,
             std::uint32_t channels,
             float volume,

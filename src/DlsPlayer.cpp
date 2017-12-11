@@ -170,6 +170,7 @@ static float gainToDecibels(float gain) {
 
 DlsPlayer::DlsPlayer(std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patch,
     const DirectMusic::DLS::DownloadableSound& dls,
+    const GUID& bandId,
     std::uint32_t sampleRate,
     std::uint32_t channels,
     float volume,
@@ -181,14 +182,15 @@ DlsPlayer::DlsPlayer(std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patc
     assert(channels <= 2);
 
     tsf* soundfont = nullptr;
-    if (m_soundfonts.find(dls.getGuid()) == m_soundfonts.end()) {
+    GUID id = dls.getGuid() ^ bandId;
+    if (m_soundfonts.find(id) == m_soundfonts.end()) {
         soundfont = convertCollection(dls);
         TSFOutputMode outputMode = m_channels == 1 ? TSF_MONO : TSF_STEREO_INTERLEAVED;
         tsf_set_output(soundfont, outputMode, sampleRate, 0);
 
-        m_soundfonts[dls.getGuid()] = soundfont;
+        m_soundfonts[id] = soundfont;
     } else {
-        soundfont = tsf_copy(m_soundfonts[dls.getGuid()]);
+        soundfont = tsf_copy(m_soundfonts[id]);
     }
 
     std::uint32_t bank = (bankHi << 16) + bankLo;
@@ -245,7 +247,7 @@ PlayerFactory DlsPlayer::createFactory() {
         const GUID& bandGuid, const DownloadableSound& dls, std::uint32_t sampleRate, std::uint32_t chans, float vol, float pan) {
 
         return std::static_pointer_cast<InstrumentPlayer>(std::shared_ptr<DlsPlayer>{
-            new DlsPlayer(bankLo, bankHi, patch, dls, sampleRate, chans, vol, pan)
+            new DlsPlayer(bankLo, bankHi, patch, dls, bandGuid, sampleRate, chans, vol, pan)
         });
     };
 }

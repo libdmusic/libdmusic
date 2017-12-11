@@ -146,4 +146,13 @@ namespace DirectMusic {
     inline bool operator<(const GUID& lhs, const GUID& rhs) {
         return memcmp(&lhs, &rhs, sizeof(rhs)) < 0;
     }
+
+    inline GUID operator^(const GUID& lhs, const GUID& rhs) {
+        GUID ret;
+        ret.Data1 = lhs.Data1 ^ rhs.Data1;
+        ret.Data2 = lhs.Data2 ^ rhs.Data2;
+        ret.Data3 = lhs.Data3 ^ rhs.Data3;
+        ret.Data4 = lhs.Data4 ^ rhs.Data4;
+        return ret;
+    }
 }
