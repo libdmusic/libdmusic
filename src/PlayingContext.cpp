@@ -260,17 +260,18 @@ bool PlayingContext::getRandomPattern(const SegmentInfo& segm, std::uint8_t groo
     }
 }
 
-std::shared_ptr<DirectMusic::DLS::DownloadableSound> PlayingContext::loadInstrumentCollection(const GUID& guid, const std::string& file) {
+std::shared_ptr<DirectMusic::DLS::DownloadableSound> PlayingContext::loadInstrumentCollection(const GUID& guid, const GUID& bandGuid, const std::string& file) {
     std::shared_ptr<DirectMusic::DLS::DownloadableSound> band = nullptr;
+    GUID id = guid ^ bandGuid;
 
-    if (m_bands.find(guid) == m_bands.end()) {
+    if (m_bands.find(id) == m_bands.end()) {
         TRACE("Band found in cache");
         std::vector<std::uint8_t> data = m_loader(file);
         band = genObjFromChunkData<DirectMusic::DLS::DownloadableSound>(data);
-        m_bands[guid] = band;
+        m_bands[id] = band;
     } else {
         TRACE("Loading new band");
-        band = m_bands.at(guid);
+        band = m_bands.at(id);
     }
 
     return band;

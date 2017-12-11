@@ -136,7 +136,7 @@ namespace DirectMusic {
         std::shared_ptr<StyleForm> loadStyle(const GUID& guid, const std::string& file);
 
         /// Loads an instrument collection
-        std::shared_ptr<DirectMusic::DLS::DownloadableSound> loadInstrumentCollection(const GUID& guid, const std::string& file);
+        std::shared_ptr<DirectMusic::DLS::DownloadableSound> loadInstrumentCollection(const GUID& guid, const GUID& bandGuid, const std::string& file);
 
         double getTime() const { return m_musicTime; }
 
