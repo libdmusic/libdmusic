@@ -8,11 +8,14 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
+set(CMAKE_MODULE_PATH
+  ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}" "${PROJECT_SOURCE_DIR}"
+  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
+
 option(DMUSIC_BUILD_UTILS "Build various DirectMusic utilities" ON)
 option(DMUSIC_TRACE "Enable tracing messages" OFF)
 option(DMUSIC_TRACE_VERBOSE "Enable verbose tracing messages" OFF)
 option(DMUSIC_TSF_SUPPORT "Enable reference InstrumentPlayer based on TinySoundFont" ON)
-option(DMUSIC_COMPAT_GPL "Enable this to link LGPL modules statically instead of dynamically" OFF)
 option(DMUSIC_DLS_PLAYER "Enable DLS InstrumentPlayer (requires libsndfile)" ON)
 
 include_directories(include)
@@ -48,10 +51,9 @@ if (DMUSIC_TSF_SUPPORT)
 endif ()
 
 if (DMUSIC_DLS_PLAYER)
-  find_package(LibSndFile REQUIRED)
-  get_target_property(sndfile_INCLUDE_DIRECTORIES sndfile-static INTERFACE_INCLUDE_DIRECTORIES)
+  find_package(SndFile REQUIRED)
 
-  include_directories(${sndfile_INCLUDE_DIRECTORIES})
+  include_directories(${SNDFILE_INCLUDE_DIRS})
   target_compile_definitions(dmusic PRIVATE DMUSIC_DLS_PLAYER=1 DMUSIC_HAS_SNDFILE=1)
 
   if (NOT TARGET sf2cute)
@@ -60,12 +62,7 @@ if (DMUSIC_DLS_PLAYER)
 
   include_directories(utils/dls2sf/lib/sf2cute/include)
   target_link_libraries(dmusic sf2cute)
-  
-  if (DMUSIC_COMPAT_GPL)
-    target_link_libraries(dmusic sndfile-static)
-  else ()
-    target_link_libraries(dmusic sndfile-shared)
-  endif ()
+  target_link_libraries(dmusic ${SNDFILE_LIBRARIES})
 endif ()
 
 if(DMUSIC_TRACE)
