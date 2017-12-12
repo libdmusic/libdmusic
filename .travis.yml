@@ -21,6 +21,6 @@ script:
   - gcc -v && g++ -v && cmake --version
   - git submodule update --init --recursive
   - mkdir -p build
-  - cd ../build
+  - cd build
   - cmake ..
   - make -j2
