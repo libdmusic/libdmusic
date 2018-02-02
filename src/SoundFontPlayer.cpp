@@ -21,9 +21,7 @@ SoundFontPlayer::SoundFontPlayer(tsf* soundfont,
     float volume,
     float pan)
     : InstrumentPlayer(bankLo, bankHi, patch, dls, sampleRate, channels, volume, pan)
-    , m_soundfont(nullptr)
-    , m_vol(volume)
-    , m_channels(channels) {
+    , m_soundfont(nullptr) {
     assert(channels <= 2);
     std::uint32_t bank = (bankHi << 16) + bankLo;
 
@@ -37,13 +35,13 @@ SoundFontPlayer::SoundFontPlayer(tsf* soundfont,
     float volFactorLeft = sqrt((-m_pan + 1) / 2);
 
     tsf_set_preset_panning(m_soundfont, m_preset, volFactorLeft, volFactorRight);
-    tsf_set_preset_gain(m_soundfont, m_preset, gainToDecibels(volume));
+    tsf_set_preset_gain(m_soundfont, m_preset, 0);
 }
 
 SoundFontPlayer::~SoundFontPlayer() {
 }
 
-std::uint32_t SoundFontPlayer::renderBlock(std::int16_t *buffer, std::uint32_t count, float volume, bool mix) noexcept {
+std::uint32_t SoundFontPlayer::renderBlock(std::int16_t *buffer, std::uint32_t count, bool mix) noexcept {
     if (!mix) {
         tsf_render_short(m_soundfont, buffer, count / m_channels, 0);
     }
@@ -71,7 +69,7 @@ void SoundFontPlayer::channelPressure(std::uint8_t val) {}
 void SoundFontPlayer::polyAftertouch(std::uint8_t note, std::uint8_t val) {}
 
 /// Sends a "control change" message
-void SoundFontPlayer::controlChange(DirectMusic::Midi::Control control, std::int32_t val) {}
+void SoundFontPlayer::controlChange(DirectMusic::Midi::Control control, std::uint8_t val) {}
 
 /// Sends a "program change" (aka "patch change") message
 void SoundFontPlayer::programChange(std::uint8_t program) {}

@@ -141,4 +141,24 @@ namespace DirectMusic {
 
         virtual void Execute(PlayingContext& ctx);
     };
+
+    class ControlChangeMessage : public MusicMessage {
+    public:
+        ControlChangeMessage(std::uint32_t time, std::uint32_t channel, DirectMusic::Midi::Control control, std::uint8_t value)
+            : MusicMessage(time),
+            m_control(control),
+            m_channel(channel),
+            m_value(value) {}
+
+        virtual std::shared_ptr<MusicMessage> Clone(std::uint32_t newTime) {
+            return std::make_shared<ControlChangeMessage>(newTime, m_channel, m_control, m_value);
+        }
+
+        virtual void Execute(PlayingContext& ctx);
+
+    private:
+        std::uint8_t m_value;
+        std::uint32_t m_channel;
+        DirectMusic::Midi::Control m_control;
+    };
 }

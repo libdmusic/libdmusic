@@ -17,10 +17,6 @@ namespace DirectMusic {
     private:
         int m_preset;
         tsf* m_soundfont;
-        float m_vol;
-        float m_pan;
-        int m_channels;
-        int m_samplerate;
 
         SoundFontPlayer(tsf* soundfont,
             std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patch,
@@ -33,7 +29,7 @@ namespace DirectMusic {
 
         ~SoundFontPlayer();
 
-        virtual std::uint32_t renderBlock(std::int16_t *buffer, std::uint32_t count, float volume, bool mix) noexcept;
+        virtual std::uint32_t renderBlock(std::int16_t *buffer, std::uint32_t count, bool mix) noexcept;
 
         /// Instructs the synthesizer to start playing a note
         virtual void noteOn(std::uint8_t note, std::uint8_t velocity);
@@ -50,7 +46,7 @@ namespace DirectMusic {
         virtual void polyAftertouch(std::uint8_t note, std::uint8_t val);
 
         /// Sends a "control change" message
-        virtual void controlChange(DirectMusic::Midi::Control control, std::int32_t val);
+        virtual void controlChange(DirectMusic::Midi::Control control, std::uint8_t val);
 
         /// Sends a "program change" (aka "patch change") message
         virtual void programChange(std::uint8_t program);

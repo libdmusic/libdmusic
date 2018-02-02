@@ -134,6 +134,23 @@ namespace DirectMusic {
         DMUS_CURVE_START_FROM_CURRENT = 2
     };
 
+    enum DMUS_CURVE_TYPE {
+        DMUS_CURVET_PBCURVE = 0x03,   /* Pitch bend curve. */
+        DMUS_CURVET_CCCURVE = 0x04,   /* Control change curve. */
+        DMUS_CURVET_MATCURVE = 0x05,   /* Mono aftertouch curve. */
+        DMUS_CURVET_PATCURVE = 0x06,   /* Poly aftertouch curve. */
+        DMUS_CURVET_RPNCURVE = 0x07,   /* RPN curve with curve type in wParamType. */
+        DMUS_CURVET_NRPNCURVE = 0x08   /* NRPN curve with curve type in wParamType. */
+    };
+
+    enum DMUS_CURVE_SHAPE {
+        DMUS_CURVES_LINEAR = 0,
+        DMUS_CURVES_INSTANT = 1,
+        DMUS_CURVES_EXP = 2,
+        DMUS_CURVES_LOG = 3,
+        DMUS_CURVES_SINE = 4
+    };
+
     /// The DMUS_EMBELLISHMENT_TYPES enumerated type is used in the wEmbellishment member of the DMUS_IO_PATTERN structure.
     enum DMUS_EMBELLISHT_TYPES {
         /// Normal pattern.

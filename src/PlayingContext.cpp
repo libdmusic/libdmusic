@@ -58,7 +58,7 @@ void PlayingContext::renderBlock(std::int16_t *data, std::uint32_t count, float 
                 for (const auto& channel : m_performanceChannels) {
                     {
                         const auto& player = channel.second;
-                        player->renderBlock(data + offset, nextMessageTimeOffsetInSamples, volume, !first);
+                        player->renderBlock(data + offset, nextMessageTimeOffsetInSamples, !first);
                         first = false;
                     }
                 }
@@ -83,7 +83,7 @@ fill_buffer:
         for (const auto& channel : m_performanceChannels) {
             {
                 const auto& player = channel.second;
-                player->renderBlock(data + offset, remainingSamples, volume, !first);
+                player->renderBlock(data + offset, remainingSamples, !first);
                 first = false;
             }
         }

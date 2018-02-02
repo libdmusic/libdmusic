@@ -27,7 +27,7 @@ namespace DirectMusic {
         /// WARNING: this method is very performance-sensitive; it is important
         /// that it does what it has to do in the least amount of time, and
         /// it must NOT throw.
-        virtual std::uint32_t renderBlock(std::int16_t *buffer, std::uint32_t count, float volume = 1, bool mix = true) noexcept = 0;
+        virtual std::uint32_t renderBlock(std::int16_t *buffer, std::uint32_t count, bool mix = true) noexcept = 0;
 
         /// Instructs the synthesizer to start playing a note
         virtual void noteOn(std::uint8_t note, std::uint8_t velocity) = 0;
@@ -45,7 +45,7 @@ namespace DirectMusic {
         virtual void polyAftertouch(std::uint8_t note, std::uint8_t val) = 0;
 
         /// Sends a "control change" message
-        virtual void controlChange(DirectMusic::Midi::Control control, std::int32_t val) = 0;
+        virtual void controlChange(DirectMusic::Midi::Control control, std::uint8_t val) = 0;
 
         /// Sends a "program change" (aka "patch change") message
         virtual void programChange(std::uint8_t program) = 0;

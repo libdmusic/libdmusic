@@ -176,9 +176,7 @@ DlsPlayer::DlsPlayer(std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patc
     float volume,
     float pan)
     : InstrumentPlayer(bankLo, bankHi, patch, dls, sampleRate, channels, volume, pan)
-    , m_soundfont(nullptr)
-    , m_vol(volume)
-    , m_channels(channels) {
+    , m_soundfont(nullptr) {
     assert(channels <= 2);
 
     tsf* soundfont = nullptr;
@@ -205,10 +203,10 @@ DlsPlayer::DlsPlayer(std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patc
     float volFactorLeft = sqrt((-m_pan + 1) / 2);
 
     tsf_set_preset_panning(m_soundfont, m_preset, volFactorLeft, volFactorRight);
-    tsf_set_preset_gain(m_soundfont, m_preset, gainToDecibels(volume));
+    tsf_set_preset_gain(m_soundfont, m_preset, gainToDecibels(m_volume));
 }
 
-std::uint32_t DlsPlayer::renderBlock(std::int16_t *buffer, std::uint32_t count, float volume, bool mix) noexcept {
+std::uint32_t DlsPlayer::renderBlock(std::int16_t *buffer, std::uint32_t count, bool mix) noexcept {
     tsf_render_short(m_soundfont, buffer, count / m_channels, mix ? 1 : 0);
     return count;
 }
@@ -234,7 +232,13 @@ void DlsPlayer::channelPressure(std::uint8_t val) {}
 void DlsPlayer::polyAftertouch(std::uint8_t note, std::uint8_t val) {}
 
 /// Sends a "control change" message
-void DlsPlayer::controlChange(DirectMusic::Midi::Control control, std::int32_t val) {}
+void DlsPlayer::controlChange(DirectMusic::Midi::Control control, std::uint8_t val) {
+    if (control == DirectMusic::Midi::Control::ChannelVolume || control == DirectMusic::Midi::Control::ExpressionCtl) {
+        float volume = (float)val / 127;
+        m_volume = volume;
+        tsf_set_preset_gain(m_soundfont, m_preset, gainToDecibels(volume));
+    }
+}
 
 /// Sends a "program change" (aka "patch change") message
 void DlsPlayer::programChange(std::uint8_t program) {}

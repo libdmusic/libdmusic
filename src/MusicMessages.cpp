@@ -5,8 +5,14 @@
 #include <cstdlib>
 #include <cmath>
 #include <exception>
+#include <array>
+#include <functional>
 
 using namespace DirectMusic;
+
+#define DMUSIC_CURVE_MESSAGE_SPACING 100
+
+#define PI 3.14159265359
 
 void MusicMessage::changeTempo(PlayingContext& ctx, double tempo) {
     ctx.m_tempo = tempo;
@@ -201,6 +207,11 @@ static bool MusicValueToMIDI(std::uint32_t chord, const std::vector<DMUS_IO_SUBC
     return true;
 }
 
+template<typename T>
+static T lerp(float x, T start, T end) {
+    return start + x * (end - start);
+}
+
 void MusicMessage::playPattern(PlayingContext& ctx) {
     ctx.m_patternMessageQueue = MessageQueue();
     for (const auto& kvpair : ctx.m_performanceChannels) {
@@ -214,10 +225,11 @@ void MusicMessage::playPattern(PlayingContext& ctx) {
             for (const auto& partTuple : pttn.parts) {
                 const auto& partRef = partTuple.first;
                 const auto& part = partTuple.second;
+                const auto& header = part.getHeader();
 
                 for (const auto& note : part.getNotes()) {
                     std::uint8_t midiNote;
-                    std::uint32_t timeStart = getMusicOffset(note.mtGridStart, note.nTimeOffset, part.getHeader().timeSig);
+                    std::uint32_t timeStart = getMusicOffset(note.mtGridStart, note.nTimeOffset, header.timeSig);
                     if (MusicValueToMIDI(ctx.m_chord, ctx.m_subchords, note, part.getHeader(), &midiNote)) {
                         auto noteOnMessage = std::make_shared<NoteOnMessage>(ctx.m_musicTime + timeStart, midiNote, note.bVelocity, 0, partRef.wLogicalPartID);
                         assert(noteOnMessage != nullptr);
@@ -226,6 +238,33 @@ void MusicMessage::playPattern(PlayingContext& ctx) {
                         auto noteOffMessage = std::make_shared<NoteOffMessage>(ctx.m_musicTime + timeStart + note.mtDuration, midiNote, partRef.wLogicalPartID);
                         assert(noteOffMessage != nullptr);
                         ctx.m_patternMessageQueue.push(noteOffMessage);
+                    }
+                }
+
+                for (const auto& curve : part.getCurves()) {
+                    std::uint32_t timeStart = getMusicOffset(curve.mtGridStart, curve.nTimeOffset, header.timeSig);
+                    std::uint32_t duration = curve.mtDuration;
+                    if (curve.bEventType == DMUS_CURVET_CCCURVE) {
+                        std::uint8_t startValue = curve.nStartValue, endValue = curve.nEndValue;
+                        auto control = (DirectMusic::Midi::Control)curve.bCCData;
+                        std::array<std::function<std::uint8_t(float, std::uint8_t, std::uint8_t)>, 5> curves;
+
+                        curves[DMUS_CURVES_INSTANT] = [](float x, std::uint8_t start, std::uint8_t end) { return end; };
+                        curves[DMUS_CURVES_LINEAR] = [](float x, std::uint8_t start, std::uint8_t end) { return lerp(x, start, end); };
+                        curves[DMUS_CURVES_SINE] = [](float x, std::uint8_t start, std::uint8_t end) { return lerp((sinf((x - 0.5) * PI) + 1) * 0.5, start, end); };
+                        curves[DMUS_CURVES_EXP] = [](float x, std::uint8_t start, std::uint8_t end) { return lerp(x*x*x*x, start, end); };
+                        curves[DMUS_CURVES_LOG] = [](float x, std::uint8_t start, std::uint8_t end) { return lerp(sqrtf(x), start, end); };
+
+                        for (int i = 0; i < duration / DMUSIC_CURVE_MESSAGE_SPACING; i++) {
+                            std::uint32_t offset = i * DMUSIC_CURVE_MESSAGE_SPACING;
+                            float phase = (float)offset / duration;
+
+                            std::uint8_t value = curves[curve.bCurveShape](phase, startValue, endValue);
+
+                            auto msg = std::make_shared<ControlChangeMessage>(ctx.m_musicTime + timeStart + offset, partRef.wLogicalPartID, control, value);
+                            assert(msg != nullptr);
+                            ctx.m_patternMessageQueue.push(msg);
+                        }
                     }
                 }
             }
@@ -345,4 +384,11 @@ void PatternEndMessage::Execute(PlayingContext& ctx) {
     if (isNextSegmentAvailable(ctx) && getNextSegmentTiming(ctx) == SegmentTiming::Pattern)
         enqueueNextSegment(ctx);
     playPattern(ctx);
+}
+
+void ControlChangeMessage::Execute(PlayingContext& ctx) {
+    TRACE("Control change");
+    const auto& channels = getChannels(ctx);
+    assert(channels.find(m_channel) != channels.end());
+    channels.at(m_channel)->controlChange(m_control, m_value);
 }

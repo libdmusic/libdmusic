@@ -904,6 +904,8 @@ static void tsf_voice_render(tsf* f, struct tsf_voice* v, float* outputBuffer, i
 	float* outL = outputBuffer;
 	float* outR = (f->outputmode == TSF_STEREO_UNWEAVED ? outL + numSamples : TSF_NULL);
 
+    tsf_preset preset = f->presets[v->playingPreset];
+
 	// Cache some values, to give them at least some chance of ending up in registers.
 	TSF_BOOL updateModEnv = (region->modEnvToPitch || region->modEnvToFilterFc);
 	TSF_BOOL updateModLFO = (v->modlfo.delta && (region->modLfoToPitch || region->modLfoToFilterFc || region->modLfoToVolume));
@@ -931,7 +933,7 @@ static void tsf_voice_render(tsf* f, struct tsf_voice* v, float* outputBuffer, i
 	else pitchRatio = tsf_timecents2Secsd(v->pitchInputTimecents) * v->pitchOutputFactor, tmpModLfoToPitch = 0, tmpVibLfoToPitch = 0, tmpModEnvToPitch = 0;
 
 	if (dynamicGain) tmpModLfoToVolume = (float)region->modLfoToVolume * 0.1f;
-	else noteGain = tsf_decibelsToGain(v->noteGainDB), tmpModLfoToVolume = 0;
+	else noteGain = tsf_decibelsToGain(v->noteGainDB + preset.gainDB), tmpModLfoToVolume = 0;
 
 	while (numSamples)
 	{
@@ -950,7 +952,7 @@ static void tsf_voice_render(tsf* f, struct tsf_voice* v, float* outputBuffer, i
 			pitchRatio = tsf_timecents2Secsd(v->pitchInputTimecents + (v->modlfo.level * tmpModLfoToPitch + v->viblfo.level * tmpVibLfoToPitch + v->modenv.level * tmpModEnvToPitch)) * v->pitchOutputFactor;
 
 		if (dynamicGain)
-			noteGain = tsf_decibelsToGain(v->noteGainDB + (v->modlfo.level * tmpModLfoToVolume));
+			noteGain = tsf_decibelsToGain(v->noteGainDB + (v->modlfo.level * tmpModLfoToVolume) + preset.gainDB);
 
 		gainMono = noteGain * v->ampenv.level;
 
@@ -1262,7 +1264,7 @@ TSFDEF void tsf_note_on(tsf* f, int preset_index, int key, float vel)
 		tsf_voice_calcpitchratio(voice, f->outSampleRate);
 
 		// Gain.
-		voice->noteGainDB = f->globalGainDB + region->volume + preset.gainDB;
+        voice->noteGainDB = f->globalGainDB + region->volume;
 		// Thanks to <http:://www.drealm.info/sfz/plj-sfz.xhtml> for explaining the velocity curve in a way that I could understand, although they mean "log10" when they say "log".
 		voice->noteGainDB += (float)(-20.0 * TSF_LOG10(1.0 / vel));
 		// The SFZ spec is silent about the pan curve, but a 3dB pan law seems common. This sqrt() curve matches what Dimension LE does; Alchemy Free seems closer to sin(adjustedPan * pi/2).
