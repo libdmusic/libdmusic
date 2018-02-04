@@ -45,7 +45,7 @@ namespace DirectMusic {
         virtual void polyAftertouch(std::uint8_t note, std::uint8_t val) = 0;
 
         /// Sends a "control change" message
-        virtual void controlChange(DirectMusic::Midi::Control control, std::uint8_t val) = 0;
+        virtual void controlChange(DirectMusic::Midi::Control control, float val) = 0;
 
         /// Sends a "program change" (aka "patch change") message
         virtual void programChange(std::uint8_t program) = 0;

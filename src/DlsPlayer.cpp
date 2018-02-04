@@ -232,11 +232,10 @@ void DlsPlayer::channelPressure(std::uint8_t val) {}
 void DlsPlayer::polyAftertouch(std::uint8_t note, std::uint8_t val) {}
 
 /// Sends a "control change" message
-void DlsPlayer::controlChange(DirectMusic::Midi::Control control, std::uint8_t val) {
+void DlsPlayer::controlChange(DirectMusic::Midi::Control control, float val) {
     if (control == DirectMusic::Midi::Control::ChannelVolume || control == DirectMusic::Midi::Control::ExpressionCtl) {
-        float volume = (float)val / 127;
-        m_volume = volume;
-        tsf_set_preset_gain(m_soundfont, m_preset, gainToDecibels(volume));
+        m_volume = val;
+        tsf_set_preset_gain(m_soundfont, m_preset, gainToDecibels(m_volume * m_volume * m_volume * m_volume));
     }
 }
 

@@ -144,7 +144,7 @@ namespace DirectMusic {
 
     class ControlChangeMessage : public MusicMessage {
     public:
-        ControlChangeMessage(std::uint32_t time, std::uint32_t channel, DirectMusic::Midi::Control control, std::uint8_t value)
+        ControlChangeMessage(std::uint32_t time, std::uint32_t channel, DirectMusic::Midi::Control control, float value)
             : MusicMessage(time),
             m_control(control),
             m_channel(channel),
@@ -157,7 +157,7 @@ namespace DirectMusic {
         virtual void Execute(PlayingContext& ctx);
 
     private:
-        std::uint8_t m_value;
+        float m_value;
         std::uint32_t m_channel;
         DirectMusic::Midi::Control m_control;
     };

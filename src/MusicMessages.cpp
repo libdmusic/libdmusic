@@ -10,7 +10,7 @@
 
 using namespace DirectMusic;
 
-#define DMUSIC_CURVE_MESSAGE_SPACING 100
+#define DMUSIC_CURVE_MESSAGE_SPACING 5
 
 #define PI 3.14159265359
 
@@ -209,7 +209,10 @@ static bool MusicValueToMIDI(std::uint32_t chord, const std::vector<DMUS_IO_SUBC
 
 template<typename T>
 static T lerp(float x, T start, T end) {
-    return start + x * (end - start);
+    T diff = end - start;
+    T grad = x * diff;
+    T res = start + grad;
+    return res;
 }
 
 void MusicMessage::playPattern(PlayingContext& ctx) {
@@ -245,21 +248,26 @@ void MusicMessage::playPattern(PlayingContext& ctx) {
                     std::uint32_t timeStart = getMusicOffset(curve.mtGridStart, curve.nTimeOffset, header.timeSig);
                     std::uint32_t duration = curve.mtDuration;
                     if (curve.bEventType == DMUS_CURVET_CCCURVE) {
-                        std::uint8_t startValue = curve.nStartValue, endValue = curve.nEndValue;
-                        auto control = (DirectMusic::Midi::Control)curve.bCCData;
-                        std::array<std::function<std::uint8_t(float, std::uint8_t, std::uint8_t)>, 5> curves;
+                        if (curve.nStartValue > 127 || curve.nEndValue > 127) continue;
 
-                        curves[DMUS_CURVES_INSTANT] = [](float x, std::uint8_t start, std::uint8_t end) { return end; };
-                        curves[DMUS_CURVES_LINEAR] = [](float x, std::uint8_t start, std::uint8_t end) { return lerp(x, start, end); };
-                        curves[DMUS_CURVES_SINE] = [](float x, std::uint8_t start, std::uint8_t end) { return lerp((sinf((x - 0.5) * PI) + 1) * 0.5, start, end); };
-                        curves[DMUS_CURVES_EXP] = [](float x, std::uint8_t start, std::uint8_t end) { return lerp(x*x*x*x, start, end); };
-                        curves[DMUS_CURVES_LOG] = [](float x, std::uint8_t start, std::uint8_t end) { return lerp(sqrtf(x), start, end); };
+                        float startValue = (float)curve.nStartValue / 127, endValue = (float)curve.nEndValue / 127;
+                        auto control = (DirectMusic::Midi::Control)curve.bCCData;
+                        std::array<std::function<float(float, float, float)>, 5> curves;
+
+                        curves[DMUS_CURVES_LINEAR] = [](float x, auto start, auto end) { return lerp(x, start, end); };
+                        curves[DMUS_CURVES_INSTANT] = [](float x, auto start, auto end) { return end; };
+                        curves[DMUS_CURVES_EXP] = [](float x, auto start, auto end) { return lerp(x*x*x*x, start, end); };
+                        curves[DMUS_CURVES_LOG] = [](float x, auto start, auto end) { return lerp(sqrtf(x), start, end); };
+                        curves[DMUS_CURVES_SINE] = [](float x, auto start, auto end) { return lerp((sinf((x - 0.5) * PI) + 1) * 0.5, start, end); };
 
                         for (int i = 0; i < duration / DMUSIC_CURVE_MESSAGE_SPACING; i++) {
                             std::uint32_t offset = i * DMUSIC_CURVE_MESSAGE_SPACING;
                             float phase = (float)offset / duration;
 
-                            std::uint8_t value = curves[curve.bCurveShape](phase, startValue, endValue);
+                            assert(curve.bCurveShape < 5);
+                            auto curveFunction = curves[curve.bCurveShape];
+
+                            float value = curveFunction(phase, startValue, endValue);
 
                             auto msg = std::make_shared<ControlChangeMessage>(ctx.m_musicTime + timeStart + offset, partRef.wLogicalPartID, control, value);
                             assert(msg != nullptr);

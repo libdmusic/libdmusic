@@ -69,7 +69,7 @@ void SoundFontPlayer::channelPressure(std::uint8_t val) {}
 void SoundFontPlayer::polyAftertouch(std::uint8_t note, std::uint8_t val) {}
 
 /// Sends a "control change" message
-void SoundFontPlayer::controlChange(DirectMusic::Midi::Control control, std::uint8_t val) {}
+void SoundFontPlayer::controlChange(DirectMusic::Midi::Control control, float val) {}
 
 /// Sends a "program change" (aka "patch change") message
 void SoundFontPlayer::programChange(std::uint8_t program) {}
