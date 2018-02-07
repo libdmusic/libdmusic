@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <array>
 #include "Common.h"
 #include "Enums.h"
 
@@ -1050,7 +1051,7 @@ namespace DirectMusic {
         /// Each element corresponds to one of 32 possible variations.
         /// The flags set in each element indicate which types of chord are supported by that variation.
         /// One of the mode masks is also set to indicate whether the variations are in DirectMusic or IMA mode.
-        std::uint32_t dwVariationChoices[32];
+        std::array<std::uint32_t, 32> dwVariationChoices;
 
         /// Unique identifier of the part.
         GUID guidPartID;
