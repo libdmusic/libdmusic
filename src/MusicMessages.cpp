@@ -209,10 +209,7 @@ static bool MusicValueToMIDI(std::uint32_t chord, const std::vector<DMUS_IO_SUBC
 
 template<typename T>
 static T lerp(float x, T start, T end) {
-    T diff = end - start;
-    T grad = x * diff;
-    T res = start + grad;
-    return res;
+    return (1 - x) * start + x * end;
 }
 
 void MusicMessage::playPattern(PlayingContext& ctx) {
