@@ -380,7 +380,7 @@ struct tsf_voice
 	struct tsf_region* region;
 	double pitchInputTimecents, pitchOutputFactor;
 	double sourceSamplePosition;
-	float  noteGainDB, panFactorLeft, panFactorRight;
+	float  noteGainDB, noteGain, panFactorLeft, panFactorRight;
 	unsigned int playIndex, sampleEnd, loopStart, loopEnd;
 	struct tsf_voice_envelope ampenv, modenv;
 	struct tsf_voice_lowpass lowpass;
@@ -952,9 +952,11 @@ static void tsf_voice_render(tsf* f, struct tsf_voice* v, float* outputBuffer, i
 			pitchRatio = tsf_timecents2Secsd(v->pitchInputTimecents + (v->modlfo.level * tmpModLfoToPitch + v->viblfo.level * tmpVibLfoToPitch + v->modenv.level * tmpModEnvToPitch)) * v->pitchOutputFactor;
 
 		if (dynamicGain)
-			noteGain = tsf_decibelsToGain(v->noteGainDB + (v->modlfo.level * tmpModLfoToVolume) + preset.gainDB);
+			noteGain = tsf_decibelsToGain(v->noteGainDB + (v->modlfo.level * tmpModLfoToVolume));
 
-		gainMono = noteGain * v->ampenv.level;
+        v->noteGain += 0.1 * (noteGain - v->noteGain);
+
+		gainMono = v->noteGain * v->ampenv.level;
 
 		// Update EG.
 		tsf_voice_envelope_process(&v->ampenv, blockSamples, f->outSampleRate);
@@ -1267,6 +1269,7 @@ TSFDEF void tsf_note_on(tsf* f, int preset_index, int key, float vel)
         voice->noteGainDB = f->globalGainDB + region->volume;
 		// Thanks to <http:://www.drealm.info/sfz/plj-sfz.xhtml> for explaining the velocity curve in a way that I could understand, although they mean "log10" when they say "log".
 		voice->noteGainDB += (float)(-20.0 * TSF_LOG10(1.0 / vel));
+        voice->noteGain = 0;
 		// The SFZ spec is silent about the pan curve, but a 3dB pan law seems common. This sqrt() curve matches what Dimension LE does; Alchemy Free seems closer to sin(adjustedPan * pi/2).
 		adjustedPan = (region->pan + 100.0) / 200.0;
 		voice->panFactorLeft = (float)TSF_SQRT(1.0 - adjustedPan) * preset.panFactorLeft;
