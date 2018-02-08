@@ -3,7 +3,7 @@ dls2sf
 
 Summary
 -------
-      ./dls2sf {OPTIONS} [input files...]
+      dls2sf {OPTIONS} [input files...]
     
         dls2sf converts DLS files and DirectMusic bands to SoundFont2 files
     
