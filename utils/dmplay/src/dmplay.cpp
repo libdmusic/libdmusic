@@ -69,9 +69,13 @@ int main(int argc, char **argv) {
     PlayingContext ctx(sampleRate, channels, DlsPlayer::createFactory());
     std::cout << "Loading segment...";
     auto segment = ctx.loadSegment(args::get(segmentName));
-    std::cout << " done.\nStart playback... ";
-    ctx.playSegment(*segment);
-    std::cout << " done.\nBegin rendering... ";
+    if (segment != nullptr) {
+        std::cout << " done.\nStart playback... ";
+        ctx.playSegment(*segment);
+        std::cout << " done.\nBegin rendering... ";
+    } else {
+        std::cerr << "Cannot load segment.\n";
+    }
 
     PaStream *stream;
     PaError err;
@@ -91,6 +95,10 @@ int main(int argc, char **argv) {
         }
         std::cout << "Loading segment...";
         segment = ctx.loadSegment(input);
+        if (segment == nullptr) {
+            std::cerr << "Cannot load segment.\n";
+            continue;
+        }
         std::cout << " done.\nStart playback... ";
         ctx.playSegment(*segment);
         std::cout << " done.\nBegin rendering... ";
