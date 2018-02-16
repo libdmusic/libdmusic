@@ -44,8 +44,13 @@ void PlayingContext::renderBlock(std::int16_t *data, std::uint32_t count, float 
         } else {
             pulsesPerSecond = PulsesPerQuarterNote * (m_tempo / 60);
             pulsesPerSample = pulsesPerSecond / (m_sampleRate * m_audioChannels);
+
             std::uint32_t nextMessageTimeOffset = nextMessage->getMessageTime() - m_musicTime;
-            assert(nextMessageTimeOffset >= 0);
+
+            if (nextMessage->getMessageTime() < m_musicTime) {
+                nextMessageTimeOffset = 0;
+            }
+
             std::uint32_t nextMessageTimeOffsetInSamples = (std::uint32_t)(nextMessageTimeOffset / pulsesPerSample);
             if (nextMessageTimeOffsetInSamples % m_audioChannels != 0) {
                 nextMessageTimeOffsetInSamples++;
