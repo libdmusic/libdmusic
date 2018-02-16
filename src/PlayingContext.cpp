@@ -16,6 +16,7 @@ void PlayingContext::renderBlock(std::int16_t *data, std::uint32_t count, float 
     MusicMessageComparer comparer;
 
     if (m_nextSegment != nullptr && m_nextSegmentTiming == SegmentTiming::Immediate) {
+        TRACE("Enqueueing next segment");
         enqueueSegment(m_nextSegment);
         m_primarySegment = std::move(m_nextSegment);
         m_nextSegment = nullptr;

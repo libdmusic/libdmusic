@@ -84,7 +84,7 @@ static std::uint32_t getMeasureLength(DMUS_IO_TIMESIG timeSignature) {
 }
 
 // From the Microsoft DX8 SDK docs
-static std::uint32_t getMusicOffset(std::uint32_t mtGridStart, std::int16_t nTimeOffset, DMUS_IO_TIMESIG TimeSig) {
+static std::int32_t getMusicOffset(std::uint32_t mtGridStart, std::int16_t nTimeOffset, DMUS_IO_TIMESIG TimeSig) {
     const std::uint32_t DMUS_PPQ = PlayingContext::PulsesPerQuarterNote;
     return nTimeOffset +
         (
@@ -203,7 +203,6 @@ static bool MusicValueToMIDI(std::uint32_t chord, const std::vector<DMUS_IO_SUBC
     }
 
     *value = noteValue;
-    TRACE_VERBOSE((int)value);
     return true;
 }
 
@@ -242,6 +241,7 @@ static T lerp(float x, T start, T end) {
 }
 
 void MusicMessage::playPattern(PlayingContext& ctx) {
+    TRACE("Playing pattern");
     ctx.m_patternMessageQueue = MessageQueue();
     for (const auto& kvpair : ctx.m_performanceChannels) {
         kvpair.second->allNotesOff();
@@ -250,6 +250,7 @@ void MusicMessage::playPattern(PlayingContext& ctx) {
     if (ctx.m_primarySegment != nullptr && ctx.m_performanceChannels.size() > 0 && ctx.m_subchords.size() > 0) {
         PlayingContext::Pattern pttn;
         if (ctx.getRandomPattern(*ctx.m_primarySegment, ctx.m_grooveLevel, &pttn)) {
+            TRACE("Suitable pattern found: " << pttn.parts.size() << " parts");
             std::uint32_t patternLength = pttn.header.wNbrMeasures * getMeasureLength(pttn.header.timeSig);
             std::vector<StylePart> parts;
             for (const auto& pair : pttn.parts) {
@@ -263,18 +264,19 @@ void MusicMessage::playPattern(PlayingContext& ctx) {
                 const auto& header = part.getHeader();
 
                 for (const auto& note : part.getNotes()) {
-                    std::uint8_t midiNote;
-                    std::uint32_t timeStart = getMusicOffset(note.mtGridStart, note.nTimeOffset, header.timeSig);
 
-                    if (!(note.dwVariation & variation))
-                        continue;
+                    if (!(note.dwVariation & variation)) continue;
+
+                    std::uint8_t midiNote;
+                    std::int32_t timeStart = getMusicOffset(note.mtGridStart, note.nTimeOffset, header.timeSig);
 
                     if (MusicValueToMIDI(ctx.m_chord, ctx.m_subchords, note, part.getHeader(), &midiNote)) {
-                        auto noteOnMessage = std::make_shared<NoteOnMessage>(ctx.m_musicTime + timeStart, midiNote, note.bVelocity, 0, partRef.wLogicalPartID);
+                        std::uint32_t time = ctx.m_musicTime + timeStart;
+                        auto noteOnMessage = std::make_shared<NoteOnMessage>(time, midiNote, note.bVelocity, 0, partRef.wLogicalPartID);
                         assert(noteOnMessage != nullptr);
                         ctx.m_patternMessageQueue.push(noteOnMessage);
 
-                        auto noteOffMessage = std::make_shared<NoteOffMessage>(ctx.m_musicTime + timeStart + note.mtDuration, midiNote, partRef.wLogicalPartID);
+                        auto noteOffMessage = std::make_shared<NoteOffMessage>(time + note.mtDuration, midiNote, partRef.wLogicalPartID);
                         assert(noteOffMessage != nullptr);
                         ctx.m_patternMessageQueue.push(noteOffMessage);
                     }
@@ -282,7 +284,7 @@ void MusicMessage::playPattern(PlayingContext& ctx) {
 
                 for (const auto& curve : part.getCurves()) {
 
-                    if (curve.dwVariation & variation != curve.dwVariation) continue;
+                    if (!(curve.dwVariation & variation)) continue;
 
                     std::uint32_t timeStart = getMusicOffset(curve.mtGridStart, curve.nTimeOffset, header.timeSig);
                     std::uint32_t duration = curve.mtDuration;
@@ -318,6 +320,8 @@ void MusicMessage::playPattern(PlayingContext& ctx) {
 
             auto patternEndMessage = std::make_shared<PatternEndMessage>(ctx.m_musicTime + patternLength);
             ctx.m_patternMessageQueue.push(patternEndMessage);
+        } else {
+            TRACE("No suitable pattern found");
         }
     }
 }
@@ -339,10 +343,12 @@ void MusicMessage::changeChord(PlayingContext& ctx, std::uint32_t chord, const s
 
 void MusicMessage::enqueueNextSegment(PlayingContext& ctx) {
     if (ctx.m_nextSegment != nullptr) {
+        TRACE("New segment enqueued");
         ctx.enqueueSegment(ctx.m_nextSegment);
         ctx.m_primarySegment = std::move(ctx.m_nextSegment);
         ctx.m_nextSegment = nullptr;
     } else if (ctx.m_primarySegment != nullptr) {
+        TRACE("Looping current segment");
         ctx.enqueueSegment(ctx.m_primarySegment);
     }
 }
@@ -356,7 +362,7 @@ SegmentTiming MusicMessage::getNextSegmentTiming(PlayingContext& ctx) {
 }
 
 void TempoChangeMessage::Execute(PlayingContext& ctx) {
-    TRACE("Tempo change");
+    TRACE("Tempo change: " << m_tempo);
     this->changeTempo(ctx, m_tempo);
 }
 
@@ -388,12 +394,14 @@ void BandChangeMessage::Execute(PlayingContext& ctx) {
 }
 
 void GrooveLevelMessage::Execute(PlayingContext& ctx) {
-    TRACE("Groove change");
     if (m_range == 0) {
+        TRACE("Groove change: " << (int)m_level);
         setGrooveLevel(ctx, m_level);
     } else {
         std::int8_t offset = (std::rand() % m_range) - (m_range / 2);
-        setGrooveLevel(ctx, m_level - offset);
+        std::uint8_t newLevel = m_level - offset;
+        TRACE("Groove change: " << (int)newLevel);
+        setGrooveLevel(ctx, newLevel);
     }
 }
 
