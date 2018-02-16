@@ -22,9 +22,9 @@
 #define READFOURCC(s, f) {memcpy(f, data + offsetof(s, f), 4);}
 
 #if DMUSIC_TRACE
-#   define TRACE(x) std::cout << "[libdmusic " << __FILE__ << ":" << __LINE__ << ":" << __func__ << "] " << (x) << "\n";
+#   define TRACE(x) std::cout << "[libdmusic " << __FILE__ << ":" << __LINE__ << ":" << __func__ << "] " << x << "\n";
 #   if DMUSIC_TRACE_VERBOSE
-#       define TRACE_VERBOSE(x) std::cout << "[libdmusic " << __FILE__ << ":" << __LINE__ << ":" << __func__ << "] " << (x) << "\n";
+#       define TRACE_VERBOSE(x) std::cout << "[libdmusic " << __FILE__ << ":" << __LINE__ << ":" << __func__ << "] " << x << "\n";
 #   else
 #       define TRACE_VERBOSE(x)
 #   endif
