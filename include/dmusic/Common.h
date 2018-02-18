@@ -5,6 +5,7 @@
 #include <cstring>
 #include <string>
 #include <sstream>
+#include <utility>
 
 /// Use this macro to initialize struct fields which are expected to be loaded as little endian data
 #define FIELDINIT(s, f, t) {f = DirectMusic::littleEndianRead<t>(data + offsetof(s, f));}
@@ -147,6 +148,10 @@ namespace DirectMusic {
         return memcmp(&lhs, &rhs, sizeof(rhs)) < 0;
     }
 
+    inline bool operator==(const GUID& lhs, const GUID& rhs) {
+        return memcmp(&lhs, &rhs, sizeof(rhs)) == 0;
+    }
+
     inline GUID operator^(const GUID& lhs, const GUID& rhs) {
         GUID ret;
         ret.Data1 = lhs.Data1 ^ rhs.Data1;
@@ -155,4 +160,28 @@ namespace DirectMusic {
         ret.Data4 = lhs.Data4 ^ rhs.Data4;
         return ret;
     }
+}
+
+namespace std {
+    template<> struct hash<DirectMusic::GUID> {
+        typedef DirectMusic::GUID argument_type;
+        typedef std::size_t result_type;
+        result_type operator()(argument_type const& s) const noexcept {
+            result_type const h1(std::hash<std::uint32_t>{}(s.Data1));
+            result_type const h2(std::hash<std::uint16_t>{}(s.Data2));
+            result_type const h3(std::hash<std::uint16_t>{}(s.Data3));
+            result_type const h4(std::hash<std::uint64_t>{}(s.Data4));
+            return h1 ^ (h2 << 1) ^ (h3 << 2) ^ (h4 << 3);
+        }
+    };
+
+    template<typename T1, typename T2> struct hash<std::pair<T1,T2>> {
+        typedef std::pair<T1, T2> argument_type;
+        typedef std::size_t result_type;
+        result_type operator()(argument_type const& s) const noexcept {
+            result_type const h1(std::hash<T1>{}(s.first));
+            result_type const h2(std::hash<T2>{}(s.second));
+            return h1 ^ (h2 << 1);
+        }
+    };
 }

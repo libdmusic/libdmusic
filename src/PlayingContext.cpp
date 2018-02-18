@@ -271,12 +271,12 @@ std::shared_ptr<DirectMusic::DLS::DownloadableSound> PlayingContext::loadInstrum
     GUID id = guid ^ bandGuid;
 
     if (m_bands.find(id) == m_bands.end()) {
-        TRACE("Band found in cache");
+        TRACE("Loading new band");
         std::vector<std::uint8_t> data = m_loader(file);
         band = genObjFromChunkData<DirectMusic::DLS::DownloadableSound>(data);
         m_bands[id] = band;
     } else {
-        TRACE("Loading new band");
+        TRACE("Band found in cache");
         band = m_bands.at(id);
     }
 
@@ -285,15 +285,16 @@ std::shared_ptr<DirectMusic::DLS::DownloadableSound> PlayingContext::loadInstrum
 
 std::shared_ptr<StyleForm> PlayingContext::loadStyle(const GUID& guid, const std::string& file) {
     std::shared_ptr<StyleForm> style = nullptr;
+    auto key = std::make_pair(guid, file);
 
-    if (m_styles.find(guid) == m_styles.end()) {
-        TRACE("Style found in cache");
+    if (m_styles.find(key) == m_styles.end()) {
+        TRACE("Loading new style");
         std::vector<std::uint8_t> data = m_loader(file);
         style = genObjFromChunkData<StyleForm>(data);
-        m_styles[guid] = style;
+        m_styles[key] = style;
     } else {
-        TRACE("Loading new style");
-        style = m_styles.at(guid);
+        TRACE("Style found in cache");
+        style = m_styles.at(key);
     }
 
     return style;

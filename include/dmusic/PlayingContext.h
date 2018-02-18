@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <memory>
 #include <map>
+#include <unordered_map>
 #include <queue>
 #include <mutex>
 #include <functional>
@@ -27,6 +28,7 @@ namespace DirectMusic {
         float)>;
 
     using MessageQueue = std::priority_queue<std::shared_ptr<MusicMessage>, std::vector<std::shared_ptr<MusicMessage>>, MusicMessageComparer>;
+    using GuidStringPair = std::pair<GUID, std::string>;
 
     class SegmentInfo;
 
@@ -67,7 +69,7 @@ namespace DirectMusic {
         SegmentTiming m_nextSegmentTiming;
 
         std::map<GUID, std::shared_ptr<DirectMusic::DLS::DownloadableSound>> m_bands;
-        std::map<GUID, std::shared_ptr<StyleForm>> m_styles;
+        std::unordered_map<GuidStringPair, std::shared_ptr<StyleForm>> m_styles;
 
         template<typename T>
         static std::shared_ptr<T> genObjFromChunkData(const std::vector<std::uint8_t>& data) {
