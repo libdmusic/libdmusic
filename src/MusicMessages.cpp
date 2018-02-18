@@ -232,6 +232,7 @@ static std::uint8_t getRandomVariation(const std::vector<StylePart>& parts) {
             return i;
     }
     assert(false);
+    return 0;
 }
 
 
