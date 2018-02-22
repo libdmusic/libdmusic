@@ -27,7 +27,7 @@ Usage
 
 You can reproduce segment files (`.sgt`) in one of two ways:
 
-- Rendering the to wave files using [dmrender](utils/dmrender/README.md)
+- Rendering them to wave files using [dmrender](utils/dmrender/README.md)
 - Playing them in realtime using [dmplay](utils/dmplay/README.md)
 
 It is also possible to use the provided [dls2sf](utils/dls2sf/README.md) utility to convert DLS files to SF2 files.
