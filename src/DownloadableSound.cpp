@@ -41,3 +41,9 @@ DownloadableSound::DownloadableSound(const Chunk& c) {
         }
     }
 }
+
+bool DownloadableSound::operator==(const DownloadableSound& a) const {
+    return a.m_dlsid == m_dlsid &&
+        a.m_info == m_info &&
+        a.m_instruments.size() == m_instruments.size();
+}

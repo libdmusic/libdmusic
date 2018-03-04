@@ -5,6 +5,7 @@
 #include <utility>
 #include <string>
 #include <memory>
+#include "Common.h"
 #include "Riff.h"
 #include "Structs.h"
 
@@ -103,6 +104,13 @@ namespace DirectMusic {
         const DirectMusic::Riff::Unfo& getInfo() const { return m_unfo; }
         const std::vector<BandInstrument>& getInstruments() const { return m_instruments; }
 
+        bool operator==(const BandForm& a) const {
+            return a.m_guid == m_guid &&
+                a.m_version == m_version &&
+                a.m_unfo == m_unfo &&
+                a.m_instruments.size() == m_instruments.size();
+        }
+
     private:
         GUID m_guid;
         DMUS_IO_VERSION m_version;
@@ -141,6 +149,14 @@ namespace DirectMusic {
         const DirectMusic::Riff::Unfo& getInfo() const { return m_unfo; }
         const DMUS_IO_SEGMENT_HEADER& getHeader() const { return m_header; }
         const std::vector<TrackForm>& getTracks() const { return m_tracks; }
+
+        bool operator==(const SegmentForm& a) const {
+            return a.m_guid == m_guid &&
+                a.m_version == m_version &&
+                a.m_unfo == m_unfo &&
+                a.m_header == m_header &&
+                a.m_tracks.size() == m_tracks.size();
+        }
 
     private:
         GUID m_guid;
@@ -209,6 +225,17 @@ namespace DirectMusic {
         const std::vector<BandForm>& getBands() const { return m_bands; }
         const std::vector<ReferenceList>& getChordmapReferences() const { return m_references; }
 
+        bool operator==(const StyleForm& a) {
+            return a.m_guid == m_guid &&
+                a.m_version == m_version &&
+                a.m_unfo == m_unfo &&
+                a.m_header == m_header &&
+                a.m_parts.size() == m_parts.size() &&
+                a.m_patterns.size() == m_patterns.size() &&
+                a.m_bands.size() == m_bands.size() &&
+                a.m_references.size() == m_references.size();
+        }
+
     private:
         GUID m_guid;
         DMUS_IO_VERSION m_version;
@@ -218,5 +245,31 @@ namespace DirectMusic {
         std::vector<Pattern> m_patterns;
         std::vector<BandForm> m_bands;
         std::vector<ReferenceList> m_references;
+    };
+}
+
+namespace std {
+    template<> struct hash<DirectMusic::BandForm> {
+        typedef DirectMusic::BandForm argument_type;
+        typedef std::size_t result_type;
+        result_type operator()(argument_type const& s) const noexcept {
+            return std::hash<DirectMusic::GUID>{}(s.getGuid());
+        }
+    };
+
+    template<> struct hash<DirectMusic::SegmentForm> {
+        typedef DirectMusic::SegmentForm argument_type;
+        typedef std::size_t result_type;
+        result_type operator()(argument_type const& s) const noexcept {
+            return std::hash<DirectMusic::GUID>{}(s.getGuid());
+        }
+    };
+
+    template<> struct hash<DirectMusic::StyleForm> {
+        typedef DirectMusic::StyleForm argument_type;
+        typedef std::size_t result_type;
+        result_type operator()(argument_type const& s) const noexcept {
+            return std::hash<DirectMusic::GUID>{}(s.getGuid());
+        }
     };
 }

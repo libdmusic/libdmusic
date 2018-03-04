@@ -6,20 +6,20 @@
 
 #include <cstdint>
 #include <functional>
-#include <map>
+#include <unordered_map>
 #include "dls/DownloadableSound.h"
 #include "InstrumentPlayer.h"
 #include "PlayingContext.h"
 
-struct tsf;
+class TinySoundFont;
 
 namespace DirectMusic {
     class DlsPlayer : public InstrumentPlayer {
     private:
         int m_preset;
-        tsf* m_soundfont;
+        std::shared_ptr<TinySoundFont> m_soundfont;
 
-        static std::map<GUID, tsf*> m_soundfonts;
+        static std::unordered_map<DirectMusic::DLS::DownloadableSound, std::shared_ptr<TinySoundFont>> m_soundfonts;
 
         DlsPlayer(std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patch,
             const DirectMusic::DLS::DownloadableSound& dls,
@@ -28,6 +28,7 @@ namespace DirectMusic {
             std::uint32_t channels,
             float volume,
             float pan);
+
     public:
         virtual std::uint32_t renderBlock(std::int16_t *buffer, std::uint32_t count, bool mix) noexcept;
 

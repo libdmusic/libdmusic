@@ -95,6 +95,26 @@ namespace DirectMusic {
             /// Returns the contents of the ITCH tag
             const std::string& getTechnician() const { return m_itch; }
 
+            bool operator==(const Info& a) const {
+                return a.m_iarl == m_iarl &&
+                    a.m_iart == m_iart &&
+                    a.m_icms == m_icms &&
+                    a.m_icmt == m_icmt &&
+                    a.m_icop == m_icop &&
+                    a.m_icrd == m_icrd &&
+                    a.m_ieng == m_ieng &&
+                    a.m_ignr == m_ignr &&
+                    a.m_ikey == m_ikey &&
+                    a.m_imed == m_imed &&
+                    a.m_inam == m_inam &&
+                    a.m_iprd == m_iprd &&
+                    a.m_isbj == m_isbj &&
+                    a.m_isft == m_isft &&
+                    a.m_isrc == m_isrc &&
+                    a.m_isrf == m_isrf &&
+                    a.m_itch == m_itch;
+            }
+
         private:
             std::string m_iarl, m_iart, m_icms, m_icmt,
                 m_icop, m_icrd, m_ieng, m_ignr, m_ikey,
@@ -164,6 +184,26 @@ namespace DirectMusic {
 
             /// Returns the contents of the ITCH tag
             const std::string& getTechnician() const { return m_itch; }
+
+            bool operator==(const Unfo& a) const {
+                return a.m_iarl == m_iarl &&
+                    a.m_iart == m_iart &&
+                    a.m_icms == m_icms &&
+                    a.m_icmt == m_icmt &&
+                    a.m_icop == m_icop &&
+                    a.m_icrd == m_icrd &&
+                    a.m_ieng == m_ieng &&
+                    a.m_ignr == m_ignr &&
+                    a.m_ikey == m_ikey &&
+                    a.m_imed == m_imed &&
+                    a.m_inam == m_inam &&
+                    a.m_iprd == m_iprd &&
+                    a.m_isbj == m_isbj &&
+                    a.m_isft == m_isft &&
+                    a.m_isrc == m_isrc &&
+                    a.m_isrf == m_isrf &&
+                    a.m_itch == m_itch;
+            }
 
         private:
             std::string m_iarl, m_iart, m_icms, m_icmt,

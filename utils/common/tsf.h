@@ -175,7 +175,7 @@ TSFDEF void tsf_render_float(tsf* f, float* buffer, int samples, int flag_mixing
 
 // Copy a tsf instance from an exist one, use tsf_close to close it as well.
 // Copied tsf instances share everything with its base, except 'voices' and 'voiceNum'.
-TSFDEF tsf* tsf_copy(tsf* f);
+TSFDEF tsf* tsf_copy(const tsf* f);
 
 #ifdef __cplusplus
 #  undef CPP_DEFAULT0
@@ -1133,7 +1133,7 @@ TSFDEF tsf* tsf_load(struct tsf_stream* stream)
 	return res;
 }
 
-TSFDEF tsf* tsf_copy(tsf* f)
+TSFDEF tsf* tsf_copy(const tsf* f)
 {
 	tsf* res = TSF_NULL;
 	if (f)

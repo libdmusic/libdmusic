@@ -8,12 +8,12 @@
 #include <sf2cute.hpp>
 #include "decode.h"
 #define TSF_IMPLEMENTATION
-#include "../utils/common/tsf.h"
+#include "../utils/common/tsf.hxx"
 using namespace DirectMusic;
 using namespace DirectMusic::DLS;
 using namespace sf2cute;
 
-std::map<GUID, tsf*> DlsPlayer::m_soundfonts;
+std::unordered_map<DownloadableSound, std::shared_ptr<TinySoundFont>> DlsPlayer::m_soundfonts;
 
 static double dwordTimecentsToSeconds(std::int32_t tc) {
     return exp2((double)tc / (1200.0 * 65536.0));
@@ -48,6 +48,9 @@ static void insertArticulator(const DLS::Articulator& articulator, std::vector<S
                 gen = SFGenerator::kReleaseModEnv; break;
             case DLS::ArticulatorDestination::EG2SustainLevel:
                 gen = SFGenerator::kSustainModEnv; break;
+
+            default:
+                continue;
             }
             double secs = dwordTimecentsToSeconds(connBlock.lScale);
             std::int16_t newValue = secondsToWordTimecents(secs);
@@ -56,7 +59,7 @@ static void insertArticulator(const DLS::Articulator& articulator, std::vector<S
     }
 }
 
-static tsf* convertCollection(const DirectMusic::DLS::DownloadableSound& dls) {
+static std::shared_ptr<TinySoundFont> convertCollection(const DirectMusic::DLS::DownloadableSound& dls) {
     std::vector<SFSample> samples;
     SoundFont sf2;
 
@@ -160,8 +163,7 @@ static tsf* convertCollection(const DirectMusic::DLS::DownloadableSound& dls) {
 
     std::stringstream stream;
     sf2.Write(stream);
-    std::string buffer = stream.str();
-    return tsf_load_memory(buffer.c_str(), buffer.size());
+    return std::make_shared<TinySoundFont>(stream);
 }
 
 static float gainToDecibels(float gain) {
@@ -179,16 +181,15 @@ DlsPlayer::DlsPlayer(std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patc
     , m_soundfont(nullptr) {
     assert(channels <= 2);
 
-    tsf* soundfont = nullptr;
-    GUID id = dls.getGuid() ^ bandId;
-    if (m_soundfonts.find(id) == m_soundfonts.end()) {
+    std::shared_ptr<TinySoundFont> soundfont;
+    if (m_soundfonts.find(dls) == m_soundfonts.end()) {
         soundfont = convertCollection(dls);
         TSFOutputMode outputMode = m_channels == 1 ? TSF_MONO : TSF_STEREO_INTERLEAVED;
-        tsf_set_output(soundfont, outputMode, sampleRate, 0);
+        soundfont->setOutput(outputMode, sampleRate);
 
-        m_soundfonts[id] = soundfont;
+        m_soundfonts[dls] = soundfont;
     } else {
-        soundfont = tsf_copy(m_soundfonts[id]);
+        soundfont = std::make_shared<TinySoundFont>(*m_soundfonts[dls]);
     }
 
     std::uint32_t bank = (bankHi << 16) + bankLo;
@@ -196,33 +197,35 @@ DlsPlayer::DlsPlayer(std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patc
     m_pan = pan < -1 ? -1 : pan > 1 ? 1 : pan;
     m_soundfont = soundfont;
 
-    m_preset = tsf_get_presetindex(m_soundfont, 0, patch);
+    m_preset = m_soundfont->getPresetIndex(0, patch);
     assert(m_preset >= 0);
 
     float volFactorRight = sqrt((m_pan + 1) / 2);
     float volFactorLeft = sqrt((-m_pan + 1) / 2);
 
-    tsf_set_preset_panning(m_soundfont, m_preset, volFactorLeft, volFactorRight);
-    tsf_set_preset_gain(m_soundfont, m_preset, gainToDecibels(m_volume));
+    //tsf_set_preset_panning(m_soundfont, m_preset, volFactorLeft, volFactorRight);
+    m_soundfont->setPresetPanning(m_preset, volFactorLeft, volFactorRight);
+    //tsf_set_preset_gain(m_soundfont, m_preset, gainToDecibels(m_volume));
+    m_soundfont->setPresetGain(m_preset, gainToDecibels(m_volume));
 }
 
 std::uint32_t DlsPlayer::renderBlock(std::int16_t *buffer, std::uint32_t count, bool mix) noexcept {
-    tsf_render_short(m_soundfont, buffer, count / m_channels, mix ? 1 : 0);
+    m_soundfont->renderSamples(buffer, count / m_channels, mix);
     return count;
 }
 
 /// Instructs the synthesizer to start playing a note
 void DlsPlayer::noteOn(std::uint8_t note, std::uint8_t velocity) {
-    tsf_note_on(m_soundfont, m_preset, note, velocity / 255.0f);
+    m_soundfont->noteOn(m_preset, note, velocity / 255.0f);
 }
 
 /// Instructs the synthesizer to stop playing a note
 void DlsPlayer::noteOff(std::uint8_t note, std::uint8_t velocity) {
-    tsf_note_off(m_soundfont, m_preset, note);
+    m_soundfont->noteOff(m_preset, note);
 }
 
 void DlsPlayer::allNotesOff() {
-    tsf_all_notes_off(m_soundfont, m_preset);
+    m_soundfont->allNotesOff(m_preset);
 }
 
 /// Sends a "channel pressure" message
@@ -235,7 +238,7 @@ void DlsPlayer::polyAftertouch(std::uint8_t note, std::uint8_t val) {}
 void DlsPlayer::controlChange(DirectMusic::Midi::Control control, float val) {
     if (control == DirectMusic::Midi::Control::ChannelVolume || control == DirectMusic::Midi::Control::ExpressionCtl) {
         m_volume = val;
-        tsf_set_preset_gain(m_soundfont, m_preset, gainToDecibels(m_volume * m_volume * m_volume * m_volume));
+        m_soundfont->setPresetGain(m_preset, gainToDecibels(m_volume * m_volume * m_volume * m_volume));
     }
 }
 
@@ -247,11 +250,11 @@ void DlsPlayer::pitchBend(std::int16_t val) {}
 
 PlayerFactory DlsPlayer::createFactory() {
     return [](std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patch,
-        const GUID& bandGuid, const DownloadableSound& dls, std::uint32_t sampleRate, std::uint32_t chans, float vol, float pan) {
+        const GUID& bandGuid, const DownloadableSound& dls, std::uint32_t sampleRate, std::uint32_t chans, float vol, float pan) -> std::shared_ptr<InstrumentPlayer> {
 
-        return std::static_pointer_cast<InstrumentPlayer>(std::shared_ptr<DlsPlayer>{
+        return std::shared_ptr<DlsPlayer>{
             new DlsPlayer(bankLo, bankHi, patch, dls, bandGuid, sampleRate, chans, vol, pan)
-        });
+        };
     };
 }
 

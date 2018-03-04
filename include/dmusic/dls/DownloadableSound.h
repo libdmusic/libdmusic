@@ -50,6 +50,8 @@ namespace DirectMusic {
             const DirectMusic::Riff::Info& getInfo() const { return m_info; }
             const GUID& getGuid() const { return m_dlsid; }
 
+            bool operator==(const DownloadableSound& a) const;
+
         private:
             std::uint64_t m_version;
             GUID m_dlsid;
@@ -59,4 +61,14 @@ namespace DirectMusic {
             std::vector<Wave> m_wavePool;
         };
     }
+}
+
+namespace std {
+    template<> struct hash<DirectMusic::DLS::DownloadableSound> {
+        typedef DirectMusic::DLS::DownloadableSound argument_type;
+        typedef std::size_t result_type;
+        result_type operator()(argument_type const& s) const noexcept {
+            return std::hash<DirectMusic::GUID>{}(s.getGuid());
+        }
+    };
 }

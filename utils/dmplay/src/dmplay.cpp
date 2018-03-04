@@ -64,8 +64,6 @@ int main(int argc, char **argv) {
     int sampleRate = samplingRate ? args::get(samplingRate) : 44100;
     int channels = numChannels ? args::get(numChannels) : 2;
 
-    // Store soundfonts based on their name
-    std::map<std::string, tsf*> soundfontMap;
     PlayingContext ctx(sampleRate, channels, DlsPlayer::createFactory());
     std::cout << "Loading segment...";
     auto segment = ctx.loadSegment(args::get(segmentName));

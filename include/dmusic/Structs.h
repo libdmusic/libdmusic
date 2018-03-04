@@ -21,6 +21,12 @@ namespace DirectMusic {
         /// Grids (subdivisions) per beat.
         std::uint16_t wGridsPerBeat;
 
+        bool operator==(const DMUS_IO_TIMESIG& a) const {
+            return a.bBeat == bBeat &&
+                a.bBeatsPerMeasure == bBeatsPerMeasure &&
+                a.wGridsPerBeat == wGridsPerBeat;
+        }
+
         DMUS_IO_TIMESIG() {}
         DMUS_IO_TIMESIG(const std::uint8_t *data) {
             FIELDINIT(DMUS_IO_TIMESIG, bBeatsPerMeasure, std::uint8_t);
@@ -756,6 +762,21 @@ namespace DirectMusic {
 
         /// Start point in clock time.
         std::uint64_t rtPlayStart;
+
+        bool operator==(const DMUS_IO_SEGMENT_HEADER& a) const {
+            return a.dwRepeats == dwRepeats &&
+                a.mtLength == mtLength &&
+                a.mtPlayStart == mtPlayStart &&
+                a.mtLoopStart == mtLoopStart &&
+                a.mtLoopEnd == mtLoopEnd &&
+                a.dwResolution == dwResolution &&
+                a.rtLength == rtLength &&
+                a.dwFlags == dwFlags &&
+                a.dwReserved == dwReserved &&
+                a.rtLoopStart == rtLoopStart &&
+                a.rtLoopEnd == rtLoopEnd;
+        }
+
         DMUS_IO_SEGMENT_HEADER() {}
         DMUS_IO_SEGMENT_HEADER(const std::uint8_t *data) {
             FIELDINIT(DMUS_IO_SEGMENT_HEADER, dwRepeats, std::uint32_t);
@@ -860,6 +881,11 @@ namespace DirectMusic {
 
         /// Tempo of the style.
         double dblTempo;
+
+        bool operator==(const DMUS_IO_STYLE& a) const {
+            return a.timeSig == timeSig &&
+                a.dblTempo == dblTempo;
+        }
 
         DMUS_IO_STYLE() {}
         DMUS_IO_STYLE(const std::uint8_t *data)
@@ -1288,6 +1314,11 @@ namespace DirectMusic {
 
         /// Low-order 32 bits of the version number.
         std::uint32_t dwVersionLS;
+
+        bool operator==(const DMUS_IO_VERSION& a) const {
+            return dwVersionLS == a.dwVersionLS &&
+                dwVersionMS == a.dwVersionMS;
+        }
 
         DMUS_IO_VERSION() {}
         DMUS_IO_VERSION(const std::uint8_t *data) {
