@@ -57,15 +57,10 @@ public:
         tsf_all_notes_off(m_soundfont, preset);
     }
 
-    template<typename T>
-    void renderSamples(T* buffer, int samples, bool mixing);
-
-    template<>
     void renderSamples(short* buffer, int samples, bool mixing) {
         tsf_render_short(m_soundfont, buffer, samples, mixing ? 1 : 0);
     }
 
-    template<>
     void renderSamples(float* buffer, int samples, bool mixing) {
         tsf_render_float(m_soundfont, buffer, samples, mixing ? 1 : 0);
     }
