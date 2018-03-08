@@ -1,6 +1,7 @@
 #include <dmusic/PlayingContext.h>
 #include <dmusic/Tracks.h>
 #include "MusicMessages.h"
+#include <exception>
 #include <cassert>
 #include <cmath>
 #include <bitset>
@@ -180,7 +181,7 @@ std::shared_ptr<SegmentInfo> PlayingContext::prepareSegment(const SegmentForm& s
 
                 std::string styleFile = refs.getFile();
                 auto styleForm = loadStyle(refs.getGuid(), std::string(styleFile.begin(), styleFile.end()));
-                assert(styleForm != nullptr);
+
                 std::map<GUID, StylePart> parts;
                 for (const auto& part : styleForm->getParts()) {
                     parts[part.getHeader().guidPartID] = part;
@@ -195,7 +196,10 @@ std::shared_ptr<SegmentInfo> PlayingContext::prepareSegment(const SegmentForm& s
 
                         const auto& partGuid = partRef.guidPartID;
 
-                        assert(parts.find(partGuid) != parts.end());
+                        if (parts.find(partGuid) == parts.end()) {
+                            throw std::runtime_error("Couldn't find part: " + partGuid.toString());
+                        }
+
                         StylePart part = parts[partGuid];
                         pttn.parts.push_back(std::make_pair(partRef, part));
                     }
@@ -274,6 +278,11 @@ std::shared_ptr<DirectMusic::DLS::DownloadableSound> PlayingContext::loadInstrum
         TRACE("Loading new band");
         std::vector<std::uint8_t> data = m_loader(file);
         band = genObjFromChunkData<DirectMusic::DLS::DownloadableSound>(data);
+
+        if (band == nullptr) {
+            throw std::runtime_error("Couldn't load band: " + file);
+        }
+
         m_bands[id] = band;
     } else {
         TRACE("Band found in cache");
@@ -291,6 +300,11 @@ std::shared_ptr<StyleForm> PlayingContext::loadStyle(const GUID& guid, const std
         TRACE("Loading new style");
         std::vector<std::uint8_t> data = m_loader(file);
         style = genObjFromChunkData<StyleForm>(data);
+
+        if (style == nullptr) {
+            throw std::runtime_error("Couldn't load style: " + file);
+        }
+
         m_styles[key] = style;
     } else {
         TRACE("Style found in cache");
