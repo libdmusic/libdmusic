@@ -146,7 +146,17 @@ static bool MusicValueToMIDI(std::uint32_t chord, const std::vector<DMUS_IO_SUBC
     |-------|-|-|-||-|-||-|-|-||-|-|
     C    W W W HW W HW W W HW W -----> C Major scale
     */
-    DMUS_IO_SUBCHORD subchord = subchords[0];
+    DMUS_IO_SUBCHORD subchord;
+    subchord.bChordRoot = 12;
+    subchord.bScaleRoot = 0;
+    subchord.dwChordPattern = 0x00000091;
+    subchord.dwInversionPoints = 0xFFFFFFFF;
+    subchord.dwLevels = 1;
+    subchord.dwScalePattern = 0x00AB5AB5;
+
+    if (subchords.size() > 0) {
+        subchord = subchords[0];
+    }
 
     /* Had to dig hard for this one: https://msdn.microsoft.com/en-us/library/ms898477.aspx
     Here is how to interpret wMusicValue:
