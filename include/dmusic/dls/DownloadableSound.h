@@ -43,6 +43,7 @@ namespace DirectMusic {
         class DownloadableSound {
         public:
             DownloadableSound() {};
+            DownloadableSound(const std::string& path);
             DownloadableSound(const DirectMusic::Riff::Chunk& c);
             const std::vector<Instrument>& getInstruments() const { return m_instruments; }
             const std::vector<std::uint32_t>& getPoolOffsets() const { return m_poolOffsets; }
@@ -59,6 +60,8 @@ namespace DirectMusic {
             DirectMusic::Riff::Info m_info;
             std::vector<std::uint32_t> m_poolOffsets;
             std::vector<Wave> m_wavePool;
+
+            void loadChunk(const DirectMusic::Riff::Chunk& c);
         };
     }
 }

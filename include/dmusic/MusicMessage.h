@@ -27,6 +27,9 @@ namespace DirectMusic {
             std::uint8_t bank_lo, std::uint8_t bank_hi, std::uint8_t patch,
             const GUID& bandGuid, const DirectMusic::DLS::DownloadableSound& dls,
             float volume, float pan);
+        std::shared_ptr<InstrumentPlayer> createGMInstrument(PlayingContext& ctx,
+            std::uint8_t bank_lo, std::uint8_t bank_hi, std::uint8_t patch,
+            float volume, float pan);
         void setInstrument(PlayingContext& ctx, std::uint32_t channel, std::shared_ptr<InstrumentPlayer> instr);
         void playPattern(PlayingContext& ctx);
         void setGrooveLevel(PlayingContext& ctx, std::uint8_t level);

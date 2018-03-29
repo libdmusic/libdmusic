@@ -1,3 +1,6 @@
+#include <fstream>
+#include <vector>
+#include <exception>
 #include <dmusic/dls/DownloadableSound.h>
 #include <dmusic/Exceptions.h>
 #include <dmusic/dls/Instrument.h>
@@ -6,7 +9,7 @@ using namespace DirectMusic;
 using namespace DirectMusic::Riff;
 using namespace DirectMusic::DLS;
 
-DownloadableSound::DownloadableSound(const Chunk& c) {
+void DownloadableSound::loadChunk(const Chunk& c) {
     if (c.getId() != "RIFF" || c.getListId() != "DLS ")
         throw DirectMusic::InvalidChunkException("RIFF DLS", c.getId() + " " + c.getListId());
 
@@ -28,11 +31,11 @@ DownloadableSound::DownloadableSound(const Chunk& c) {
         } else if (id == "LIST") {
             std::string listId = subchunk.getListId();
             if (listId == "lins") {
-                for (Chunk ins: subchunk.getSubchunks()) {
+                for (Chunk ins : subchunk.getSubchunks()) {
                     m_instruments.push_back(Instrument(ins));
                 }
             } else if (listId == "wvpl") {
-                for (Chunk wav: subchunk.getSubchunks()) {
+                for (Chunk wav : subchunk.getSubchunks()) {
                     m_wavePool.push_back(Wave(wav));
                 }
             } else if (listId == "INFO") {
@@ -40,6 +43,23 @@ DownloadableSound::DownloadableSound(const Chunk& c) {
             }
         }
     }
+}
+
+DownloadableSound::DownloadableSound(const Chunk& c) {
+    loadChunk(c);
+}
+
+DownloadableSound::DownloadableSound(const std::string& path) {
+    std::ifstream inputStream(path, std::ios::binary | std::ios::ate);
+    if (!inputStream.is_open()) {
+        throw std::runtime_error("Cannot open file " + path);
+    }
+    std::vector<std::uint8_t> buffer(inputStream.tellg());
+    inputStream.seekg(0);
+    inputStream.read((char*)buffer.data(), buffer.size());
+    inputStream.close();
+
+    loadChunk(Chunk(buffer.data()));
 }
 
 bool DownloadableSound::operator==(const DownloadableSound& a) const {

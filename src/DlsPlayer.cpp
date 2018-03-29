@@ -258,4 +258,14 @@ PlayerFactory DlsPlayer::createFactory() {
     };
 }
 
+GMPlayerFactory DlsPlayer::createGMFactory(const DownloadableSound& dls) {
+    return [dls](std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patch,
+        std::uint32_t sampleRate, std::uint32_t chans, float vol, float pan) -> std::shared_ptr<InstrumentPlayer> {
+
+        return std::shared_ptr<DlsPlayer>{
+            new DlsPlayer(bankLo, bankHi, patch, dls, GUID(), sampleRate, chans, vol, pan)
+        };
+    };
+}
+
 #endif

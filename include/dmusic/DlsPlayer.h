@@ -56,5 +56,6 @@ namespace DirectMusic {
         virtual void pitchBend(std::int16_t val);
 
         static PlayerFactory createFactory();
+        static GMPlayerFactory createGMFactory(const DLS::DownloadableSound& dls);
     };
 }

@@ -1,4 +1,5 @@
 #include "MusicMessages.h"
+#include "DummyPlayer.h"
 #include <dmusic/Structs.h>
 #include <dmusic/PlayingContext.h>
 #include <cassert>
@@ -22,6 +23,16 @@ std::shared_ptr<InstrumentPlayer> MusicMessage::createInstrument(PlayingContext&
     std::uint8_t bank_lo, std::uint8_t bank_hi, std::uint8_t patch,
     const GUID& bandGuid, const DirectMusic::DLS::DownloadableSound& dls, float volume, float pan) {
     return ctx.m_instrumentFactory(bank_lo, bank_hi, patch, bandGuid, dls, ctx.m_sampleRate, ctx.m_audioChannels, volume, pan);
+}
+
+std::shared_ptr<InstrumentPlayer> MusicMessage::createGMInstrument(PlayingContext& ctx,
+    std::uint8_t bank_lo, std::uint8_t bank_hi, std::uint8_t patch,
+    float volume, float pan) {
+    if (ctx.m_gminstrumentFactory != nullptr) {
+        return ctx.m_gminstrumentFactory(bank_lo, bank_hi, patch, ctx.m_sampleRate, ctx.m_audioChannels, volume, pan);
+    } else {
+        return std::make_shared<DummyPlayer>(bank_lo, bank_hi, patch, DLS::DownloadableSound(), ctx.m_sampleRate, ctx.m_audioChannels, volume, pan);
+    }
 }
 
 void MusicMessage::setInstrument(PlayingContext& ctx, std::uint32_t channel, std::shared_ptr<InstrumentPlayer> instr) {
@@ -258,7 +269,7 @@ void MusicMessage::playPattern(PlayingContext& ctx) {
         kvpair.second->allNotesOff();
     }
 
-    if (ctx.m_primarySegment != nullptr && ctx.m_performanceChannels.size() > 0 && ctx.m_subchords.size() > 0) {
+    if (ctx.m_primarySegment != nullptr && ctx.m_performanceChannels.size() > 0) {
         PlayingContext::Pattern pttn;
         if (ctx.getRandomPattern(*ctx.m_primarySegment, ctx.m_grooveLevel, &pttn)) {
             TRACE("Suitable pattern found: " << pttn.parts.size() << " parts");
@@ -274,6 +285,12 @@ void MusicMessage::playPattern(PlayingContext& ctx) {
                 const auto& part = partTuple.second;
                 const auto& header = part.getHeader();
 
+                std::uint32_t PChannel = partRef.wLogicalPartID;
+                if ((PChannel - 9) % 16 == 0) {
+                    // Every 16th channel after the 10th is a percussion channel, we map all of them to the 10th
+                    PChannel = 9;
+                }
+
                 for (const auto& note : part.getNotes()) {
 
                     if (!(note.dwVariation & variation)) continue;
@@ -283,11 +300,11 @@ void MusicMessage::playPattern(PlayingContext& ctx) {
 
                     if (MusicValueToMIDI(ctx.m_chord, ctx.m_subchords, note, part.getHeader(), &midiNote)) {
                         std::uint32_t time = ctx.m_musicTime + timeStart;
-                        auto noteOnMessage = std::make_shared<NoteOnMessage>(time, midiNote, note.bVelocity, 0, partRef.wLogicalPartID);
+                        auto noteOnMessage = std::make_shared<NoteOnMessage>(time, midiNote, note.bVelocity, 0, partRef.wLogicalPartID, PChannel);
                         assert(noteOnMessage != nullptr);
                         ctx.m_patternMessageQueue.push(noteOnMessage);
 
-                        auto noteOffMessage = std::make_shared<NoteOffMessage>(time + note.mtDuration, midiNote, partRef.wLogicalPartID);
+                        auto noteOffMessage = std::make_shared<NoteOffMessage>(time + note.mtDuration, midiNote, partRef.wLogicalPartID, PChannel);
                         assert(noteOffMessage != nullptr);
                         ctx.m_patternMessageQueue.push(noteOffMessage);
                     }
@@ -321,7 +338,7 @@ void MusicMessage::playPattern(PlayingContext& ctx) {
 
                             float value = curveFunction(phase, startValue, endValue);
 
-                            auto msg = std::make_shared<ControlChangeMessage>(ctx.m_musicTime + timeStart + offset, partRef.wLogicalPartID, control, value);
+                            auto msg = std::make_shared<ControlChangeMessage>(ctx.m_musicTime + timeStart + offset, partRef.wLogicalPartID, PChannel, control, value);
                             assert(msg != nullptr);
                             ctx.m_patternMessageQueue.push(msg);
                         }
@@ -382,17 +399,21 @@ BandChangeMessage::BandChangeMessage(PlayingContext& ctx, std::uint32_t time, co
     for (const auto& instr : form.getInstruments()) {
         const auto& header = instr.getHeader();
         const auto ref = instr.getReference();
-        if (ref != nullptr) {
-            std::uint8_t bankHi = (header.dwPatch & 0x00FF0000) >> 0x10;
-            std::uint8_t bankLo = (header.dwPatch & 0x0000FF00) >> 0x8;
-            std::uint8_t patch = (header.dwPatch & 0x000000FF);
-            float volume = (header.bVolume * header.bVolume) / (127.0 * 127.0);
-            float pan = ((float)(header.bPan) - 63.0f) / 64.0f;
 
+        std::uint8_t bankHi = (header.dwPatch & 0x00FF0000) >> 0x10;
+        std::uint8_t bankLo = (header.dwPatch & 0x0000FF00) >> 0x8;
+        std::uint8_t patch = (header.dwPatch & 0x000000FF);
+        float volume = (header.bVolume * header.bVolume) / (127.0 * 127.0);
+        float pan = ((float)(header.bPan) - 63.0f) / 64.0f;
+
+        if (ref != nullptr) {
             auto dls = ctx.loadInstrumentCollection(ref->getGuid(), form.getGuid(), ref->getFile());
 
             assert(dls != nullptr);
             instruments[header.dwPChannel] = createInstrument(ctx, bankLo, bankHi, patch, form.getGuid(), *dls, volume, pan);
+        } else {
+            // The instrument is to be played from a standard GM preset
+            instruments[header.dwPChannel] = createGMInstrument(ctx, bankLo, bankHi, patch, volume, pan);
         }
     }
 }
@@ -421,23 +442,39 @@ void ChordMessage::Execute(PlayingContext& ctx) {
     changeChord(ctx, this->m_chord, this->m_subchords);
 }
 
+static std::shared_ptr<InstrumentPlayer> findChannel(const std::map<std::uint32_t, std::shared_ptr<InstrumentPlayer>>& channels, std::uint32_t channel, std::uint32_t channelAlt) {
+    if (channels.find(channel) != channels.end()) {
+        return channels.at(channel);
+    } else if (channels.find(channelAlt) != channels.end()) {
+        return channels.at(channelAlt);
+    } else {
+        return nullptr;
+    }
+}
+
 void NoteOnMessage::Execute(PlayingContext& ctx) {
     TRACE_VERBOSE("Note on");
     const auto& channels = getChannels(ctx);
-    assert(channels.find(m_channel) != channels.end());
-    if (m_velRange == 0) {
-        channels.at(m_channel)->noteOn(m_note, m_vel);
-    } else {
-        std::int8_t offset = (std::rand() % m_velRange) - (m_velRange / 2);
-        channels.at(m_channel)->noteOn(m_note, m_vel - offset);
+    std::shared_ptr<InstrumentPlayer> player = nullptr;
+    if (player = findChannel(channels, m_channel, m_channelAlt)) {
+        if (m_velRange == 0) {
+            player->noteOn(m_note, m_vel);
+        } else {
+            std::int8_t offset = (std::rand() % m_velRange) - (m_velRange / 2);
+            player->noteOn(m_note, m_vel - offset);
+        }
     }
+    assert(player != nullptr);
 }
 
 void NoteOffMessage::Execute(PlayingContext& ctx) {
     TRACE_VERBOSE("Note off");
     const auto& channels = getChannels(ctx);
-    assert(channels.find(m_channel) != channels.end());
-    channels.at(m_channel)->noteOff(m_note, 0);
+    std::shared_ptr<InstrumentPlayer> player = nullptr;
+    if (player = findChannel(channels, m_channel, m_channelAlt)) {
+        player->noteOff(m_note, 0);
+    }
+    assert(player != nullptr);
 }
 
 void SegmentEndMessage::Execute(PlayingContext& ctx) {
@@ -455,6 +492,9 @@ void PatternEndMessage::Execute(PlayingContext& ctx) {
 void ControlChangeMessage::Execute(PlayingContext& ctx) {
     TRACE("Control change");
     const auto& channels = getChannels(ctx);
-    assert(channels.find(m_channel) != channels.end());
-    channels.at(m_channel)->controlChange(m_control, m_value);
+    std::shared_ptr<InstrumentPlayer> player = nullptr;
+    if (player = findChannel(channels, m_channel, m_channelAlt)) {
+        player->controlChange(m_control, m_value);
+    }
+    assert(player != nullptr);
 }

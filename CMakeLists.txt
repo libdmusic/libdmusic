@@ -25,6 +25,7 @@ set(LIB_SRC
   "src/decode.cpp"
   "src/DlsPlayer.cpp"
   "src/DownloadableSound.cpp"
+  "src/DummyPlayer.cpp"
   "src/Exceptions.cpp"
   "src/Instrument.cpp"
   "src/MusicMessages.cpp"

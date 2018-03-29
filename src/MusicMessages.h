@@ -80,40 +80,42 @@ namespace DirectMusic {
 
     class NoteOnMessage : public MusicMessage {
     public:
-        NoteOnMessage(std::uint32_t time, std::uint8_t note, std::uint8_t velocity, std::uint8_t velRange, std::uint32_t channel)
+        NoteOnMessage(std::uint32_t time, std::uint8_t note, std::uint8_t velocity, std::uint8_t velRange, std::uint32_t channel, std::uint32_t channelAlt)
             : MusicMessage(time),
             m_note(note),
             m_vel(velocity),
             m_velRange(velRange),
-            m_channel(channel) {}
+            m_channel(channel),
+            m_channelAlt(channelAlt) {}
 
         virtual std::shared_ptr<MusicMessage> Clone(std::uint32_t newTime) {
-            return std::make_shared<NoteOnMessage>(newTime, m_note, m_vel, m_velRange, m_channel);
+            return std::make_shared<NoteOnMessage>(newTime, m_note, m_vel, m_velRange, m_channel, m_channelAlt);
         }
 
         virtual void Execute(PlayingContext& ctx);
 
     private:
         std::uint8_t m_note, m_vel, m_velRange;
-        std::uint32_t m_channel;
+        std::uint32_t m_channel, m_channelAlt;
     };
 
     class NoteOffMessage : public MusicMessage {
     public:
-        NoteOffMessage(std::uint32_t time, std::uint8_t note, std::uint32_t channel)
+        NoteOffMessage(std::uint32_t time, std::uint8_t note, std::uint32_t channel, std::uint32_t channelAlt)
             : MusicMessage(time),
             m_note(note),
-            m_channel(channel) {}
+            m_channel(channel),
+            m_channelAlt(channelAlt) {}
 
         virtual std::shared_ptr<MusicMessage> Clone(std::uint32_t newTime) {
-            return std::make_shared<NoteOffMessage>(newTime, m_note, m_channel);
+            return std::make_shared<NoteOffMessage>(newTime, m_note, m_channel, m_channelAlt);
         }
 
         virtual void Execute(PlayingContext& ctx);
 
     private:
         std::uint8_t m_note;
-        std::uint32_t m_channel;
+        std::uint32_t m_channel, m_channelAlt;
     };
 
     class SegmentEndMessage : public MusicMessage {
@@ -144,21 +146,22 @@ namespace DirectMusic {
 
     class ControlChangeMessage : public MusicMessage {
     public:
-        ControlChangeMessage(std::uint32_t time, std::uint32_t channel, DirectMusic::Midi::Control control, float value)
+        ControlChangeMessage(std::uint32_t time, std::uint32_t channel, std::uint32_t channelAlt, DirectMusic::Midi::Control control, float value)
             : MusicMessage(time),
             m_control(control),
             m_channel(channel),
+            m_channelAlt(channelAlt),
             m_value(value) {}
 
         virtual std::shared_ptr<MusicMessage> Clone(std::uint32_t newTime) {
-            return std::make_shared<ControlChangeMessage>(newTime, m_channel, m_control, m_value);
+            return std::make_shared<ControlChangeMessage>(newTime, m_channel, m_channelAlt, m_control, m_value);
         }
 
         virtual void Execute(PlayingContext& ctx);
 
     private:
         float m_value;
-        std::uint32_t m_channel;
+        std::uint32_t m_channel, m_channelAlt;
         DirectMusic::Midi::Control m_control;
     };
 }

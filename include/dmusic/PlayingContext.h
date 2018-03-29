@@ -19,13 +19,20 @@
 
 namespace DirectMusic {
     using PlayerFactory = std::function<std::shared_ptr<InstrumentPlayer>(
-        std::uint8_t, std::uint8_t, std::uint8_t,
+        std::uint8_t, std::uint8_t, std::uint8_t, // Bank lo, Bank hi, patch
         const GUID& bandId,
         const DirectMusic::DLS::DownloadableSound&,
-        std::uint32_t,
-        std::uint32_t,
-        float,
-        float)>;
+        std::uint32_t, // Sample rate
+        std::uint32_t, // Channels
+        float, // Volume
+        float)>; // Pan
+
+    using GMPlayerFactory = std::function<std::shared_ptr<InstrumentPlayer>(
+        std::uint8_t, std::uint8_t, std::uint8_t, // Bank lo, Bank hi, patch
+        std::uint32_t, // Sample rate
+        std::uint32_t, // Channels
+        float, // Volume
+        float)>; // Pan
 
     using MessageQueue = std::priority_queue<std::shared_ptr<MusicMessage>, std::vector<std::shared_ptr<MusicMessage>>, MusicMessageComparer>;
     using GuidStringPair = std::pair<GUID, std::string>;
@@ -54,6 +61,7 @@ namespace DirectMusic {
         bool getRandomPattern(const SegmentInfo& segm, std::uint8_t grooveLevel, Pattern* output) const;
 
         PlayerFactory m_instrumentFactory;
+        GMPlayerFactory  m_gminstrumentFactory; //< Used to instantiate instruments that come from GM patches
         std::uint32_t m_sampleRate, m_audioChannels;
         std::function<std::vector<std::uint8_t>(const std::string&)> m_loader;
         std::map<std::uint32_t, std::shared_ptr<InstrumentPlayer>> m_performanceChannels;
@@ -84,14 +92,16 @@ namespace DirectMusic {
 
         static const std::uint32_t PulsesPerQuarterNote = 768;
 
-        /// Creates a new playing contest with the specified sampling rate and
+        /// Creates a new playing context with the specified sampling rate and
         /// number of audio channels (normally 1 (mono) or 2 (stereo))
         PlayingContext(std::uint32_t sampleRate,
             std::uint32_t audioChannels,
-            PlayerFactory instrumentFactory)
+            PlayerFactory instrumentFactory,
+            GMPlayerFactory gminstrumentFactory = nullptr)
             : m_sampleRate(sampleRate),
             m_audioChannels(audioChannels),
             m_instrumentFactory(instrumentFactory),
+            m_gminstrumentFactory(gminstrumentFactory),
             m_musicTime(0),
             m_grooveLevel(1),
             m_tempo(100),
