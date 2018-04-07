@@ -291,9 +291,13 @@ void PlayingContext::playSegment(std::shared_ptr<SegmentInfo> segment, SegmentTi
     if (m_primarySegment == nullptr) {
         m_primarySegment = segment;
         enqueueSegment(m_primarySegment);
-    } else if(segment != nullptr && *m_primarySegment != *segment) {
-        m_nextSegment = segment;
-        m_nextSegmentTiming = timing;
+    } else if(segment != nullptr) {
+        if (*m_primarySegment != *segment) {
+            m_nextSegment = segment;
+            m_nextSegmentTiming = timing;
+        } else {
+            m_nextSegment = nullptr;
+        }
     }
     m_queueMutex.unlock();
 }
