@@ -63,7 +63,7 @@ enum class Subdivision {
 };
 
 // Returns the nearest subdivision starting from time 'musicTime' according to 'timeSignature'
-static std::uint32_t getNextGridSubdivision(std::uint32_t musicTime, Subdivision subd, DMUS_IO_TIMESIG timeSignature) {
+static std::uint32_t getNextGridSubdivision(std::uint32_t musicTime, Subdivision subd, const DMUS_IO_TIMESIG& timeSignature) {
     std::uint32_t divisionCoeff;
     if (timeSignature.bBeat == 0) {
         divisionCoeff = PlayingContext::PulsesPerQuarterNote / 64;
@@ -90,12 +90,12 @@ static std::uint32_t getNextGridSubdivision(std::uint32_t musicTime, Subdivision
     }
 }
 
-static std::uint32_t getMeasureLength(DMUS_IO_TIMESIG timeSignature) {
+static std::uint32_t getMeasureLength(const DMUS_IO_TIMESIG& timeSignature) {
     return (timeSignature.bBeatsPerMeasure * PlayingContext::PulsesPerQuarterNote * 4) / timeSignature.bBeat;
 }
 
 // From the Microsoft DX8 SDK docs
-static std::int32_t getMusicOffset(std::uint32_t mtGridStart, std::int16_t nTimeOffset, DMUS_IO_TIMESIG TimeSig) {
+static std::int32_t getMusicOffset(std::uint32_t mtGridStart, std::int16_t nTimeOffset, const DMUS_IO_TIMESIG& TimeSig) {
     const std::uint32_t DMUS_PPQ = PlayingContext::PulsesPerQuarterNote;
     return nTimeOffset +
         (

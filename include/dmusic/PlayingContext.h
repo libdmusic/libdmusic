@@ -74,6 +74,7 @@ namespace DirectMusic {
         std::mutex m_queueMutex;
         MessageQueue m_messageQueue, m_patternMessageQueue;
         std::shared_ptr<SegmentInfo> m_primarySegment = nullptr, m_nextSegment = nullptr;
+        std::uint32_t m_currentSegmentStart;
         SegmentTiming m_nextSegmentTiming;
 
         std::map<GUID, std::shared_ptr<DirectMusic::DLS::DownloadableSound>> m_bands;
@@ -87,6 +88,8 @@ namespace DirectMusic {
         }
 
         void enqueueSegment(const std::shared_ptr<SegmentInfo>& segment);
+
+        void renderAudio(std::int16_t *data, std::uint32_t count, float volume) noexcept;
 
     public:
 
@@ -158,6 +161,16 @@ namespace DirectMusic {
 
     class SegmentInfo {
         friend class PlayingContext;
+
+    public:
+        inline bool operator ==(const SegmentInfo& b) const {
+            return guid == b.guid && unfo == b.unfo;
+        }
+
+        inline bool operator !=(const SegmentInfo& b) const {
+            return !(*this == b);
+        }
+
     private:
         bool infiniteLoop;
         std::uint32_t numLoops;
@@ -166,5 +179,7 @@ namespace DirectMusic {
         double initialTempo;
         DMUS_IO_TIMESIG initialSignature;
         std::uint32_t length;
+        GUID guid;
+        Riff::Unfo unfo;
     };
 }

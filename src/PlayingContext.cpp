@@ -8,20 +8,26 @@
 
 using namespace DirectMusic;
 
-void PlayingContext::renderBlock(std::int16_t *data, std::uint32_t count, float volume) noexcept {
-    m_queueMutex.lock();
+static std::uint32_t calcBeatLength(const DMUS_IO_TIMESIG& signature)
+{
+    if (signature.bBeat == 0) {
+        return PlayingContext::PulsesPerQuarterNote / 64;
+    } else if (signature.bBeat <= 4) {
+        return PlayingContext::PulsesPerQuarterNote * (4 / signature.bBeat);
+    } else {
+        return PlayingContext::PulsesPerQuarterNote / (signature.bBeat / 4);
+    }
+}
 
+static std::uint32_t calcMeasureLength(const DMUS_IO_TIMESIG& signature) {
+    return signature.bBeatsPerMeasure * calcBeatLength(signature);
+}
+
+void PlayingContext::renderAudio(std::int16_t *data, std::uint32_t count, float volume) noexcept {
     double pulsesPerSecond = PulsesPerQuarterNote * (m_tempo / 60);
     double pulsesPerSample = pulsesPerSecond / m_sampleRate;
 
     MusicMessageComparer comparer;
-
-    if (m_nextSegment != nullptr && m_nextSegmentTiming == SegmentTiming::Immediate) {
-        TRACE("Enqueueing next segment");
-        enqueueSegment(m_nextSegment);
-        m_primarySegment = std::move(m_nextSegment);
-        m_nextSegment = nullptr;
-    }
 
     std::uint32_t offset = 0;
     while (offset < count) {
@@ -96,6 +102,49 @@ fill_buffer:
         }
         m_musicTime += (remainingSamples * pulsesPerSample);
     }
+}
+
+void PlayingContext::renderBlock(std::int16_t *data, std::uint32_t count, float volume) noexcept {
+    m_queueMutex.lock();
+
+    double pulsesPerSecond = PulsesPerQuarterNote * (m_tempo / 60);
+    double pulsesPerSample = pulsesPerSecond / m_sampleRate;
+
+    std::uint32_t beatLength = calcBeatLength(m_signature),
+        measureLength = calcMeasureLength(m_signature);
+
+    std::uint32_t segmentTimeOffset = m_musicTime - m_currentSegmentStart;
+
+    std::uint32_t timeToNextBeat = beatLength - (segmentTimeOffset % beatLength);
+    std::uint32_t timeToNextMeasure = measureLength - (segmentTimeOffset % measureLength);
+
+    if (m_nextSegment != nullptr && m_nextSegmentTiming == SegmentTiming::Immediate) {
+        TRACE("Enqueueing next segment");
+        enqueueSegment(m_nextSegment);
+        m_primarySegment = std::move(m_nextSegment);
+        m_nextSegment = nullptr;
+        m_currentSegmentStart = m_musicTime;
+        renderAudio(data, count, volume);
+    } else if (m_nextSegment != nullptr &&
+        (m_nextSegmentTiming == SegmentTiming::Beat || m_nextSegmentTiming == SegmentTiming::Measure)) {
+        std::uint32_t transitionTime = m_nextSegmentTiming == SegmentTiming::Beat ? timeToNextBeat : timeToNextMeasure;
+
+        if (count < transitionTime) {
+            renderAudio(data, count, volume);
+        } else {
+            renderAudio(data, transitionTime, volume);
+
+            TRACE("Enqueueing next segment");
+            enqueueSegment(m_nextSegment);
+            m_primarySegment = std::move(m_nextSegment);
+            m_nextSegment = nullptr;
+            m_currentSegmentStart = m_musicTime;
+
+            renderAudio(data + transitionTime, count - transitionTime, volume);
+        }
+    } else {
+        renderAudio(data, count, volume);
+    }
 
     m_queueMutex.unlock();
 }
@@ -160,6 +209,8 @@ std::shared_ptr<SegmentInfo> PlayingContext::prepareSegment(const SegmentForm& s
     newSegment->infiniteLoop = false;
     newSegment->length = segment.getHeader().mtLength;
     newSegment->messages.push_back(std::make_shared<SegmentEndMessage>(newSegment->length));
+    newSegment->guid = segment.getGuid();
+    newSegment->unfo = segment.getInfo();
 
     for (const auto& track : segment.getTracks()) {
         const auto& header = track.getHeader();
@@ -230,7 +281,7 @@ std::shared_ptr<SegmentInfo> PlayingContext::prepareSegment(const SegmentForm& s
 
 void PlayingContext::playSegment(const SegmentForm& segment, SegmentTiming timing) {
     auto newSegment = prepareSegment(segment);
-    playSegment(newSegment);
+    playSegment(newSegment, timing);
 }
 
 void PlayingContext::playSegment(std::shared_ptr<SegmentInfo> segment, SegmentTiming timing) {
@@ -240,7 +291,7 @@ void PlayingContext::playSegment(std::shared_ptr<SegmentInfo> segment, SegmentTi
     if (m_primarySegment == nullptr) {
         m_primarySegment = segment;
         enqueueSegment(m_primarySegment);
-    } else {
+    } else if(segment != nullptr && *m_primarySegment != *segment) {
         m_nextSegment = segment;
         m_nextSegmentTiming = timing;
     }
