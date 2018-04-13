@@ -118,6 +118,12 @@ void PlayingContext::renderBlock(std::int16_t *data, std::uint32_t count, float 
     std::uint32_t timeToNextBeat = beatLength - (segmentTimeOffset % beatLength);
     std::uint32_t timeToNextMeasure = measureLength - (segmentTimeOffset % measureLength);
 
+    std::uint32_t timeToNextBeatInSamples = (std::uint32_t)(timeToNextBeat / pulsesPerSample);
+    std::uint32_t timeToNextMeasureInSamples = (std::uint32_t)(timeToNextMeasure / pulsesPerSample);
+
+    timeToNextBeatInSamples += timeToNextBeatInSamples % 2;
+    timeToNextMeasureInSamples += timeToNextMeasureInSamples % 2;
+
     if (m_nextSegment != nullptr && m_nextSegmentTiming == SegmentTiming::Immediate) {
         TRACE("Enqueueing next segment");
         enqueueSegment(m_nextSegment);
@@ -127,7 +133,7 @@ void PlayingContext::renderBlock(std::int16_t *data, std::uint32_t count, float 
         renderAudio(data, count, volume);
     } else if (m_nextSegment != nullptr &&
         (m_nextSegmentTiming == SegmentTiming::Beat || m_nextSegmentTiming == SegmentTiming::Measure)) {
-        std::uint32_t transitionTime = m_nextSegmentTiming == SegmentTiming::Beat ? timeToNextBeat : timeToNextMeasure;
+        std::uint32_t transitionTime = m_nextSegmentTiming == SegmentTiming::Beat ? timeToNextBeatInSamples : timeToNextMeasureInSamples;
 
         if (count < transitionTime) {
             renderAudio(data, count, volume);
