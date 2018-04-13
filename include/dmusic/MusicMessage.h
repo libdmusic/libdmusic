@@ -9,6 +9,19 @@
 namespace DirectMusic {
     class PlayingContext;
     enum class SegmentTiming;
+
+    enum class MusicMessageType {
+        TempoChange,
+        BandChange,
+        GrooveLevel,
+        ChordMessage,
+        NoteOn,
+        NoteOff,
+        SegmentEnd,
+        PatternEnd,
+        ControlChange
+    };
+
     class MusicMessage {
     public:
         MusicMessage(std::uint32_t time)
@@ -18,6 +31,7 @@ namespace DirectMusic {
         virtual void Execute(PlayingContext& ctx) = 0;
         virtual int getPriority() { return 0; }
         virtual std::shared_ptr<MusicMessage> Clone(std::uint32_t newTime) = 0;
+        virtual MusicMessageType getMessageType() const = 0;
 
     protected:
         std::uint32_t m_messageTime;
