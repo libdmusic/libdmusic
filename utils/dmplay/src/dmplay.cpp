@@ -69,7 +69,7 @@ int main(int argc, char **argv) {
     auto segment = ctx.loadSegment(args::get(segmentName));
     if (segment != nullptr) {
         std::cout << " done.\nStart playback... ";
-        ctx.playSegment(*segment);
+        ctx.playSegment(*segment, SegmentTiming::Measure);
         std::cout << " done.\nBegin rendering... ";
     } else {
         std::cerr << "Cannot load segment.\n";
@@ -98,7 +98,7 @@ int main(int argc, char **argv) {
             continue;
         }
         std::cout << " done.\nStart playback... ";
-        ctx.playSegment(*segment);
+        ctx.playSegment(*segment, SegmentTiming::Measure);
         std::cout << " done.\nBegin rendering... ";
     }
     
