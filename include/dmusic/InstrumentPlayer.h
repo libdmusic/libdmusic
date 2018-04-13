@@ -53,6 +53,8 @@ namespace DirectMusic {
         /// Sends a "pitch bend" message
         virtual void pitchBend(std::int16_t val) = 0;
 
+        const DirectMusic::DLS::DownloadableSound& getDls() const { return m_dls; }
+
     protected:
         const DirectMusic::DLS::DownloadableSound& m_dls;
         const int m_sampleRate;

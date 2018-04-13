@@ -52,6 +52,7 @@ namespace DirectMusic {
             const GUID& getGuid() const { return m_dlsid; }
 
             bool operator==(const DownloadableSound& a) const;
+            bool operator!=(const DownloadableSound& a) const { return !(*this == a); };
 
         private:
             std::uint64_t m_version;

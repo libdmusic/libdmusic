@@ -36,7 +36,14 @@ std::shared_ptr<InstrumentPlayer> MusicMessage::createGMInstrument(PlayingContex
 }
 
 void MusicMessage::setInstrument(PlayingContext& ctx, std::uint32_t channel, std::shared_ptr<InstrumentPlayer> instr) {
-    ctx.m_performanceChannels[channel] = instr;
+    if (ctx.m_performanceChannels.find(channel) == ctx.m_performanceChannels.end()) {
+        ctx.m_performanceChannels[channel] = instr;
+    } else {
+        auto curInstr = ctx.m_performanceChannels.at(channel);
+        if (curInstr->getDls() != instr->getDls()) {
+            ctx.m_performanceChannels[channel] = instr;
+        }
+    }
 }
 
 
