@@ -36,7 +36,10 @@ namespace DirectMusic {
         class Info {
         public:
             /// Creates an empty instance of the class
-            Info() {}
+            Info(): m_iarl(""), m_iart(""), m_icms(""), m_icmt(""),
+                m_icop(""), m_icrd(""), m_ieng(""), m_ignr(""), m_ikey(""),
+                m_imed(""), m_inam(""), m_iprd(""), m_isbj(""), m_isft(""),
+                m_isrc(""), m_isrf(""), m_itch("") {}
 
             /** \brief Creates an instance of the class from the supplied chunk.
              *
@@ -126,7 +129,10 @@ namespace DirectMusic {
         class Unfo {
         public:
             /// Creates an empty instance of the class
-            Unfo() {}
+            Unfo() : m_iarl(""), m_iart(""), m_icms(""), m_icmt(""),
+                m_icop(""), m_icrd(""), m_ieng(""), m_ignr(""), m_ikey(""),
+                m_imed(""), m_inam(""), m_iprd(""), m_isbj(""), m_isft(""),
+                m_isrc(""), m_isrf(""), m_itch("") {}
 
             /** \brief Creates an instance of the class from the supplied chunk.
             *

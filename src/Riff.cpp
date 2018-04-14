@@ -45,7 +45,12 @@ Chunk::Chunk(const std::uint8_t* buffer) {
     }
 }
 
-Info::Info(const Chunk& c) {
+Info::Info(const Chunk& c):
+    m_iarl(""), m_iart(""), m_icms(""), m_icmt(""),
+    m_icop(""), m_icrd(""), m_ieng(""), m_ignr(""), m_ikey(""),
+    m_imed(""), m_inam(""), m_iprd(""), m_isbj(""), m_isft(""),
+    m_isrc(""), m_isrf(""), m_itch("")
+{
     if (c.getId() != "LIST" || c.getListId() != "INFO")
         throw DirectMusic::InvalidChunkException("LIST INFO", c.getId() + " " + c.getListId());
     for(const Chunk& subchunk : c.getSubchunks()) {
@@ -72,7 +77,12 @@ Info::Info(const Chunk& c) {
     }
 }
 
-Unfo::Unfo(const Chunk& c) {
+Unfo::Unfo(const Chunk& c) :
+    m_iarl(""), m_iart(""), m_icms(""), m_icmt(""),
+    m_icop(""), m_icrd(""), m_ieng(""), m_ignr(""), m_ikey(""),
+    m_imed(""), m_inam(""), m_iprd(""), m_isbj(""), m_isft(""),
+    m_isrc(""), m_isrf(""), m_itch("")
+{
     if (c.getId() != "LIST" || c.getListId() != "UNFO")
         throw DirectMusic::InvalidChunkException("LIST UNFO", c.getId() + " " + c.getListId());
     for (const Chunk& subchunk : c.getSubchunks()) {
