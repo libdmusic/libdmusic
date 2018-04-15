@@ -107,7 +107,7 @@ fill_buffer:
 void PlayingContext::renderBlock(std::int16_t *data, std::uint32_t count, float volume) noexcept {
     m_queueMutex.lock();
 
-    double pulsesPerSecond = PulsesPerQuarterNote * (m_tempo / 60);
+    double pulsesPerSecond = (double)PulsesPerQuarterNote * (m_tempo / 60);
     double pulsesPerSample = pulsesPerSecond / m_sampleRate;
 
     std::uint32_t beatLength = calcBeatLength(m_signature),
@@ -115,8 +115,8 @@ void PlayingContext::renderBlock(std::int16_t *data, std::uint32_t count, float 
 
     std::uint32_t segmentTimeOffset = m_musicTime - m_currentSegmentStart;
 
-    std::uint32_t timeToNextBeat = beatLength - (segmentTimeOffset % beatLength);
-    std::uint32_t timeToNextMeasure = measureLength - (segmentTimeOffset % measureLength);
+    double timeToNextBeat = beatLength - (segmentTimeOffset % beatLength);
+    double timeToNextMeasure = measureLength - (segmentTimeOffset % measureLength);
 
     std::uint32_t timeToNextBeatInSamples = (std::uint32_t)(timeToNextBeat / pulsesPerSample);
     std::uint32_t timeToNextMeasureInSamples = (std::uint32_t)(timeToNextMeasure / pulsesPerSample);
