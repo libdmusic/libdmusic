@@ -113,6 +113,9 @@ void PlayingContext::renderBlock(std::int16_t *data, std::uint32_t count, float 
     std::uint32_t beatLength = calcBeatLength(m_signature),
         measureLength = calcMeasureLength(m_signature);
 
+    beatLength = beatLength == 0 ? 1 : beatLength;
+    measureLength = measureLength == 0 ? 1 : measureLength;
+
     std::uint32_t segmentTimeOffset = m_musicTime - m_currentSegmentStart;
 
     double timeToNextBeat = beatLength - (segmentTimeOffset % beatLength);

@@ -121,6 +121,10 @@ namespace DirectMusic {
                 inputStream.close();
                 return buffer;
             };
+
+            m_signature.bBeat = 4;
+            m_signature.bBeatsPerMeasure = 4;
+            m_signature.wGridsPerBeat = 4;
         }
 
         /// Renders the following audio block
