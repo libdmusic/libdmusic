@@ -15,6 +15,23 @@ Project goals
 Compiling
 ---------
 
+Currently, `libsndfile` needs to be present on the system at the moment of compilation:
+this can be ensured on Linux and macOS by installing the correct packages (e.g. `libsndfile1-dev` on Debian/Ubuntu),
+while on Windows it needs to be compiled manually:
+
+````batch
+$ git clone --recursive https://github.com/frabert/libdmusic
+$ mkdir build-sndfile
+$ cd build-sndfile
+$ cmake -D CMAKE_INSTALL_PREFIX=%HOMEPATH%/libsndfile libdmusic/utils/dls2sf/lib/libsndfile
+$ cmake --build . --target install
+$ cd ../libdmusic
+$ cmake -D CMAKE_PREFIX_PATH=%HOMEPATH/libsndfile .
+$ cmake --build .
+````
+
+On *nix systems, building is simpler (once you have installed libsndfile):
+
 ````sh
 $ git clone --recursive https://github.com/frabert/libdmusic
 $ cd libdmusic
