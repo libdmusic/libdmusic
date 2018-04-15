@@ -21,7 +21,7 @@ namespace DirectMusic {
     using PlayerFactory = std::function<std::shared_ptr<InstrumentPlayer>(
         std::uint8_t, std::uint8_t, std::uint8_t, // Bank lo, Bank hi, patch
         const GUID& bandId,
-        const DirectMusic::DLS::DownloadableSound&,
+        DirectMusic::DLS::DownloadableSound&,
         std::uint32_t, // Sample rate
         std::uint32_t, // Channels
         float, // Volume

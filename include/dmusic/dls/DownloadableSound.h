@@ -25,7 +25,6 @@ namespace DirectMusic {
 
             /// Returns the contents of the sample as a WAV container
             std::vector<std::uint8_t> getWaveFile() const;
-
         private:
             GUID m_dlsid;
             DirectMusic::Riff::Info m_info;
@@ -47,7 +46,7 @@ namespace DirectMusic {
             DownloadableSound(const DirectMusic::Riff::Chunk& c);
             const std::vector<Instrument>& getInstruments() const { return m_instruments; }
             const std::vector<std::uint32_t>& getPoolOffsets() const { return m_poolOffsets; }
-            const std::vector<Wave>& getWavePool() const { return m_wavePool; }
+            std::vector<Wave>& getWavePool() { return m_wavePool; }
             const DirectMusic::Riff::Info& getInfo() const { return m_info; }
             const GUID& getGuid() const { return m_dlsid; }
 

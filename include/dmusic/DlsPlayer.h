@@ -22,7 +22,7 @@ namespace DirectMusic {
         static std::unordered_map<DirectMusic::DLS::DownloadableSound, std::shared_ptr<TinySoundFont>> m_soundfonts;
 
         DlsPlayer(std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patch,
-            const DirectMusic::DLS::DownloadableSound& dls,
+            DirectMusic::DLS::DownloadableSound& dls,
             const GUID& bandId,
             std::uint32_t sampleRate,
             std::uint32_t channels,
@@ -56,6 +56,6 @@ namespace DirectMusic {
         virtual void pitchBend(std::int16_t val);
 
         static PlayerFactory createFactory();
-        static GMPlayerFactory createGMFactory(const DLS::DownloadableSound& dls);
+        static GMPlayerFactory createGMFactory(DLS::DownloadableSound& dls);
     };
 }

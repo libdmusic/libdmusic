@@ -20,7 +20,7 @@ namespace DirectMusic {
 
         SoundFontPlayer(tsf* soundfont,
             std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patch,
-            const DirectMusic::DLS::DownloadableSound& dls,
+            DirectMusic::DLS::DownloadableSound& dls,
             std::uint32_t sampleRate,
             std::uint32_t channels,
             float volume,

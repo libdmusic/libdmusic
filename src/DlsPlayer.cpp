@@ -59,11 +59,14 @@ static void insertArticulator(const DLS::Articulator& articulator, std::vector<S
     }
 }
 
-static std::shared_ptr<TinySoundFont> convertCollection(const DirectMusic::DLS::DownloadableSound& dls) {
+static std::shared_ptr<TinySoundFont> convertCollection(DirectMusic::DLS::DownloadableSound& dls) {
     std::vector<SFSample> samples;
     SoundFont sf2;
 
-    for (const DLS::Wave& wav : dls.getWavePool()) {
+    auto& wavePool = dls.getWavePool();
+
+    while(!wavePool.empty()) {
+        auto& wav = wavePool[0];
         std::string name = wav.getInfo().getName();
         auto fmt = wav.getWaveformat();
 
@@ -90,6 +93,9 @@ static std::shared_ptr<TinySoundFont> convertCollection(const DirectMusic::DLS::
             startLoop = waveLoop.ulLoopStart;
             endLoop = waveLoop.ulLoopStart + waveLoop.ulLoopLength;
         }
+
+        // Frees memory which is not needed anymore
+        wavePool.erase(wavePool.begin());
 
         midiNote = wavsmpl.usUnityNote;
         fineTune = wavsmpl.sFineTune;
@@ -171,7 +177,7 @@ static float gainToDecibels(float gain) {
 }
 
 DlsPlayer::DlsPlayer(std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patch,
-    const DirectMusic::DLS::DownloadableSound& dls,
+    DirectMusic::DLS::DownloadableSound& dls,
     const GUID& bandId,
     std::uint32_t sampleRate,
     std::uint32_t channels,
@@ -203,9 +209,7 @@ DlsPlayer::DlsPlayer(std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patc
     float volFactorRight = sqrt((m_pan + 1) / 2);
     float volFactorLeft = sqrt((-m_pan + 1) / 2);
 
-    //tsf_set_preset_panning(m_soundfont, m_preset, volFactorLeft, volFactorRight);
     m_soundfont->setPresetPanning(m_preset, volFactorLeft, volFactorRight);
-    //tsf_set_preset_gain(m_soundfont, m_preset, gainToDecibels(m_volume));
     m_soundfont->setPresetGain(m_preset, gainToDecibels(m_volume));
 }
 
@@ -250,7 +254,7 @@ void DlsPlayer::pitchBend(std::int16_t val) {}
 
 PlayerFactory DlsPlayer::createFactory() {
     return [](std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patch,
-        const GUID& bandGuid, const DownloadableSound& dls, std::uint32_t sampleRate, std::uint32_t chans, float vol, float pan) -> std::shared_ptr<InstrumentPlayer> {
+        const GUID& bandGuid, DownloadableSound& dls, std::uint32_t sampleRate, std::uint32_t chans, float vol, float pan) -> std::shared_ptr<InstrumentPlayer> {
 
         return std::shared_ptr<DlsPlayer>{
             new DlsPlayer(bankLo, bankHi, patch, dls, bandGuid, sampleRate, chans, vol, pan)
@@ -258,8 +262,8 @@ PlayerFactory DlsPlayer::createFactory() {
     };
 }
 
-GMPlayerFactory DlsPlayer::createGMFactory(const DownloadableSound& dls) {
-    return [dls](std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patch,
+GMPlayerFactory DlsPlayer::createGMFactory(DownloadableSound& dls) {
+    return [&](std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patch,
         std::uint32_t sampleRate, std::uint32_t chans, float vol, float pan) -> std::shared_ptr<InstrumentPlayer> {
 
         return std::shared_ptr<DlsPlayer>{

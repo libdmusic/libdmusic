@@ -39,7 +39,7 @@ namespace DirectMusic {
         void changeTempo(PlayingContext& ctx, double tempo);
         std::shared_ptr<InstrumentPlayer> createInstrument(PlayingContext& ctx,
             std::uint8_t bank_lo, std::uint8_t bank_hi, std::uint8_t patch,
-            const GUID& bandGuid, const DirectMusic::DLS::DownloadableSound& dls,
+            const GUID& bandGuid, DirectMusic::DLS::DownloadableSound& dls,
             float volume, float pan);
         std::shared_ptr<InstrumentPlayer> createGMInstrument(PlayingContext& ctx,
             std::uint8_t bank_lo, std::uint8_t bank_hi, std::uint8_t patch,

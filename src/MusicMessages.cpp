@@ -21,7 +21,7 @@ void MusicMessage::changeTempo(PlayingContext& ctx, double tempo) {
 
 std::shared_ptr<InstrumentPlayer> MusicMessage::createInstrument(PlayingContext& ctx,
     std::uint8_t bank_lo, std::uint8_t bank_hi, std::uint8_t patch,
-    const GUID& bandGuid, const DirectMusic::DLS::DownloadableSound& dls, float volume, float pan) {
+    const GUID& bandGuid, DirectMusic::DLS::DownloadableSound& dls, float volume, float pan) {
     return ctx.m_instrumentFactory(bank_lo, bank_hi, patch, bandGuid, dls, ctx.m_sampleRate, ctx.m_audioChannels, volume, pan);
 }
 

@@ -6,7 +6,7 @@ namespace DirectMusic {
     class DummyPlayer : public InstrumentPlayer {
     public:
         DummyPlayer(std::uint8_t bank_lo, std::uint8_t bank_hi, std::uint8_t patch,
-            const DirectMusic::DLS::DownloadableSound& dls,
+            DirectMusic::DLS::DownloadableSound& dls,
             std::uint32_t sampleRate,
             std::uint32_t audioChannels,
             float volume,

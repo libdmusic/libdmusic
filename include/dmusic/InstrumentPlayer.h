@@ -12,7 +12,7 @@ namespace DirectMusic {
     class InstrumentPlayer {
     public:
         InstrumentPlayer(std::uint8_t bank_lo, std::uint8_t bank_hi, std::uint8_t patch,
-                        const DirectMusic::DLS::DownloadableSound& dls,
+                        DirectMusic::DLS::DownloadableSound& dls,
                         std::uint32_t sampleRate,
                         std::uint32_t audioChannels,
                         float volume,
@@ -54,7 +54,7 @@ namespace DirectMusic {
         virtual void pitchBend(std::int16_t val) = 0;
 
     protected:
-        const DirectMusic::DLS::DownloadableSound& m_dls;
+        DirectMusic::DLS::DownloadableSound& m_dls;
         const int m_sampleRate;
         float m_volume;
         float m_pan;

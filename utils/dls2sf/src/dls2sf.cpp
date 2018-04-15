@@ -83,15 +83,19 @@ static void insertArticulator(const DLS::Articulator& articulator, std::vector<S
 static std::map<GUID, DLS::DownloadableSound> loaded_sounds;
 static std::map<GUID, std::set<DLS::DownloadableSound, GuidObjectComparer<DLS::DownloadableSound>>> loaded_bands;
 
-static void convertSounds(const std::vector<DLS::DownloadableSound>& sounds, std::ostream& ofs) {
+static void convertSounds(std::vector<DLS::DownloadableSound>& sounds, std::ostream& ofs) {
     SoundFont sf2;
 
     // Each sample may potentially be referenced with a different basenote,
     // so we keep them here and copy them as needed.
     std::vector<std::vector<SFSample>> samples;
     for (int i = 0; i < sounds.size(); i++) {
+        auto& sound = sounds[i];
         samples.push_back(std::vector<SFSample>());
-        for (const DLS::Wave& wav : sounds[i].getWavePool()) {
+        auto& wavePool = sound.getWavePool();
+
+        while (!wavePool.empty()) {
+            auto& wav = wavePool[0];
             std::string name = wav.getInfo().getName();
             auto fmt = wav.getWaveformat();
 
@@ -118,6 +122,7 @@ static void convertSounds(const std::vector<DLS::DownloadableSound>& sounds, std
                 startLoop = waveLoop.ulLoopStart;
                 endLoop = waveLoop.ulLoopStart + waveLoop.ulLoopLength;
             }
+            wavePool.erase(wavePool.begin());
 
             midiNote = wavsmpl.usUnityNote;
             fineTune = wavsmpl.sFineTune;
