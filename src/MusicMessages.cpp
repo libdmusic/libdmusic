@@ -31,7 +31,8 @@ std::shared_ptr<InstrumentPlayer> MusicMessage::createGMInstrument(PlayingContex
     if (ctx.m_gminstrumentFactory != nullptr) {
         return ctx.m_gminstrumentFactory(bank_lo, bank_hi, patch, ctx.m_sampleRate, ctx.m_audioChannels, volume, pan);
     } else {
-        return std::make_shared<DummyPlayer>(bank_lo, bank_hi, patch, DLS::DownloadableSound(), ctx.m_sampleRate, ctx.m_audioChannels, volume, pan);
+        DLS::DownloadableSound snd;
+        return std::make_shared<DummyPlayer>(bank_lo, bank_hi, patch, snd, ctx.m_sampleRate, ctx.m_audioChannels, volume, pan);
     }
 }
 
