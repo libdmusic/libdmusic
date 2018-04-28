@@ -46,8 +46,8 @@ namespace DirectMusic {
             Instrument(const DirectMusic::Riff::Chunk& c);
             const std::vector<Region>& getRegions() const { return m_regions; }
             const std::vector<Articulator>& getArticulators() const { return m_articulators; }
-            const std::uint32_t getMidiBank() const { return m_midiBank; }
-            const std::uint32_t getMidiProgram() const { return m_midiProgram; }
+            std::uint32_t getMidiBank() const { return m_midiBank; }
+            std::uint32_t getMidiProgram() const { return m_midiProgram; }
             const DirectMusic::Riff::Info& getInfo() const { return m_info; }
             const DirectMusic::GUID& getGuid() const { return m_dlsid; }
 
