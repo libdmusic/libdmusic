@@ -18,7 +18,7 @@ Chord DirectMusic::readChord(const Chunk& c) {
             name = std::string(utf16_to_utf8((const std::uint16_t*)data));
         } else if (id == "sbcn") {
             const std::uint8_t *start = data;
-            while (data - start < subchunk.getData().size()) {
+            while (static_cast<std::size_t>(data - start) < subchunk.getData().size()) {
                 indexes.push_back(littleEndianRead<std::uint16_t>(data));
                 data += 2;
             }
@@ -49,7 +49,7 @@ ChordEntry::ChordEntry(const Chunk& c) {
             const std::uint8_t *start = data;
             std::uint16_t structSize = littleEndianRead<std::uint16_t>(data);
             data += 2;
-            while (data - start < subchunk.getData().size()) {
+            while (static_cast<std::size_t>(data - start) < subchunk.getData().size()) {
                 m_nextChords.push_back(DMUS_IO_NEXTCHORD(data));
                 data += structSize;
             }
@@ -95,7 +95,7 @@ ChordmapForm::ChordmapForm(const Chunk& c) {
             const std::uint8_t *start = data;
             std::uint16_t structSize = littleEndianRead<std::uint16_t>(data);
             data += 2;
-            while (data - start < subchunk.getData().size()) {
+            while (static_cast<std::size_t>(data - start) < subchunk.getData().size()) {
                 m_subchords.push_back(DMUS_IO_CHORDMAP_SUBCHORD(data));
                 data += structSize;
             }

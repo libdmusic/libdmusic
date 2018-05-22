@@ -24,7 +24,7 @@ void DownloadableSound::loadChunk(const Chunk& c) {
         } else if (id == "ptbl") {
             PoolTable ptable(subchunk.getData().data());
             const std::uint8_t *data = subchunk.getData().data() + ptable.cbSize;
-            for (int i = 0; i < ptable.cCues; i++) {
+            for (std::uint32_t i = 0; i < ptable.cCues; i++) {
                 m_poolOffsets.push_back(littleEndianRead<std::uint32_t>(data));
                 data += 4;
             }

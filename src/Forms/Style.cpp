@@ -66,7 +66,7 @@ Pattern::Pattern(const Chunk& c)
         if (id == "ptnh") {
             m_header = DMUS_IO_PATTERN(data);
         } else if (id == "rhtm") {
-            while (data - start < subchunk.getData().size()) {
+            while (static_cast<std::size_t>(data - start) < subchunk.getData().size()) {
                 m_rhythms.push_back(littleEndianRead<std::uint16_t>(data));
                 data += 2;
             }
