@@ -29,7 +29,7 @@ namespace DirectMusic {
         : public SubtrackForm {
     public:
         ChordTrack(const DirectMusic::Riff::Chunk& chunk);
-        const std::uint32_t getHeader() const { return m_header; }
+        std::uint32_t getHeader() const { return m_header; }
         const std::vector<ChordBody>& getChords() { return m_chords;  }
 
     private:

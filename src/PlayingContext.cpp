@@ -313,7 +313,7 @@ void PlayingContext::playSegment(std::shared_ptr<SegmentInfo> segment, SegmentTi
 
 bool PlayingContext::getRandomPattern(const SegmentInfo& segm, std::uint8_t grooveLevel, Pattern* output) const {
     std::vector<int> suitablePatterns;
-    for (int i = 0; i < segm.patterns.size(); i++) {
+    for (size_t i = 0; i < segm.patterns.size(); i++) {
         const auto& pattern = segm.patterns[i];
         if (pattern.header.bGrooveBottom <= grooveLevel &&
             pattern.header.bGrooveTop >= grooveLevel &&

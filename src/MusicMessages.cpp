@@ -44,7 +44,7 @@ void MusicMessage::setInstrument(PlayingContext& ctx, std::uint32_t channel, std
 // From the Microsoft DX8 SDK docs
 static int StoredRangeToActualRange(std::uint8_t bRange) {
     int nResult = 0;
-    if (0 <= bRange && bRange <= 190) {
+    if (bRange <= 190) {
         nResult = bRange;
     } else if (191 <= bRange && bRange <= 212) {
         nResult = ((bRange - 190) * 5) + 190;
@@ -137,7 +137,6 @@ static bool MusicValueToMIDI(std::uint32_t chord, const std::vector<DMUS_IO_SUBC
         return true;
     }
 
-    assert(note.bPlayModeFlags == DMUS_PLAYMODE_CHORD_ROOT | DMUS_PLAYMODE_CHORD_INTERVALS | DMUS_PLAYMODE_SCALE_INTERVALS);
     // TODO: The subchord level should be obtained from the part reference,
     // but in Gothic's soundtrack it's always set to the first level.
 
@@ -330,7 +329,7 @@ void MusicMessage::playPattern(PlayingContext& ctx) {
                         curves[DMUS_CURVES_LOG] = [](float x, auto start, auto end) { return lerp(sqrtf(x), start, end); };
                         curves[DMUS_CURVES_SINE] = [](float x, auto start, auto end) { return lerp((sinf((x - 0.5) * PI) + 1) * 0.5, start, end); };
 
-                        for (int i = 0; i < duration / DMUSIC_CURVE_MESSAGE_SPACING; i++) {
+                        for (uint32_t i = 0; i < duration / DMUSIC_CURVE_MESSAGE_SPACING; i++) {
                             std::uint32_t offset = i * DMUSIC_CURVE_MESSAGE_SPACING;
                             float phase = (float)offset / duration;
 

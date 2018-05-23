@@ -12,7 +12,7 @@ Articulator::Articulator(const Chunk& c) {
     ArticulatorHeader header(data);
     data += header.cbSize;
     ConnectionBlock block;
-    for (int i = 0; i < header.cConnectionBlocks; i++) {
+    for (std::uint32_t i = 0; i < header.cConnectionBlocks; i++) {
         block = ConnectionBlock(data);
         m_connectionBlocks.push_back(block);
         data += sizeof(ConnectionBlock);

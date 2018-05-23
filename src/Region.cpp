@@ -22,7 +22,7 @@ Region::Region(const Chunk& c) {
             m_wavesample = Wavesample(subchunk.getData().data());
             if (m_wavesample.cSampleLoops > 0) {
                 const std::uint8_t *data = subchunk.getData().data() + m_wavesample.cbSize;
-                for (int i = 0; i < m_wavesample.cSampleLoops; i++) {
+                for (std::uint32_t i = 0; i < m_wavesample.cSampleLoops; i++) {
                     m_loops.push_back(WavesampleLoop(data));
                     data += sizeof(WavesampleLoop);
                 }

@@ -131,7 +131,7 @@ ChordTrack::ChordTrack(const Chunk& c) {
             std::uint32_t subchordSize = littleEndianRead<std::uint32_t>(data);
             data += 4;
             std::vector<DMUS_IO_SUBCHORD> subchords;
-            for (int i = 0; i < subchordNum; i++) {
+            for (std::uint32_t i = 0; i < subchordNum; i++) {
                 subchords.push_back(DMUS_IO_SUBCHORD(data));
             }
 
@@ -172,7 +172,7 @@ CommandTrack::CommandTrack(const Chunk& c) {
     int offset = 0;
     std::uint32_t cmdSize = littleEndianRead<std::uint32_t>(data + offset);
     offset += 4;
-    for (int i = 0; i < ((c.getData().size() - 4) / cmdSize); i++) {
+    for (std::size_t i = 0; i < ((c.getData().size() - 4) / cmdSize); i++) {
         m_commands.push_back(DMUS_IO_COMMAND(data + offset));
         offset += cmdSize;
     }
@@ -214,14 +214,14 @@ MarkerTrack::MarkerTrack(const Chunk& c) {
         if (id == "vals") {
             std::uint32_t structSize = littleEndianRead<std::uint32_t>(data);
             data += 4;
-            while ((data - start) + structSize < subchunk.getData().size()) {
+            while (static_cast<std::size_t>(data - start) + structSize < subchunk.getData().size()) {
                 m_validStarts.push_back(DMUS_IO_VALID_START(data));
                 data += structSize;
             }
         } else if (id == "play") {
             std::uint32_t structSize = littleEndianRead<std::uint32_t>(data);
             data += 4;
-            while ((data - start) + structSize < subchunk.getData().size()) {
+            while (static_cast<std::size_t>(data - start) + structSize < subchunk.getData().size()) {
                 m_validPlays.push_back(DMUS_IO_PLAY_MARKER(data));
                 data += structSize;
             }
@@ -237,7 +237,7 @@ MuteTrack::MuteTrack(const Chunk& c) {
     const std::uint8_t *start = data;
     std::uint32_t structSize = littleEndianRead<std::uint32_t>(data);
     data += 4;
-    while ((data - start) + structSize < c.getData().size()) {
+    while (static_cast<std::size_t>(data - start) + structSize < c.getData().size()) {
         m_mutes.push_back(DMUS_IO_MUTE(data));
         data += structSize;
     }
@@ -272,14 +272,14 @@ SequenceTrack::SequenceTrack(const Chunk& c) {
         if (id == "evtl") {
             std::uint32_t structSize = littleEndianRead<std::uint32_t>(data);
             data += 4;
-            while ((data - start) + structSize < subchunk.getData().size()) {
+            while (static_cast<std::size_t>(data - start) + structSize < subchunk.getData().size()) {
                 m_seqItems.push_back(DMUS_IO_SEQ_ITEM(data));
                 data += structSize;
             }
         } else if (id == "curl") {
             std::uint32_t structSize = littleEndianRead<std::uint32_t>(data);
             data += 4;
-            while ((data - start) + structSize < subchunk.getData().size()) {
+            while (static_cast<std::size_t>(data - start) + structSize < subchunk.getData().size()) {
                 m_curveItems.push_back(DMUS_IO_CURVE_ITEM(data));
                 data += structSize;
             }
@@ -294,7 +294,7 @@ SignpostTrack::SignpostTrack(const Chunk& c) {
     const std::uint8_t *start = data;
     std::uint32_t structSize = littleEndianRead<std::uint32_t>(data);
     data += 4;
-    while ((data - start) + structSize < c.getData().size()) {
+    while (static_cast<std::size_t>(data - start) + structSize < c.getData().size()) {
         m_signposts.push_back(DMUS_IO_SIGNPOST(data));
         data += structSize;
     }
@@ -333,7 +333,7 @@ TempoTrack::TempoTrack(const Chunk& c) {
     int offset = 0;
     std::uint32_t structSize = littleEndianRead<std::uint32_t>(data + offset);
     offset += 4;
-    for (int i = 0; i < ((c.getData().size() - 4) / structSize); i++) {
+    for (std::size_t i = 0; i < ((c.getData().size() - 4) / structSize); i++) {
         offset += structSize;
         offset -= sizeof(DMUS_IO_TEMPO_ITEM);
         m_items.push_back(DMUS_IO_TEMPO_ITEM(data + offset));
@@ -352,7 +352,7 @@ TimeSignatureTrack::TimeSignatureTrack(const Chunk& c) {
             const std::uint8_t *start = data;
             std::uint32_t structSize = littleEndianRead<std::uint32_t>(data);
             data += 4;
-            while ((data - start) + structSize < subchunk.getData().size()) {
+            while (static_cast<std::size_t>(data - start) + structSize < subchunk.getData().size()) {
                 m_items.push_back(DMUS_IO_TIMESIGNATURE_ITEM(data));
                 data += structSize;
             }

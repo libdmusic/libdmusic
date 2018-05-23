@@ -25,7 +25,7 @@ static sf_count_t read(void *ptr, sf_count_t count, void *userdata) {
     uint8_t *out = (uint8_t*)ptr;
     const uint8_t *data = ud->sample.data();
     int i;
-    for (i = 0; i < ud->sample.size() - ud->position && i < count; i++) {
+    for (i = 0; i < static_cast<int>(ud->sample.size() - ud->position) && i < count; i++) {
         out[i] = data[i + ud->position];
     }
     ud->position += i;
@@ -51,7 +51,7 @@ static sf_count_t seek(sf_count_t offset, int whence, void *userdata) {
         break;
     }
     if (ud->position < 0) ud->position = 0;
-    if (ud->position > ud->sample.size()) ud->position = ud->sample.size() - 1;
+    if (ud->position > static_cast<int>(ud->sample.size())) ud->position = ud->sample.size() - 1;
     return ud->position;
 }
 
@@ -83,8 +83,7 @@ std::vector<std::int16_t> decode(const Wave& sample) {
     SNDFILE* file = sf_open_virtual(&virtio, SFM_READ, &sfinfo, &data);
     if (!file) return out;
     std::int16_t smp;
-    sf_count_t count;
-    while (count = sf_read_short(file, &smp, 1)) {
+    while (sf_read_short(file, &smp, 1) != 0) {
         out.push_back(smp);
     }
     sf_close(file);
@@ -107,8 +106,7 @@ std::vector<float> decode_float(const Wave& sample) {
     SNDFILE* file = sf_open_virtual(&virtio, SFM_READ, &sfinfo, &data);
     if (!file) return out;
     float smp;
-    sf_count_t count;
-    while (count = sf_read_float(file, &smp, 1)) {
+    while (sf_read_float(file, &smp, 1) != 0) {
         out.push_back(smp);
     }
     sf_close(file);
