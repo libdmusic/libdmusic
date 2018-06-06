@@ -1,8 +1,8 @@
 <h4 align="center">
   <br>
-  <img width="256" src="https://cdn.rawgit.com/frabert/libdmusic/0ab300a1/media/logo.svg">
+  <img width="256" src="https://cdn.rawgit.com/frabert/libdmusic/3ea57d5/media/logo.svg">
   <br>
-  <img width="256" src="https://cdn.rawgit.com/frabert/libdmusic/0ab300a1/media/logo_full.svg">
+  <img width="256" src="https://cdn.rawgit.com/frabert/libdmusic/3ea57d5/media/logo_full.svg">
   <br>
 </h4>
 
