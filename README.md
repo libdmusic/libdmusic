@@ -1,6 +1,8 @@
 <h4 align="center">
   <br>
-  <img width="256" src="https://cdn.rawgit.com/frabert/libdmusic/f7aeed1b/media/logo.svg">
+  <img width="256" src="https://cdn.rawgit.com/frabert/libdmusic/0ab300a1/media/logo.svg">
+  <br>
+  <img width="256" src="https://cdn.rawgit.com/frabert/libdmusic/0ab300a1/media/logo_full.svg">
   <br>
 </h4>
 
@@ -51,6 +53,8 @@ It is also possible to use the provided [dls2sf](utils/dls2sf/README.md) utility
 
 Acknowledgements
 ----------------
+
+Many thanks to [Mirza Zulfan](https://github.com/mirzazulfan) for kindly donating the logo!
 
 `dmrender` and `dmplay` use [TinySoundFont](https://github.com/schellingb/TinySoundFont) for SoundFont rendering and [args](https://github.com/Taywee/args).
 
