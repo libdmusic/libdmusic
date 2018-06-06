@@ -1,12 +1,10 @@
 <h4 align="center">
   <br>
-  <img width="256" src="https://cdn.rawgit.com/frabert/libdmusic/3ea57d5/media/logo.svg">
-  <br>
-  <img width="256" src="https://cdn.rawgit.com/frabert/libdmusic/3ea57d5/media/logo_full.svg">
+  <img width="128" src="https://cdn.rawgit.com/frabert/libdmusic/3ea57d5/media/logo.svg">
   <br>
 </h4>
 
-libdmusic [![Linux build Status](https://travis-ci.org/frabert/libdmusic.svg?branch=master)](https://travis-ci.org/frabert/libdmusic) [![Windows build status](https://ci.appveyor.com/api/projects/status/7t7ral8wos4p7idc?svg=true)](https://ci.appveyor.com/project/frabert/libdmusic) [![Gitter chat](https://badges.gitter.im/frabert/libdmusic.png)](https://gitter.im/frabert/libdmusic)
+<img width="256" src="https://cdn.rawgit.com/frabert/libdmusic/3ea57d5/media/logo_full.svg"> [![Linux build Status](https://travis-ci.org/frabert/libdmusic.svg?branch=master)](https://travis-ci.org/frabert/libdmusic) [![Windows build status](https://ci.appveyor.com/api/projects/status/7t7ral8wos4p7idc?svg=true)](https://ci.appveyor.com/project/frabert/libdmusic) [![Gitter chat](https://badges.gitter.im/frabert/libdmusic.png)](https://gitter.im/frabert/libdmusic)
 =========
 
 Project goals
