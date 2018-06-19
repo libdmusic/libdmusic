@@ -1,9 +1,3 @@
 [submodule "utils/dls2sf/lib/sf2cute"]
 	path = utils/dls2sf/lib/sf2cute
 	url = https://github.com/gocha/sf2cute.git
-[submodule "utils/dls2sf/lib/libsndfile"]
-	path = utils/dls2sf/lib/libsndfile
-	url = https://github.com/erikd/libsndfile.git
-[submodule "utils/dmplay/lib/portaudio"]
-	path = utils/dmplay/lib/portaudio
-	url = https://git.assembla.com/portaudio.git
