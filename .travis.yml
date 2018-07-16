@@ -14,12 +14,6 @@ addons:
       - cmake
       - libsndfile1-dev
       - librtaudio-dev
-install:
-  - sudo apt-get purge cmake
-  - curl -o cmake_install.sh https://cmake.org/files/v3.11/cmake-3.11.4-Linux-x86_64.sh
-  - sudo chmod +x ./cmake_install.sh
-  - sudo ./cmake_install.sh --prefix=/opt/ --exclude-subdir --skip-license
-  - export PATH=/opt/bin/:$PATH
 script:
   # Export CC and CXX to tell cmake which compiler to use
   - export CC=/usr/bin/gcc-6
@@ -29,5 +23,5 @@ script:
   - git submodule update --init --recursive
   - mkdir -p build
   - cd build
-  - cmake -DDMUSIC_BUILD_UTILS=ON ..
+  - cmake ..
   - make -j2
