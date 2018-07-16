@@ -14,10 +14,10 @@ install:
   - mkdir C:\build_rtaudio
   - cd C:/build_libsndfile
   - cmake -D CMAKE_INSTALL_PREFIX=C:/install_prefix C:/libsndfile
-  - cmake --build . --target INSTALL -config Release
+  - cmake --build . --target INSTALL --config Release
   - cd C:/build_rtaudio
   - cmake -D CMAKE_INSTALL_PREFIX=C:/install_prefix C:/rtaudio
-  - cmake --build . --target INSTALL -config Release
+  - cmake --build . --target INSTALL --config Release
   - cd C:/projects/libdmusic
   
 build_script:
