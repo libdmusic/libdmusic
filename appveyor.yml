@@ -10,7 +10,8 @@ install:
   - git submodule update --init --recursive
   - git clone https://github.com/erikd/libsndfile C:/libsndfile
   - git clone https://github.com/thestk/rtaudio C:/rtaudio
-  - mkdir C:/build_libsndfile C:/build_rtaudio
+  - mkdir C:/build_libsndfile
+  - mkdir C:/build_rtaudio
   - cd C:/build_libsndfile
   - cmake -D CMAKE_INSTALL_PREFIX=C:/install_prefix C:/libsndfile
   - cmake --build . --target INSTALL -config Release
