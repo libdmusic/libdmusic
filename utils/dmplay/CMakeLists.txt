@@ -1,19 +1,20 @@
-cmake_minimum_required (VERSION 2.8)
-project (dmplay)
+cmake_minimum_required (VERSION 3.4)
+project (dmplay VERSION 0.1)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-include_directories(../../include)
-include_directories(../common)
-include_directories(lib/portaudio/include)
+add_executable(dmplay "src/dmplay.cpp")
 
-add_subdirectory(lib/portaudio)
+target_link_libraries(dmplay PRIVATE dmusic)
 
-file(GLOB SRC
-  "src/*.cpp"
-  "src/*.h"
-  "src/*.hxx")
+if(DMUSIC_STATIC)
+  find_package(RtAudioStatic REQUIRED)
+  target_link_libraries(dmplay PRIVATE RtAudio::RtAudioStatic)
+else()
+  find_package(RtAudio REQUIRED)
+  target_link_libraries(dmplay PRIVATE RtAudio::RtAudio)
+endif()
 
-add_executable(dmplay ${SRC})
-target_link_libraries(dmplay dmusic portaudio_static)
+target_include_directories(dmplay PRIVATE ../../include)
+target_include_directories(dmplay PRIVATE ../common)

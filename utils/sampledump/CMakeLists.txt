@@ -1,14 +1,9 @@
-cmake_minimum_required (VERSION 2.8)
-project (sampledump)
+cmake_minimum_required (VERSION 3.4)
+project (sampledump VERSION 0.1)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-include_directories(../../include)
-
-file(GLOB SRC
-  "src/*.cpp"
-  "src/*.h")
-
-add_executable(sampledump ${SRC})
-target_link_libraries(sampledump dmusic)
+add_executable(sampledump "src/sampledump.cpp")
+target_include_directories(sampledump PRIVATE ../../include)
+target_link_libraries(sampledump PRIVATE dmusic)

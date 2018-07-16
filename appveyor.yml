@@ -1,21 +1,30 @@
 version: 0.0.{build}
 image: Visual Studio 2017
 
+cache:
+  - C:\build_libsndfile
+  - C:\build_rtaudio
+  - C:\install_prefix
+
 install:
   - git submodule update --init --recursive
-
+  - git clone https://github.com/erikd/libsndfile C:/libsndfile
+  - git clone https://github.com/thestk/rtaudio C:/rtaudio
+  - mkdir C:/build_libsndfile C:/build_rtaudio
+  - cd C:/build_libsndfile
+  - cmake -D CMAKE_INSTALL_PREFIX=C:/install_prefix C:/libsndfile
+  - cmake --build . --target INSTALL -config Release
+  - cd C:/build_rtaudio
+  - cmake -D CMAKE_INSTALL_PREFIX=C:/install_prefix C:/rtaudio
+  - cmake --build . --target INSTALL -config Release
+  - cd C:/projects/libdmusic
+  
 build_script:
-  - REM Beginning AppVeyor build from appveyor.yml
-  - mkdir build-sndfile
-  - cd build-sndfile
-  - cmake -D CMAKE_INSTALL_PREFIX=%APPVEYOR_BUILD_FOLDER%/libsndfile ../utils/dls2sf/lib/libsndfile
-  - cmake --build . --target install --config RelWithDebInfo
-  - cd ../
   - mkdir build
   - cd build
-  - cmake -D CMAKE_PREFIX_PATH=%APPVEYOR_BUILD_FOLDER%/libsndfile ..
+  - cmake -DCMAKE_PREFIX_PATH=C:/install_prefix -DDMUSIC_STATIC=ON ..
   - cmake --build . --config RelWithDebInfo
-  - 7z a libdmusic.zip .\bin\RelWithDebInfo\*.exe .\bin\RelWithDebInfo\*.pdb .\bin\RelWithDebInfo\*.dll .\bin\*.ps1 .\bin\*.bat %APPVEYOR_BUILD_FOLDER%/libsndfile/bin/libsndfile-1.dll
+  - 7z a libdmusic.zip .\bin\RelWithDebInfo\*.exe .\bin\RelWithDebInfo\*.pdb
   - appveyor PushArtifact libdmusic.zip
 
 notifications:

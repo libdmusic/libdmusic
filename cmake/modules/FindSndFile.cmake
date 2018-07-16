@@ -1,29 +1,17 @@
-# - Try to find SndFile
-# Once done this will define
-#
-#  SNDFILE_FOUND - system has SndFile
-#  SNDFILE_INCLUDE_DIRS - the SndFile include directory
-#  SNDFILE_LIBRARIES - Link these to use SndFile
-#
-#  Copyright © 2006  Wengo
-#  Copyright © 2009 Guillaume Martres
-#
-#  Redistribution and use is allowed according to the terms of the New
-#  BSD license.
-#  For details see the accompanying COPYING-CMAKE-SCRIPTS file.
-#
+find_path(Sndfile_INCLUDE_DIR NAMES sndfile.h)
+find_library(Sndfile_LIBRARY NAMES sndfile-1 libsndfile-1 sndfile libsndfile)
+mark_as_advanced(Sndfile_INCLUDE_DIR Sndfile_LIBRARY)
 
-find_path(SNDFILE_INCLUDE_DIR NAMES sndfile.h)
+include(FindPackageHandleStandardArgs)
 
-find_library(SNDFILE_LIBRARY NAMES libsndfile libsndfile-1 sndfile sndfile-1)
+find_package_handle_standard_args(Sndfile REQUIRED_VARS Sndfile_LIBRARY Sndfile_INCLUDE_DIR)
 
-set(SNDFILE_INCLUDE_DIRS ${SNDFILE_INCLUDE_DIR})
-set(SNDFILE_LIBRARIES ${SNDFILE_LIBRARY})
-
-INCLUDE(FindPackageHandleStandardArgs)
-# handle the QUIETLY and REQUIRED arguments and set SNDFILE_FOUND to TRUE if
-# all listed variables are TRUE
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(SndFile DEFAULT_MSG SNDFILE_LIBRARY SNDFILE_INCLUDE_DIR)
-
-# show the SNDFILE_INCLUDE_DIRS and SNDFILE_LIBRARIES variables only in the advanced view
-mark_as_advanced(SNDFILE_INCLUDE_DIRS SNDFILE_LIBRARIES)
+if(Sndfile_FOUND)
+  if(NOT TARGET Sndfile::Sndfile)
+    add_library(Sndfile::Sndfile UNKNOWN IMPORTED)
+    set_target_properties(Sndfile::Sndfile PROPERTIES
+      IMPORTED_LINK_INTERFACE_LANGUAGES "C"
+      IMPORTED_LOCATION "${Sndfile_LIBRARY}"
+      INTERFACE_INCLUDE_DIRECTORIES "${Sndfile_INCLUDE_DIR}")
+  endif()
+endif()
