@@ -23,5 +23,5 @@ script:
   - git submodule update --init --recursive
   - mkdir -p build
   - cd build
-  - cmake .. -DDMUSIC_BUILD_UTILS=ON
+  - cmake -DDMUSIC_BUILD_UTILS=ON ..
   - make -j2
