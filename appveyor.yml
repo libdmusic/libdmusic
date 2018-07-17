@@ -23,7 +23,7 @@ install:
 build_script:
   - mkdir build
   - cd build
-  - cmake -DCMAKE_PREFIX_PATH=C:/install_prefix -DDMUSIC_STATIC=ON ..
+  - cmake -DCMAKE_PREFIX_PATH=C:/install_prefix -DDMUSIC_STATIC=ON -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=C:/projects/libdmusic/build/bin -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=C:/projects/libdmusic/build/lib -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY=C:/projects/libdmusic/build/lib ..
   - cmake --build . --config RelWithDebInfo
   - 7z a libdmusic.zip .\bin\RelWithDebInfo\*.exe .\bin\RelWithDebInfo\*.pdb
   - appveyor PushArtifact libdmusic.zip
