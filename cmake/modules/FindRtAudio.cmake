@@ -1,4 +1,4 @@
-find_path(RtAudio_INCLUDE_DIR NAMES RtAudio.h)
+find_path(RtAudio_INCLUDE_DIR NAMES RtAudio.h PATH_SUFFIXES rtaudio)
 find_library(RtAudio_LIBRARY NAMES rtaudio)
 mark_as_advanced(RtAudio_INCLUDE_DIR RtAudio_LIBRARY)
 

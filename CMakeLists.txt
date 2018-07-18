@@ -4,9 +4,9 @@ project (dmusic VERSION 0.1 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(CMAKE_MODULE_PATH
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
   "${CMAKE_SOURCE_DIR}" "${PROJECT_SOURCE_DIR}"
-  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules" ${CMAKE_MODULE_PATH})
+  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
 
 option(DMUSIC_STATIC "Builds dmusic as a static library (generally only needed on Windows)" OFF)
 option(DMUSIC_BUILD_UTILS "Build various DirectMusic utilities" ON)
