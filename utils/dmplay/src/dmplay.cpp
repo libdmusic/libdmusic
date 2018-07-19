@@ -11,7 +11,7 @@
 #include <dmusic/Tracks.h>
 #include <dmusic/dls/DownloadableSound.h>
 #include <cassert>
-#include <portaudio.h>
+#include <RtAudio.h>
 #include <cmath>
 #include <cstdio>
 #include <args.hxx>
@@ -19,15 +19,15 @@
 using namespace DirectMusic;
 using namespace DirectMusic::DLS;
 
-static int paCallback(const void *inputBuffer, void *outputBuffer,
-    unsigned long framesPerBuffer,
-    const PaStreamCallbackTimeInfo* timeInfo,
-    PaStreamCallbackFlags statusFlags,
-    void *userData) {
+static int audioCallback(void* outputBuffer,
+                      void* /*inputBuffer*/,
+                      unsigned int framesPerBuffer,
+                      double /*streamTime*/,
+                      RtAudioStreamStatus /*status*/,
+                      void* userData) {
     /* Cast data passed through stream to our structure. */
     PlayingContext* data = (PlayingContext*)userData;
     std::int16_t *out = (std::int16_t*)outputBuffer;
-    (void)inputBuffer; /* Prevent unused variable warning. */
     int samples = framesPerBuffer * data->getAudioChannels();
 
     data->renderBlock(out, samples, 1);
@@ -64,6 +64,19 @@ int main(int argc, char **argv) {
     int sampleRate = samplingRate ? args::get(samplingRate) : 44100;
     int channels = numChannels ? args::get(numChannels) : 2;
 
+    RtAudio dac;
+    if (dac.getDeviceCount() < 1) {
+        std::cout << "No audio devices found!\n";
+        return 0;
+    }
+
+    RtAudio::StreamParameters parameters;
+    parameters.deviceId = dac.getDefaultOutputDevice();
+    parameters.nChannels = channels;
+    parameters.firstChannel = 0;
+
+    unsigned int bufferFrames = 256;
+
     PlayingContext ctx(sampleRate, channels, DlsPlayer::createFactory());
     std::cout << "Loading segment...";
     auto segment = ctx.loadSegment(args::get(segmentName));
@@ -75,15 +88,15 @@ int main(int argc, char **argv) {
         std::cerr << "Cannot load segment.\n";
     }
 
-    PaStream *stream;
-    PaError err;
-    err = Pa_Initialize();
-    if (err != paNoError) goto error;
-    /* Open an audio I/O stream. */
-    err = Pa_OpenDefaultStream(&stream, 0, channels, paInt16, sampleRate, 256, paCallback, &ctx);
-    if (err != paNoError) goto error;
-    err = Pa_StartStream(stream);
-    if (err != paNoError) goto error;
+    try {
+        dac.openStream( &parameters, NULL, RTAUDIO_SINT16,
+                    sampleRate, &bufferFrames, &audioCallback, (void *)&ctx );
+        dac.startStream();
+    } catch ( RtAudioError& e ) {
+        e.printMessage();
+        exit( 0 );
+    }
+
     std::cout << "Rendering started. Insert the next segment to be played, or 'exit' to end playback.\n";
     while (true) {
         std::string input;
@@ -102,16 +115,13 @@ int main(int argc, char **argv) {
         std::cout << " done.\nBegin rendering... ";
     }
     
-    err = Pa_CloseStream(stream);
-    if (err != paNoError) goto error;
+    try {
+        // Stop the stream
+        dac.stopStream();
+    } catch (RtAudioError& e) {
+        e.printMessage();
+    }
+    if ( dac.isStreamOpen() ) dac.closeStream();
 
-    err = Pa_Terminate();
-    if (err != paNoError) goto error;
-
-    std::cout << "Rendering stopped.";
     return 0;
-
-error:
-    std::cerr << "PortAudio error: " << Pa_GetErrorText(err) << "\n";
-    return 1;
 }

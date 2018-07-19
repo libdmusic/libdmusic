@@ -1,21 +1,20 @@
-cmake_minimum_required (VERSION 2.8)
-project (dmrender)
+cmake_minimum_required (VERSION 3.4)
+project (dmrender VERSION 0.1)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(SndFile REQUIRED)
-
-include_directories(../../include)
-include_directories(../common)
-include_directories(${SNDFILE_INCLUDE_DIRS})
-
-file(GLOB SRC
-  "src/*.cpp"
-  "src/*.h"
-  "src/*.hxx")
-
-add_executable(dmrender ${SRC})
-target_link_libraries(dmrender dmusic)
+add_executable(dmrender "src/dmrender.cpp")
+target_link_libraries(dmrender PRIVATE dmusic)
 target_compile_definitions(dmrender PRIVATE DMUSIC_HAS_SNDFILE=1 DMUSIC_DLS_PLAYER=1)
-target_link_libraries(dmrender ${SNDFILE_LIBRARIES})
+
+target_include_directories(dmrender PRIVATE ../../include)
+target_include_directories(dmrender PRIVATE ../common)
+
+if(DMUSIC_STATIC)
+  find_package(SndfileStatic REQUIRED)
+  target_link_libraries(dmrender PRIVATE Sndfile::SndfileStatic)
+else()
+  find_package(Sndfile REQUIRED)
+  target_link_libraries(dmrender PRIVATE Sndfile::Sndfile)
+endif(DMUSIC_STATIC)
