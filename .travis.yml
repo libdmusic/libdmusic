@@ -13,6 +13,7 @@ addons:
       - g++-6
       - cmake
       - libsndfile1-dev
+      - librtaudio-dev # This is here to populate the dependencies for the subsequent 5.0.0 build
 install:
   - curl -o rtaudio-5.0.0.tar.gz http://www.music.mcgill.ca/~gary/rtaudio/release/rtaudio-5.0.0.tar.gz
   - tar xzvf rtaudio-5.0.0.tar.gz
