@@ -15,27 +15,42 @@ Project goals
 Compiling
 ---------
 
-Currently, `libsndfile` needs to be present on the system at the moment of compilation:
-this can be ensured on Linux and macOS by installing the correct packages (e.g. `libsndfile1-dev` on Debian/Ubuntu),
+Currently, `libsndfile` needs to be present on the system at the moment of compilation (also `rtaudio` if you want to build `dmplay`):
+this can be ensured on Linux and macOS by installing the correct packages (e.g. `libsndfile1-dev` and `librtaudio-dev` on Debian/Ubuntu),
 while on Windows it needs to be compiled manually:
 
 ````batch
+REM Building libsndfile
+$ git clone https://github.com/erikd/libsndfile
+$ cd libsndfile
+$ mkdir build
+$ cd build
+$ cmake -D CMAKE_INSTALL_PREFIX=%HOMEPATH%/libs ..
+$ cmake --build .. --target INSTALL
+$ cd ..
+
+REM Building RtAudio (optional)
+$ git clone https://github.com/thestk/rtaudio
+$ cd rtaudio
+$ mkdir build
+$ cd build
+$ cmake -D BUILD_TESTING=OFF -D CMAKE_INSTALL_PREFIX=%HOMEPATH%/libs ..
+$ cmake --build .. --target INSTALL
+$ cd ..
+
+REM Building libdmusic
+REM Add -D DMUSIC_BUILD_UTILS=OFF to disable building utilities
 $ git clone --recursive https://github.com/frabert/libdmusic
-$ mkdir build-sndfile
-$ cd build-sndfile
-$ cmake -D CMAKE_INSTALL_PREFIX=%HOMEPATH%/libsndfile libdmusic/utils/dls2sf/lib/libsndfile
-$ cmake --build . --target install
-$ cd ../libdmusic
-$ cmake -D CMAKE_PREFIX_PATH=%HOMEPATH/libsndfile .
+$ cmake -D CMAKE_PREFIX_PATH=%HOMEPATH/libs .
 $ cmake --build .
 ````
 
-On *nix systems, building is simpler (once you have installed libsndfile):
+On *nix systems, building is simpler (once you have installed libsndfile and rtaudio):
 
 ````sh
 $ git clone --recursive https://github.com/frabert/libdmusic
 $ cd libdmusic
-$ cmake .
+$ cmake . # Add -D DMUSIC_BUILD_UTILS=OFF to disable building utilities
 $ make
 ````
 
@@ -60,4 +75,4 @@ Many thanks to [Mirza Zulfan](https://github.com/mirzazulfan) for kindly donatin
 
 `dls2sf` uses [sf2cute](https://github.com/gocha/sf2cute) for SoundFont output.
 
-`dmplay` uses [portaudio](http://www.portaudio.com/) for realtime audio playback.
+`dmplay` uses [RtAudio](http://www.music.mcgill.ca/~gary/rtaudio/) for realtime audio playback.
