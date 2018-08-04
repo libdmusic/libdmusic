@@ -12,4 +12,11 @@ if(RtAudioStatic_FOUND AND NOT TARGET RtAudio::RtAudioStatic)
     IMPORTED_LINK_INTERFACE_LANGUAGES "CXX"
     IMPORTED_LOCATION "${RtAudioStatic_LIBRARY}"
     INTERFACE_INCLUDE_DIRECTORIES "${RtAudioStatic_INCLUDE_DIR}")
+
+  if (RtAudioStatic_INCLUDE_DIR AND EXISTS "${RtAudioStatic_INCLUDE_DIR}/RtAudio.h")
+    file(STRINGS "${RtAudioStatic_INCLUDE_DIR}/RtAudio.h" rtaudio_version_str REGEX "^#define[ \t]+RTAUDIO_VERSION[ \t]+\".+\"")
+
+    string(REGEX REPLACE "^#define[ \t]+RTAUDIO_VERSION[ \t]+\"([^\"]+)\".*" "\\1" RtAudioStatic_VERSION_STRING "${rtaudio_version_str}")
+    unset(rtaudio_version_str)
+  endif ()
 endif()

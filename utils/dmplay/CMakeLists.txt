@@ -9,10 +9,10 @@ add_executable(dmplay "src/dmplay.cpp")
 target_link_libraries(dmplay PRIVATE dmusic)
 
 if(DMUSIC_STATIC)
-  find_package(RtAudioStatic REQUIRED)
+  find_package(RtAudioStatic 5 REQUIRED)
   target_link_libraries(dmplay PRIVATE RtAudio::RtAudioStatic)
 else()
-  find_package(RtAudio REQUIRED)
+  find_package(RtAudio 5 REQUIRED)
   target_link_libraries(dmplay PRIVATE RtAudio::RtAudio)
 endif()
 
