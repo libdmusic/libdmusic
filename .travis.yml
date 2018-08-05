@@ -23,8 +23,7 @@ install:
   - cd rtaudio-5.0.0 && ./configure && make -j 4 && sudo make install && cd ..
   - git clone https://github.com/frabert/sf2cute
   - cd sf2cute && mkdir build && cd build
-  - cmake .. && make -j2 && make install
-  - cd ../../
+  - cmake .. && make -j2 && sudo make install && cd ../../
 script:
   # Check versions of gcc, g++ and cmake
   - gcc -v && g++ -v && cmake --version
