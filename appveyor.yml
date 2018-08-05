@@ -2,22 +2,35 @@ version: 0.0.{build}
 image: Visual Studio 2017
 
 cache:
-  - C:\build_libsndfile
-  - C:\build_rtaudio
-  - C:\install_prefix
+  - C:\build_libsndfile_x86
+  - C:\build_libsndfile_x86-64
+  - C:\build_rtaudio_x86
+  - C:\build_rtaudio_x86-64
+  - C:\build_sf2cute_x86
+  - C:\build_sf2cute_x86-64
+  - C:\install_prefix_x86
+  - C:\install_prefix_x86-64
 
 install:
   - git submodule update --init --recursive
   - .\ci\build_libsndfile.bat
   - .\ci\build_rtaudio.bat
+  - .\ci\build_sf2cute.bat
   
 build_script:
-  - mkdir build
-  - cd build
-  - cmake -DCMAKE_PREFIX_PATH=C:/install_prefix -DDMUSIC_STATIC=ON -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=C:/projects/libdmusic/build/bin -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=C:/projects/libdmusic/build/lib -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY=C:/projects/libdmusic/build/lib ..
-  - cmake --build . --config RelWithDebInfo
-  - 7z a libdmusic.zip .\bin\RelWithDebInfo\*.exe .\bin\RelWithDebInfo\*.pdb
-  - appveyor PushArtifact libdmusic.zip
+  - mkdir build_x86
+  - cd build_x86
+  - cmake -DCMAKE_PREFIX_PATH=C:/install_prefix_x86 -DDMUSIC_STATIC=ON -DCMAKE_INSTALL_PREFIX=C:/install_libdmusic_x86 ..
+  - cmake --build . --config RelWithDebInfo --target INSTALL
+  - 7z a libdmusic_win_x86.zip C:/install_libdmusic_x86/*
+  - appveyor PushArtifact libdmusic_win_x86.zip
+  - cd ..
+  - mkdir build_x86-64
+  - cd build_x86-64
+  - cmake -G "Visual Studio 15 2017 Win64" -DCMAKE_PREFIX_PATH=C:/install_prefix_x86-64 -DDMUSIC_STATIC=ON -DCMAKE_INSTALL_PREFIX=C:/install_libdmusic_x86-64 ..
+  - cmake --build . --config RelWithDebInfo --target INSTALL
+  - 7z a libdmusic_win_x86-64.zip C:/install_libdmusic_x86-64/*
+  - appveyor PushArtifact libdmusic_win_x86-64.zip
 
 notifications:
   - provider: Webhook
@@ -25,3 +38,16 @@ notifications:
     on_build_success: true
     on_build_failure: true
     on_build_status_changed: true
+
+deploy:
+  release: libdmusic-v$(appveyor_build_version)
+  description: 'Automated build release'
+  provider: GitHub
+  auth_token:
+    secure: PKQ8wyiF5mNTAWbKepUrcnec7bucnXJ/T+Ip1NfxblviD6BqamxMuSQI1Kk5mCm+
+  artifact: /.*\.zip/
+  draft: false
+  prerelease: false
+  on:
+    branch: master                 # release from master branch only
+    appveyor_repo_tag: true        # deploy on tag push only

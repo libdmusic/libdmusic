@@ -1,9 +1,4 @@
 #pragma once
-
-#if !DMUSIC_HAS_SNDFILE
-#error "libsndfile is needed"
-#endif
-
 #include <cstdint>
 #include <vector>
 #include <dmusic/dls/DownloadableSound.h>

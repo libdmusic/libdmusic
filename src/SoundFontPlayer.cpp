@@ -1,4 +1,3 @@
-#if DMUSIC_TSF_SUPPORT
 #include <cassert>
 #include <exception>
 #include <dmusic/SoundFontPlayer.h>
@@ -119,5 +118,3 @@ PlayerFactory SoundFontPlayer::createMultiFactory(const std::string dir) {
         });
     };
 }
-
-#endif

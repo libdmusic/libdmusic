@@ -1,4 +1,3 @@
-#if DMUSIC_HAS_SNDFILE && DMUSIC_DLS_PLAYER
 #include <dmusic/DlsPlayer.h>
 #include <cassert>
 #include <exception>
@@ -271,5 +270,3 @@ GMPlayerFactory DlsPlayer::createGMFactory(DownloadableSound& dls) {
         };
     };
 }
-
-#endif

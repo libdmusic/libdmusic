@@ -1,9 +1,5 @@
 #pragma once
 
-#if !DMUSIC_DLS_PLAYER
-#error "DlsPlayer was not enabled"
-#endif
-
 #include <cstdint>
 #include <functional>
 #include <unordered_map>

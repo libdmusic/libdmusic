@@ -4,9 +4,6 @@
 #include <map>
 #include <dmusic/PlayingContext.h>
 #include <dmusic/InstrumentPlayer.h>
-#ifndef DMUSIC_DLS_PLAYER
-#define DMUSIC_DLS_PLAYER 1
-#endif
 #include <dmusic/DlsPlayer.h>
 #include <dmusic/Tracks.h>
 #include <dmusic/dls/DownloadableSound.h>

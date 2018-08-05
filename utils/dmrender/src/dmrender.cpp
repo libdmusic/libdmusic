@@ -3,14 +3,7 @@
 #include <locale>
 #include <map>
 #include <dmusic/PlayingContext.h>
-#ifndef DMUSIC_TSF_SUPPORT
-#define DMUSIC_TSF_SUPPORT 1
-#endif
 #include <dmusic/SoundFontPlayer.h>
-
-#ifndef DMUSIC_DLS_PLAYER
-#define DMUSIC_DLS_PLAYER 1
-#endif
 #include <dmusic/DlsPlayer.h>
 #include <dmusic/InstrumentPlayer.h>
 #include <dmusic/Tracks.h>

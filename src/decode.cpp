@@ -1,5 +1,3 @@
-#if DMUSIC_HAS_SNDFILE
-
 #include "decode.h"
 #include <sndfile.h>
 #include <iostream>
@@ -112,5 +110,3 @@ std::vector<float> decode_float(const Wave& sample) {
     sf_close(file);
     return out;
 }
-
-#endif

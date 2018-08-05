@@ -1,18 +1,13 @@
 cmake_minimum_required (VERSION 3.4)
 project (dls2sf VERSION 0.1)
 
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+add_executable(dls2sf ${CMAKE_CURRENT_SOURCE_DIR}/src/dls2sf.cpp)
 
-add_subdirectory(lib/sf2cute)
-
-add_executable(dls2sf "src/dls2sf.cpp")
-
-target_include_directories(dls2sf PRIVATE lib/sf2cute/include)
 target_include_directories(dls2sf PRIVATE ../common)
+target_link_libraries(dls2sf PRIVATE dmusic::dmusic sf2cute::sf2cute)
+target_compile_features(dls2sf PUBLIC cxx_std_14)
 
-target_link_libraries(dls2sf PRIVATE dmusic sf2cute)
-target_compile_definitions(dls2sf PRIVATE DMUSIC_HAS_SNDFILE=1)
+add_executable(dmusic::dls2sf ALIAS dls2sf)
 
 if(DMUSIC_STATIC)
   find_package(SndfileStatic REQUIRED)
@@ -21,3 +16,12 @@ else()
   find_package(Sndfile REQUIRED)
   target_link_libraries(dls2sf PRIVATE Sndfile::Sndfile)
 endif(DMUSIC_STATIC)
+
+include(GNUInstallDirs)
+
+install(TARGETS dls2sf
+  EXPORT dmusic-targets
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+  INCLUDES DESTINATION ${LIBLEGACY_INCLUDE_DIRS})

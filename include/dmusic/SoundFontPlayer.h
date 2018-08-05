@@ -1,9 +1,5 @@
 #pragma once
 
-#if !DMUSIC_TSF_SUPPORT
-#error "TinySoundFont rendering is not enabled"
-#endif
-
 #include <cstdint>
 #include <functional>
 #include "dls/DownloadableSound.h"
