@@ -17,7 +17,7 @@ IF NOT EXIST C:\build_sf2cute_x86-64 (
 
   mkdir C:\build_sf2cute_x86-64
   cd C:\build_sf2cute_x86-64
-  cmake -D CMAKE_INSTALL_PREFIX=C:/install_prefix_x86-64 -D BUILD_TESTING=OFF C:/sf2cute
+  cmake -G "Visual Studio 15 2017 Win64" -D CMAKE_INSTALL_PREFIX=C:/install_prefix_x86-64 -D BUILD_TESTING=OFF C:/sf2cute
   cmake --build . --target INSTALL --config Release
   cd C:\projects\libdmusic
 )
