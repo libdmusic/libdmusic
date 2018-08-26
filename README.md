@@ -15,6 +15,8 @@ Project goals
 Compiling
 ---------
 
+Pre-compiled binaries are available for both 32- and 64-bit windows in the [Releases](https://github.com/frabert/libdmusic/releases) section
+
 Currently, `libsndfile` needs to be present on the system at the moment of compilation (also `rtaudio` if you want to build `dmplay`):
 this can be ensured on Linux and macOS by installing the correct packages (e.g. `libsndfile1-dev` and `librtaudio-dev` on Debian/Ubuntu),
 while on Windows it needs to be compiled manually:
