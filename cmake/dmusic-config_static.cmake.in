@@ -4,7 +4,7 @@ get_filename_component(dmusic_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
 list(APPEND CMAKE_MODULE_PATH ${dmusic_CMAKE_DIR})
 
 find_package(sf2cute REQUIRED)
-find_package(Sndfile REQUIRED)
+find_package(SndfileStatic REQUIRED)
 
 if(NOT TARGET dmusic::dmusic)
   include(${CMAKE_CURRENT_LIST_DIR}/dmusic-targets.cmake)

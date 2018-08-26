@@ -1,5 +1,5 @@
 find_path(Sndfile_INCLUDE_DIR NAMES sndfile.h)
-find_library(Sndfile_LIBRARY NAMES sndfile-1 libsndfile-1 sndfile libsndfile)
+find_library(Sndfile_LIBRARY NAMES sndfile libsndfile sndfile-1 libsndfile-1)
 mark_as_advanced(Sndfile_INCLUDE_DIR Sndfile_LIBRARY)
 
 include(FindPackageHandleStandardArgs)

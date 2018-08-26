@@ -3,7 +3,7 @@ project (dmusic VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
   "${CMAKE_SOURCE_DIR}" "${PROJECT_SOURCE_DIR}"
-  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
+  "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 option(DMUSIC_STATIC "Builds dmusic as a static library (generally only needed on Windows)" OFF)
 option(DMUSIC_BUILD_UTILS "Build various DirectMusic utilities" ON)
@@ -49,9 +49,11 @@ endif ()
 if(DMUSIC_STATIC)
   find_package(SndfileStatic REQUIRED)
   target_link_libraries(dmusic PRIVATE Sndfile::SndfileStatic)
+  set(SndfileConfig FindSndfileStatic)
 else()
   find_package(Sndfile REQUIRED)
   target_link_libraries(dmusic PRIVATE Sndfile::Sndfile)
+  set(SndfileConfig FindSndfile)
 endif()
 
 target_link_libraries(dmusic PRIVATE sf2cute::sf2cute)
@@ -89,11 +91,19 @@ install(EXPORT dmusic-targets
 
 include(CMakePackageConfigHelpers)
 
-configure_package_config_file(
-  ${CMAKE_SOURCE_DIR}/cmake/dmusic-config.cmake.in
-  ${CMAKE_BINARY_DIR}/cmake/dmusic-config.cmake
-  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/dmusic
-)
+if(DMUSIC_STATIC)
+  configure_package_config_file(
+    ${CMAKE_SOURCE_DIR}/cmake/dmusic-config_static.cmake.in
+    ${CMAKE_BINARY_DIR}/cmake/dmusic-config.cmake
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/dmusic
+  )
+else()
+  configure_package_config_file(
+    ${CMAKE_SOURCE_DIR}/cmake/dmusic-config.cmake.in
+    ${CMAKE_BINARY_DIR}/cmake/dmusic-config.cmake
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/dmusic
+  )
+endif()
 
 write_basic_package_version_file(
   ${CMAKE_BINARY_DIR}/cmake/dmusic-config-version.cmake
@@ -105,5 +115,6 @@ install(
   FILES
     ${CMAKE_BINARY_DIR}/cmake/dmusic-config.cmake
     ${CMAKE_BINARY_DIR}/cmake/dmusic-config-version.cmake
+    ${CMAKE_CURRENT_LIST_DIR}/cmake/${SndfileConfig}.cmake
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/dmusic
 )
