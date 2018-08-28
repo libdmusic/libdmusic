@@ -1,5 +1,5 @@
 find_path(RtAudioStatic_INCLUDE_DIR NAMES RtAudio.h PATH_SUFFIXES rtaudio)
-find_library(RtAudioStatic_LIBRARY NAMES rtaudio_static)
+find_library(RtAudioStatic_LIBRARY NAMES rtaudio_static rtaudio_staticd)
 mark_as_advanced(RtAudioStatic_INCLUDE_DIR RtAudioStatic_LIBRARY)
 
 include(FindPackageHandleStandardArgs)

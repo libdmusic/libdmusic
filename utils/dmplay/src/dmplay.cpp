@@ -75,23 +75,29 @@ int main(int argc, char **argv) {
     unsigned int bufferFrames = 256;
 
     PlayingContext ctx(sampleRate, channels, DlsPlayer::createFactory());
-    std::cout << "Loading segment...";
+
+    std::cout << "Opening audio device... ";
+    try {
+        dac.openStream(&parameters, NULL, RTAUDIO_SINT16,
+            sampleRate, &bufferFrames, &audioCallback, (void *)&ctx);
+        dac.startStream();
+    } catch (const RtAudioError& e) {
+        std::cerr << e.what() << '\n';
+        return 1;
+    }
+
+    std::cout << " done.\nLoading segment...";
     auto segment = ctx.loadSegment(args::get(segmentName));
     if (segment != nullptr) {
         std::cout << " done.\nStart playback... ";
-        ctx.playSegment(*segment, SegmentTiming::Measure);
-        std::cout << " done.\nBegin rendering... ";
+        try {
+            ctx.playSegment(*segment, SegmentTiming::Measure);
+            std::cout << " done.\nBegin rendering... ";
+        } catch (const std::runtime_error& e) {
+            std::cerr << " Cannot play segment. " << e.what();
+        }
     } else {
         std::cerr << "Cannot load segment.\n";
-    }
-
-    try {
-        dac.openStream( &parameters, NULL, RTAUDIO_SINT16,
-                    sampleRate, &bufferFrames, &audioCallback, (void *)&ctx );
-        dac.startStream();
-    } catch ( RtAudioError& e ) {
-        e.printMessage();
-        exit( 0 );
     }
 
     std::cout << "Rendering started. Insert the next segment to be played, or 'exit' to end playback.\n";
@@ -108,7 +114,12 @@ int main(int argc, char **argv) {
             continue;
         }
         std::cout << " done.\nStart playback... ";
-        ctx.playSegment(*segment, SegmentTiming::Measure);
+        try {
+            ctx.playSegment(*segment, SegmentTiming::Measure);
+        } catch (const std::runtime_error& e) {
+            std::cerr << " Cannot play segment. " << e.what();
+            return 1;
+        }
         std::cout << " done.\nBegin rendering... ";
     }
     
