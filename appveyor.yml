@@ -47,7 +47,7 @@ deploy:
     secure: PKQ8wyiF5mNTAWbKepUrcnec7bucnXJ/T+Ip1NfxblviD6BqamxMuSQI1Kk5mCm+
   artifact: /.*\.zip/
   draft: false
-  prerelease: false
+  prerelease: true
   on:
     branch: master                 # release from master branch only
     appveyor_repo_tag: true        # deploy on tag push only
