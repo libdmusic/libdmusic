@@ -4,17 +4,19 @@ dmplay
 Summary
 -------
 
-    dmplay {OPTIONS} [segment]
-
+    dmplay.exe {OPTIONS} [segment]
+  
       dmplay plays DirectMusic segments in real time
-
+  
     OPTIONS:
-
+  
         -h, --help                        Display this help menu
         -s[sampling rate],
         --sample=[sampling rate]          The sampling rate to use
         -c[channels],
         --channels=[channels]             The number of channels to use
+        -l, --list-devices                Lists the available sound devices
+        -d[device], --device=[device]     Use a specific sound device for playback
         segment                           The segment to render
         "--" can be used to terminate flag options and force all following
         arguments to be treated as positional options

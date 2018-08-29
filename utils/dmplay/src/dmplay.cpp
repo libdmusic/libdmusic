@@ -36,6 +36,8 @@ int main(int argc, char **argv) {
     args::HelpFlag help(parser, "help", "Display this help menu", { 'h', "help" });
     args::ValueFlag<int> samplingRate(parser, "sampling rate", "The sampling rate to use", { 's', "sample" });
     args::ValueFlag<int> numChannels(parser, "channels", "The number of channels to use", { 'c', "channels" });
+    args::Flag listDevices(parser, "list devices", "Lists the available sound devices", { 'l', "list-devices" });
+    args::ValueFlag<unsigned int> device(parser, "device", "Use a specific sound device for playback", {'d', "device"});
     args::Positional<std::string> segmentName(parser, "segment", "The segment to render");
 
     try {
@@ -53,6 +55,23 @@ int main(int argc, char **argv) {
         return 1;
     }
 
+    RtAudio dac;
+    if (dac.getDeviceCount() < 1) {
+        std::cout << "No audio devices found!\n";
+        return 1;
+    }
+
+    if(listDevices) {
+        for (unsigned int i = 0; i < dac.getDeviceCount(); i++) {
+            std::cout << i << ')';
+            const auto& info = dac.getDeviceInfo(i);
+            if (info.isDefaultOutput) std::cout << " (default output)";
+            if (info.isDefaultInput) std::cout << " (default input)";
+            std::cout << ' ' << info.name << '\n';
+        }
+        return 0;
+    }
+
     if (!segmentName) {
         std::cerr << "dmplay: No input specified." << std::endl;
         return 1;
@@ -61,14 +80,8 @@ int main(int argc, char **argv) {
     int sampleRate = samplingRate ? args::get(samplingRate) : 44100;
     int channels = numChannels ? args::get(numChannels) : 2;
 
-    RtAudio dac;
-    if (dac.getDeviceCount() < 1) {
-        std::cout << "No audio devices found!\n";
-        return 0;
-    }
-
     RtAudio::StreamParameters parameters;
-    parameters.deviceId = dac.getDefaultOutputDevice();
+    parameters.deviceId = device ? args::get(device) : dac.getDefaultOutputDevice();
     parameters.nChannels = channels;
     parameters.firstChannel = 0;
 
@@ -78,7 +91,7 @@ int main(int argc, char **argv) {
 
     std::cout << "Opening audio device... ";
     try {
-        dac.openStream(&parameters, NULL, RTAUDIO_SINT16,
+        dac.openStream(&parameters, nullptr, RTAUDIO_SINT16,
             sampleRate, &bufferFrames, &audioCallback, (void *)&ctx);
         dac.startStream();
     } catch (const RtAudioError& e) {
