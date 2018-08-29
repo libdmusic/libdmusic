@@ -1,4 +1,4 @@
-version: 0.1.1.{build}
+version: 0.1.3.{build}
 image: Visual Studio 2017
 
 cache:
@@ -22,15 +22,15 @@ build_script:
   - cd build_x86
   - cmake -DCMAKE_PREFIX_PATH=C:/install_prefix_x86 -DDMUSIC_STATIC=ON -DCMAKE_INSTALL_PREFIX=C:/install_libdmusic_x86 ..
   - cmake --build . --config RelWithDebInfo --target INSTALL
-  - 7z a libdmusic_win_x86.zip C:/install_libdmusic_x86/*
-  - appveyor PushArtifact libdmusic_win_x86.zip
+  - 7z a libdmusic-v%APPVEYOR_BUILD_VERSION%-win32-ia32.zip C:/install_libdmusic_x86/*
+  - appveyor PushArtifact libdmusic-v%APPVEYOR_BUILD_VERSION%-win32-ia32.zip
   - cd ..
   - mkdir build_x86-64
   - cd build_x86-64
   - cmake -G "Visual Studio 15 2017 Win64" -DCMAKE_PREFIX_PATH=C:/install_prefix_x86-64 -DDMUSIC_STATIC=ON -DCMAKE_INSTALL_PREFIX=C:/install_libdmusic_x86-64 ..
   - cmake --build . --config RelWithDebInfo --target INSTALL
-  - 7z a libdmusic_win_x86-64.zip C:/install_libdmusic_x86-64/*
-  - appveyor PushArtifact libdmusic_win_x86-64.zip
+  - 7z a libdmusic-v%APPVEYOR_BUILD_VERSION%-win32-x64.zip C:/install_libdmusic_x86-64/*
+  - appveyor PushArtifact libdmusic-v%APPVEYOR_BUILD_VERSION%-win32-x64.zip
 
 notifications:
   - provider: Webhook
@@ -46,8 +46,9 @@ deploy:
   auth_token:
     secure: PKQ8wyiF5mNTAWbKepUrcnec7bucnXJ/T+Ip1NfxblviD6BqamxMuSQI1Kk5mCm+
   artifact: /.*\.zip/
-  draft: false
+  draft: true
   prerelease: true
+  force_update: true
   on:
     branch: master                 # release from master branch only
     appveyor_repo_tag: true        # deploy on tag push only
