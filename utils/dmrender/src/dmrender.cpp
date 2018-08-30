@@ -18,9 +18,9 @@ using namespace DirectMusic::DLS;
 int main(int argc, char **argv) {
     args::ArgumentParser parser("dmrender renders DirectMusic segments into audio files");
     args::HelpFlag help(parser, "help", "Display this help menu", { 'h', "help" });
-    args::ValueFlag<int> chunkLength(parser, "length", "The length in seconds of the audio to render", { 'l', "length" });
-    args::ValueFlag<int> samplingRate(parser, "sampling rate", "The sampling rate to use", { 's', "sample" });
-    args::ValueFlag<int> numChannels(parser, "channels", "The number of channels to use", { 'c', "channels" });
+    args::ValueFlag<unsigned int> chunkLength(parser, "length", "The length in seconds of the audio to render", { 'l', "length" });
+    args::ValueFlag<unsigned int> samplingRate(parser, "sampling rate", "The sampling rate to use", { 's', "sample" });
+    args::ValueFlag<unsigned int> numChannels(parser, "channels", "The number of channels to use", { 'c', "channels" });
     args::Flag vorbis(parser, "ogg vorbis", "The output file is going to be an Ogg/Vorbis file instead of an uncompressed Microsoft WAVE file", { 'O', "ogg" });
     args::Positional<std::string> segmentName(parser, "segment", "The segment to render");
     args::Positional<std::string> outputFile(parser, "output", "The output file");

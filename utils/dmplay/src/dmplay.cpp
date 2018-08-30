@@ -15,6 +15,8 @@
 using namespace DirectMusic;
 using namespace DirectMusic::DLS;
 
+static int streamChannels = 2;
+
 static int audioCallback(void* outputBuffer,
                       void* /*inputBuffer*/,
                       unsigned int framesPerBuffer,
@@ -26,15 +28,23 @@ static int audioCallback(void* outputBuffer,
     std::int16_t *out = (std::int16_t*)outputBuffer;
     int samples = framesPerBuffer * data->getAudioChannels();
 
-    data->renderBlock(out, samples, 1);
+    if(streamChannels > 2) {
+        for(std::size_t i = 0; i < framesPerBuffer; i++) {
+            data->renderBlock(out, 2, 1);
+            std::fill(out + 2, out + streamChannels, 0);
+            out += streamChannels;
+        }
+    } else {
+        data->renderBlock(out, samples, 1);
+    }
     return 0;
 }
 
 int main(int argc, char **argv) {
     args::ArgumentParser parser("dmplay plays DirectMusic segments in real time");
     args::HelpFlag help(parser, "help", "Display this help menu", { 'h', "help" });
-    args::ValueFlag<int> samplingRate(parser, "sampling rate", "The sampling rate to use", { 's', "sample" });
-    args::ValueFlag<int> numChannels(parser, "channels", "The number of channels to use", { 'c', "channels" });
+    args::ValueFlag<unsigned int> samplingRate(parser, "sampling rate", "The sampling rate to use", { 's', "sample" });
+    args::ValueFlag<unsigned int> numChannels(parser, "channels", "The number of channels to use", { 'c', "channels" });
     args::Flag listDevices(parser, "list devices", "Lists the available sound devices", { 'l', "list-devices" });
     args::ValueFlag<unsigned int> device(parser, "device", "Use a specific sound device for playback", {'d', "device"});
     args::Positional<std::string> segmentName(parser, "segment", "The segment to render");
@@ -86,7 +96,8 @@ int main(int argc, char **argv) {
 
     unsigned int bufferFrames = 256;
 
-    PlayingContext ctx(sampleRate, channels, DlsPlayer::createFactory());
+    PlayingContext ctx(sampleRate, channels > 2 ? 2 : channels, DlsPlayer::createFactory());
+    streamChannels = channels;
 
     std::cout << "Opening audio device... ";
     try {
