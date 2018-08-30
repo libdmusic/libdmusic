@@ -1,4 +1,4 @@
-version: 0.1.3.{build}
+version: 0.1.4.{build}
 image: Visual Studio 2017
 
 cache:
@@ -47,7 +47,7 @@ deploy:
     secure: PKQ8wyiF5mNTAWbKepUrcnec7bucnXJ/T+Ip1NfxblviD6BqamxMuSQI1Kk5mCm+
   artifact: /.*\.zip/
   draft: true
-  prerelease: true
+  prerelease: false
   force_update: true
   on:
     appveyor_repo_tag: true        # deploy on tag push only
