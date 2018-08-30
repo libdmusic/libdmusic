@@ -84,8 +84,8 @@ static std::shared_ptr<TinySoundFont> convertCollection(DirectMusic::DLS::Downlo
         if (wavsmpl.cSampleLoops == 0) {
             // In case the sample doesn't have loops,
             // we just loop the last two samples.
-            startLoop = audioData.size() - 2;
-            endLoop = audioData.size() - 1;
+            startLoop = static_cast<std::uint32_t>(audioData.size() - 2);
+            endLoop = static_cast<std::uint32_t>(audioData.size() - 1);
         } else {
             auto waveLoop = wav.getWavesampleLoops()[0];
             startLoop = waveLoop.ulLoopStart;
@@ -140,12 +140,16 @@ static std::shared_ptr<TinySoundFont> convertCollection(DirectMusic::DLS::Downlo
                 velrangeHigh = hdr.RangeVelocity.usHigh;
             }
 
-            genItems.push_back(SFGeneratorItem(SFGenerator::kKeyRange, RangesType(keyrangeLow, keyrangeHigh)));
-            genItems.push_back(SFGeneratorItem(SFGenerator::kVelRange, RangesType(velrangeLow, velrangeHigh)));
+            genItems.push_back(SFGeneratorItem(SFGenerator::kKeyRange,
+                    RangesType(static_cast<std::uint8_t>(keyrangeLow),
+                                static_cast<std::uint8_t>(keyrangeHigh))));
+            genItems.push_back(SFGeneratorItem(SFGenerator::kVelRange,
+                    RangesType(static_cast<std::uint8_t>(velrangeLow),
+                                static_cast<std::uint8_t>(velrangeHigh))));
             if (wavesample.cSampleLoops == 0) {
                 sample = sf2.NewSample(samples[wavelink.ulTableIndex]);
-                sample->set_start_loop(sample->data().size() - 2);
-                sample->set_end_loop(sample->data().size() - 1);
+                sample->set_start_loop(static_cast<std::uint32_t>(sample->data().size() - 2));
+                sample->set_end_loop(static_cast<std::uint32_t>(sample->data().size() - 1));
                 genItems.push_back(SFGeneratorItem(SFGenerator::kSampleModes, std::uint16_t(SampleMode::kNoLoop)));
             } else {
                 auto loop = reg.getWavesampleLoops()[0];
@@ -154,8 +158,8 @@ static std::shared_ptr<TinySoundFont> convertCollection(DirectMusic::DLS::Downlo
                 sample->set_end_loop(loop.ulLoopStart + loop.ulLoopLength);
                 genItems.push_back(SFGeneratorItem(SFGenerator::kSampleModes, std::uint16_t(SampleMode::kLoopContinuously)));
             }
-            sample->set_original_key(wavesample.usUnityNote);
-            sample->set_correction(wavesample.sFineTune);
+            sample->set_original_key(static_cast<std::uint8_t>(wavesample.usUnityNote));
+            sample->set_correction(static_cast<std::int8_t>(wavesample.sFineTune));
             SFInstrumentZone zone(sample, genItems, modItems);
             zones.push_back(zone);
         }

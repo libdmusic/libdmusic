@@ -72,7 +72,7 @@ TSFDEF tsf* tsf_load_filename(const char* filename);
 #endif
 
 // Load a SoundFont from a block of memory
-TSFDEF tsf* tsf_load_memory(const void* buffer, int size);
+TSFDEF tsf* tsf_load_memory(const void* buffer, size_t size);
 
 // Stream structure for the generic loading
 struct tsf_stream
@@ -294,10 +294,10 @@ TSFDEF tsf* tsf_load_filename(const char* filename)
 }
 #endif
 
-struct tsf_stream_memory { const char* buffer; unsigned int total, pos; };
-static int tsf_stream_memory_read(struct tsf_stream_memory* m, void* ptr, unsigned int size) { if (size > m->total - m->pos) size = m->total - m->pos; TSF_MEMCPY(ptr, m->buffer+m->pos, size); m->pos += size; return size; }
-static int tsf_stream_memory_skip(struct tsf_stream_memory* m, unsigned int count) { if (m->pos + count > m->total) return 0; m->pos += count; return 1; }
-TSFDEF tsf* tsf_load_memory(const void* buffer, int size)
+struct tsf_stream_memory { const char* buffer; size_t total, pos; };
+static size_t tsf_stream_memory_read(struct tsf_stream_memory* m, void* ptr, size_t size) { if (size > m->total - m->pos) size = m->total - m->pos; TSF_MEMCPY(ptr, m->buffer+m->pos, size); m->pos += size; return size; }
+static size_t tsf_stream_memory_skip(struct tsf_stream_memory* m, size_t count) { if (m->pos + count > m->total) return 0; m->pos += count; return 1; }
+TSFDEF tsf* tsf_load_memory(const void* buffer, size_t size)
 {
 	struct tsf_stream stream = { TSF_NULL, (int(*)(void*,void*,unsigned int))&tsf_stream_memory_read, (int(*)(void*,unsigned int))&tsf_stream_memory_skip };
 	struct tsf_stream_memory f = { 0, 0, 0 };
@@ -954,7 +954,7 @@ static void tsf_voice_render(tsf* f, struct tsf_voice* v, float* outputBuffer, i
 		if (dynamicGain)
 			noteGain = tsf_decibelsToGain(v->noteGainDB + (v->modlfo.level * tmpModLfoToVolume));
 
-        v->noteGain += 0.1 * (noteGain - v->noteGain);
+        v->noteGain += 0.1f * (noteGain - v->noteGain);
 
 		gainMono = v->noteGain * v->ampenv.level;
 
