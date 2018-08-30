@@ -8,7 +8,6 @@
 #include <dmusic/InstrumentPlayer.h>
 #include <dmusic/Tracks.h>
 #include <dmusic/dls/DownloadableSound.h>
-#include <cassert>
 #include <sndfile.h>
 #include <cmath>
 #include <args.hxx>
@@ -53,6 +52,10 @@ int main(int argc, char **argv) {
 
     int sampleRate = samplingRate ? args::get(samplingRate) : 44100;
     int channels = numChannels ? args::get(numChannels) : 1;
+    if(channels > 2) {
+        std::cerr << "dmrender: Invalid number of channels" << std::endl;
+        return 1;
+    }
     std::uint64_t length = (chunkLength ? args::get(chunkLength) : 60) * sampleRate;
 
     // Store soundfonts based on their name

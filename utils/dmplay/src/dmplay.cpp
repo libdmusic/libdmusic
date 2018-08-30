@@ -7,7 +7,6 @@
 #include <dmusic/DlsPlayer.h>
 #include <dmusic/Tracks.h>
 #include <dmusic/dls/DownloadableSound.h>
-#include <cassert>
 #include <RtAudio.h>
 #include <cmath>
 #include <cstdio>

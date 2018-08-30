@@ -1,4 +1,3 @@
-#include <cassert>
 #include <exception>
 #include <dmusic/SoundFontPlayer.h>
 #include <memory>
@@ -21,14 +20,18 @@ SoundFontPlayer::SoundFontPlayer(tsf* soundfont,
     float pan)
     : InstrumentPlayer(bankLo, bankHi, patch, dls, sampleRate, channels, volume, pan)
     , m_soundfont(nullptr) {
-    assert(channels <= 2);
+    if(channels > 2) {
+        throw std::runtime_error("Invalid number of channels");
+    }
     std::uint32_t bank = (bankHi << 16) + bankLo;
 
     m_pan = pan < -1 ? -1 : pan > 1 ? 1 : pan;
     m_soundfont = soundfont;
 
     m_preset = tsf_get_presetindex(m_soundfont, 0, patch);
-    assert(m_preset >= 0);
+    if(m_preset < 0) {
+        throw std::runtime_error("Preset not found");
+    }
 
     float volFactorRight = sqrt((m_pan + 1) / 2);
     float volFactorLeft = sqrt((-m_pan + 1) / 2);

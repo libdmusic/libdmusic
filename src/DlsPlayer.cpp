@@ -1,5 +1,4 @@
 #include <dmusic/DlsPlayer.h>
-#include <cassert>
 #include <exception>
 #include <memory>
 #include <cmath>
@@ -126,7 +125,9 @@ static std::shared_ptr<TinySoundFont> convertCollection(DirectMusic::DLS::Downlo
                 insertArticulator(art, modItems, genItems);
             }
 
-            assert(hdr.RangeKey.usHigh >= hdr.RangeKey.usLow);
+            if(hdr.RangeKey.usHigh < hdr.RangeKey.usLow) {
+                throw std::runtime_error("Invalid key range in instrument");
+            }
 
             keyrangeLow = hdr.RangeKey.usLow;
             keyrangeHigh = hdr.RangeKey.usHigh;
@@ -184,8 +185,9 @@ DlsPlayer::DlsPlayer(std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patc
     float pan)
     : InstrumentPlayer(bankLo, bankHi, patch, dls, sampleRate, channels, volume, pan)
     , m_soundfont(nullptr) {
-    assert(channels <= 2);
-
+    if (channels > 2) {
+        throw std::runtime_error("Invalid number of channels");
+    }
     std::shared_ptr<TinySoundFont> soundfont;
     if (m_soundfonts.find(dls) == m_soundfonts.end()) {
         soundfont = convertCollection(dls);
@@ -203,7 +205,9 @@ DlsPlayer::DlsPlayer(std::uint8_t bankLo, std::uint8_t bankHi, std::uint8_t patc
     m_soundfont = soundfont;
 
     m_preset = m_soundfont->getPresetIndex(0, patch);
-    assert(m_preset >= 0);
+    if(m_preset < 0) {
+        throw std::runtime_error("Preset not found");
+    }
 
     float volFactorRight = sqrt((m_pan + 1) / 2);
     float volFactorLeft = sqrt((-m_pan + 1) / 2);

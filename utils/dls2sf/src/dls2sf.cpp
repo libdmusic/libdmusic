@@ -8,7 +8,6 @@
 #include <dmusic/Tracks.h>
 #include <sf2cute.hpp>
 #include <climits>
-#include <cassert>
 #include <cmath>
 #include <map>
 #include <set>
@@ -156,7 +155,9 @@ static void convertSounds(std::vector<DLS::DownloadableSound>& sounds, std::ostr
                     insertArticulator(art, modItems, genItems);
                 }
 
-                assert(hdr.RangeKey.usHigh >= hdr.RangeKey.usLow);
+                if(hdr.RangeKey.usHigh < hdr.RangeKey.usLow) {
+                    throw std::runtime_error("Invalid key range in instrument");
+                }
 
                 keyrangeLow = hdr.RangeKey.usLow;
                 keyrangeHigh = hdr.RangeKey.usHigh;
