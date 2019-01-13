@@ -34,8 +34,8 @@ namespace DirectMusic {
         };
 
         struct Event {
-            Message Type : 4;
-            std::uint8_t Channel : 4;
+            Message Type;
+            std::uint8_t Channel;
             union {
                 struct {
                     std::uint8_t NoteNumber;
