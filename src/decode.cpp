@@ -10,7 +10,7 @@ using namespace DirectMusic::DLS;
 // some sort of IO access on the membuffer.
 struct Userdata {
     const std::vector<std::uint8_t> sample;
-    int position;
+    std::size_t position;
 };
 
 static sf_count_t get_filelen(void *userdata) {
