@@ -10,8 +10,6 @@ option(DMUSIC_BUILD_UTILS "Build various DirectMusic utilities" ON)
 option(DMUSIC_TRACE "Enable tracing messages" OFF)
 option(DMUSIC_TRACE_VERBOSE "Enable verbose tracing messages" OFF)
 
-find_package(sf2cute REQUIRED)
-
 add_library(dmusic STATIC
   ${CMAKE_CURRENT_SOURCE_DIR}/src/Articulator.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/decode.cpp
@@ -31,7 +29,33 @@ add_library(dmusic STATIC
   ${CMAKE_CURRENT_SOURCE_DIR}/src/Forms/ReferenceList.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/Forms/Segment.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/Forms/Style.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/Forms/Tracks.cpp)
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/Forms/Tracks.cpp
+  
+  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/file.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/file_writer.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/generator_item.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/instrument.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/instrument_zone.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/modulator.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/modulator_key.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/modulator_item.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/preset.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/preset_zone.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/riff.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/riff_ibag_chunk.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/riff_igen_chunk.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/riff_imod_chunk.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/riff_inst_chunk.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/riff_pbag_chunk.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/riff_pgen_chunk.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/riff_phdr_chunk.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/riff_pmod_chunk.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/riff_shdr_chunk.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/riff_smpl_chunk.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/sample.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/zone.cpp)
+
+target_include_directories(dmusic PRIVATE sf2cute/include)
 
 add_library(dmusic::dmusic ALIAS dmusic)
 target_compile_features(dmusic PUBLIC cxx_std_14)
@@ -55,8 +79,6 @@ else()
   target_link_libraries(dmusic PRIVATE Sndfile::Sndfile)
   set(SndfileConfig FindSndfile)
 endif()
-
-target_link_libraries(dmusic PRIVATE sf2cute::sf2cute)
 
 if(DMUSIC_TRACE)
   target_compile_definitions(dmusic PRIVATE DMUSIC_TRACE=1)

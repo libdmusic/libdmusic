@@ -6,8 +6,6 @@ cache:
   - C:\build_libsndfile_x86-64
   - C:\build_rtaudio_x86
   - C:\build_rtaudio_x86-64
-  - C:\build_sf2cute_x86
-  - C:\build_sf2cute_x86-64
   - C:\install_prefix_x86
   - C:\install_prefix_x86-64
 
@@ -15,7 +13,6 @@ install:
   - git submodule update --init --recursive
   - .\ci\build_libsndfile.bat
   - .\ci\build_rtaudio.bat
-  - .\ci\build_sf2cute.bat
   
 build_script:
   - mkdir build_x86

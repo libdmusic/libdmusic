@@ -4,7 +4,8 @@ project (dls2sf VERSION 0.1)
 add_executable(dls2sf ${CMAKE_CURRENT_SOURCE_DIR}/src/dls2sf.cpp)
 
 target_include_directories(dls2sf PRIVATE ../common)
-target_link_libraries(dls2sf PRIVATE dmusic::dmusic sf2cute::sf2cute)
+target_include_directories(dls2sf PRIVATE ../../sf2cute/include)
+target_link_libraries(dls2sf PRIVATE dmusic::dmusic)
 target_compile_features(dls2sf PUBLIC cxx_std_14)
 
 add_executable(dmusic::dls2sf ALIAS dls2sf)

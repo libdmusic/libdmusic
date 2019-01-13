@@ -21,9 +21,6 @@ install:
   - curl -o rtaudio-5.0.0.tar.gz http://www.music.mcgill.ca/~gary/rtaudio/release/rtaudio-5.0.0.tar.gz
   - tar xzvf rtaudio-5.0.0.tar.gz
   - cd rtaudio-5.0.0 && ./configure && make -j 4 && sudo make install && cd ..
-  - git clone https://github.com/frabert/sf2cute
-  - cd sf2cute && mkdir build && cd build
-  - cmake .. && make -j2 && sudo make install && cd ../../
 script:
   # Check versions of gcc, g++ and cmake
   - gcc -v && g++ -v && cmake --version
