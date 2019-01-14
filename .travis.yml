@@ -25,7 +25,7 @@ script:
 - git submodule update --init --recursive
 - mkdir -p build
 - cd build
-- cmake .. -DDMUSIC_STATIC=ON
+- cmake ..
 - make -j2
 - cpack -G TBZ2
 - cpack -G DEB

@@ -20,14 +20,16 @@ build_script:
   - cmake -DCMAKE_PREFIX_PATH=C:/install_prefix_x86 -DDMUSIC_STATIC=ON -DCMAKE_INSTALL_PREFIX=C:/install_libdmusic_x86 ..
   - cmake --build . --config RelWithDebInfo --target INSTALL
   - cpack -G ZIP -C RelWithDebInfo
-  - appveyor PushArtifact *.zip
   - cd ..
   - mkdir build_x86-64
   - cd build_x86-64
   - cmake -G "Visual Studio 15 2017 Win64" -DCMAKE_PREFIX_PATH=C:/install_prefix_x86-64 -DDMUSIC_STATIC=ON -DCMAKE_INSTALL_PREFIX=C:/install_libdmusic_x86-64 ..
   - cmake --build . --config RelWithDebInfo --target INSTALL
   - cpack -G ZIP -C RelWithDebInfo
-  - appveyor PushArtifact *.zip
+
+artifacts:
+  - path: 'build_x86/*.zip'
+  - path: 'build_x86-64/*.zip'
 
 notifications:
   - provider: Webhook
