@@ -1,31 +1,44 @@
 dist: trusty
 sudo: required
 language:
-  - cpp
+- cpp
 compiler:
-  - gcc
+- gcc
 addons:
   apt:
     sources:
-      - ubuntu-toolchain-r-test
+    - ubuntu-toolchain-r-test
     packages:
-      - gcc-6
-      - g++-6
-      - cmake
-      - libsndfile1-dev
-      - librtaudio-dev # This is here to populate the dependencies for the subsequent 5.0.0 build
+    - gcc-6
+    - g++-6
+    - cmake
+    - libsndfile1-dev
+    - librtaudio-dev
 install:
-  # Export CC and CXX to tell cmake which compiler to use
-  - export CC=/usr/bin/gcc-6
-  - export CXX=/usr/bin/g++-6
-  - curl -o rtaudio-5.0.0.tar.gz http://www.music.mcgill.ca/~gary/rtaudio/release/rtaudio-5.0.0.tar.gz
-  - tar xzvf rtaudio-5.0.0.tar.gz
-  - cd rtaudio-5.0.0 && ./configure && make -j 4 && sudo make install && cd ..
+- export CC=/usr/bin/gcc-6
+- export CXX=/usr/bin/g++-6
+- curl -o rtaudio-5.0.0.tar.gz http://www.music.mcgill.ca/~gary/rtaudio/release/rtaudio-5.0.0.tar.gz
+- tar xzvf rtaudio-5.0.0.tar.gz
+- cd rtaudio-5.0.0 && ./configure && make -j 4 && sudo make install && cd ..
 script:
-  # Check versions of gcc, g++ and cmake
-  - gcc -v && g++ -v && cmake --version
-  - git submodule update --init --recursive
-  - mkdir -p build
-  - cd build
-  - cmake ..
-  - make -j2
+- gcc -v && g++ -v && cmake --version
+- git submodule update --init --recursive
+- mkdir -p build
+- cd build
+- cmake .. -DDMUSIC_STATIC=ON
+- make -j2
+- cpack -G TBZ2
+- cpack -G DEB
+deploy:
+  provider: releases
+  api_key:
+    secure: adgZyxOZ2/mRZxm5C+1x8IrfYgeySfdPmqMGiCktsMPVONX3uknBryzBVfzCpek9PEgliBAA4+1OIcqWw1G9svKNvEcRyR/RgCCtG3yac4g93zLm6j7jtNuRdPk9y6H137/KWuDt2vhNYTSO7WXUuAmj/UBhEKO4APVmFpsMTJk/fvYhzPSOt72sH2NW8T6g0M+NDBPxD5YZwm+CPiu6QkcDZD9afnIZl0ID4pBpSc894FUXScDl8orsTHy6HCVUi0xD8KNABPgrwq09EAeVqK39BRnVQeooGkzeH/MXxjpBDROkBDtY4ci+AaZpr1WEma1k3xH0a1u9ScWbcfZ+HD7QZ9eShnQq8igG5upkU1AwKdktJhcrw2zJgBEQuzXZXwEW0pgRv7rQM+mLDApbZyWL6nEWFzrpqmBkcB3B4wzzm7yr4h6YPTqGoLZgkkvUuxJGFYoSiExsguD7ktloLl0BXmt8fZBELMrl/Eocn1v6KI1hUmVprFqFF8wMpEtSRKDGQRM3WTO7fvzojSZlT2xE0iAEsy8x9mCcvzMunzsfouOk5o4BGDxCIs6AbOzrqSH0dPlHQZdYUhhuIoXEW+uDCutWzYuFcOmsoZuwa+6E2xmUUje+965miao6JK9+qi1hGUT/0+R70nbkvEHpe4ALLYlvB5Ig8G7qskCreYE=
+
+  file_glob: true
+  file:
+    - libdmusic/build/*.bz2
+    - libdmusic/build/*.deb
+  draft: true
+  prerelease: true
+  on:
+    repo: frabert/libdmusic
