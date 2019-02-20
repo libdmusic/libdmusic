@@ -42,6 +42,7 @@ $ cd ..
 
 REM Building libdmusic
 REM Add -D DMUSIC_BUILD_UTILS=OFF to disable building utilities
+REM Disabling the utilities removes the need for RtAudio
 $ git clone --recursive https://github.com/frabert/libdmusic
 $ cmake -D CMAKE_PREFIX_PATH=%HOMEPATH/libs .
 $ cmake --build .
@@ -52,7 +53,7 @@ On *nix systems, building is simpler (once you have installed libsndfile and rta
 ````sh
 $ git clone --recursive https://github.com/frabert/libdmusic
 $ cd libdmusic
-$ cmake . # Add -D DMUSIC_BUILD_UTILS=OFF to disable building utilities
+$ cmake . # Add -D DMUSIC_BUILD_UTILS=OFF to disable building utilities and remove the dependency on RtAudio
 $ make
 ````
 
