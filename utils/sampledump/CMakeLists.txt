@@ -1,5 +1,7 @@
+find_path(ARGS_HXX args.hxx)
+
 add_executable(sampledump ${CMAKE_CURRENT_SOURCE_DIR}/src/sampledump.cpp)
-target_include_directories(sampledump PRIVATE ../../include)
+target_include_directories(sampledump PRIVATE ../../include ${ARGS_HXX})
 target_link_libraries(sampledump PRIVATE dmusic::dmusic)
 
 target_compile_features(sampledump PUBLIC cxx_std_14)

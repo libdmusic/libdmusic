@@ -55,21 +55,21 @@ add_library(dmusic::dmusic ALIAS dmusic)
 
 include(GNUInstallDirs)
 
-option(UTILS_DESTINATION "Utilities install directory" ${CMAKE_INSTALL_BINDIR})
+option(UTILS_DESTINATION "Utilities install directory" "bin")
 
 # install library files needed for linking
 install(
-    TARGETS dmusic
-    EXPORT dmusic-targets
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+  TARGETS dmusic
+  EXPORT dmusic-targets
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
 # install the public header files
 install(
-    DIRECTORY ${CMAKE_SOURCE_DIR}/include/
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+  DIRECTORY ${CMAKE_SOURCE_DIR}/include/
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
 if (DMUSIC_BUILD_UTILS)
@@ -78,29 +78,29 @@ endif ()
 
 # installs the *cmake files in share directory
 install(
-    EXPORT dmusic-targets
-    FILE dmusic-targets.cmake
-    NAMESPACE dmusic::
-    DESTINATION share/dmusic
+  EXPORT dmusic-targets
+  FILE dmusic-targets.cmake
+  NAMESPACE dmusic::
+  DESTINATION share/dmusic
 )
 
 include(CMakePackageConfigHelpers)
 
 write_basic_package_version_file(
-    ${CMAKE_BINARY_DIR}/cmake/dmusic-config-version.cmake
-    VERSION ${SF2CUTE_VERSION}
-    COMPATIBILITY AnyNewerVersion
+  ${CMAKE_BINARY_DIR}/cmake/dmusic-config-version.cmake
+  VERSION ${PROJECT_VERSION}
+  COMPATIBILITY AnyNewerVersion
 )
 
 configure_package_config_file(
-    ${CMAKE_CURRENT_LIST_DIR}/cmake/dmusic-config.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/cmake/dmusic-config.cmake
-    INSTALL_DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/dmusic
+  ${CMAKE_CURRENT_LIST_DIR}/cmake/dmusic-config.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/cmake/dmusic-config.cmake
+  INSTALL_DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/dmusic
 )
 
 install(
-    FILES
-        ${CMAKE_BINARY_DIR}/cmake/dmusic-config.cmake
-        ${CMAKE_BINARY_DIR}/cmake/dmusic-config-version.cmake
-    DESTINATION share/dmusic
+  FILES
+    ${CMAKE_BINARY_DIR}/cmake/dmusic-config.cmake
+    ${CMAKE_BINARY_DIR}/cmake/dmusic-config-version.cmake
+  DESTINATION share/dmusic
 )

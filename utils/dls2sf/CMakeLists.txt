@@ -1,9 +1,11 @@
 find_path(LIBSNDFILE_H sndfile.h)
 find_library(LIBSNDFILE_LIB NAMES libsndfile-1 libsndfile)
 
+find_path(ARGS_HXX args.hxx)
+
 add_executable(dls2sf ${CMAKE_CURRENT_SOURCE_DIR}/src/dls2sf.cpp)
 
-target_include_directories(dls2sf PRIVATE ../common ../../sf2cute/include ${LIBSNDFILE_H})
+target_include_directories(dls2sf PRIVATE ../common ${ARGS_HXX} ${LIBSNDFILE_H})
 target_link_libraries(dls2sf PRIVATE dmusic::dmusic ${LIBSNDFILE_LIB})
 target_compile_features(dls2sf PUBLIC cxx_std_14)
 
