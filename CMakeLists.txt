@@ -1,84 +1,40 @@
-cmake_minimum_required (VERSION 3.4)
+cmake_minimum_required (VERSION 3.10)
 project (dmusic VERSION 0.1.5 LANGUAGES CXX)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
-  "${CMAKE_SOURCE_DIR}" "${PROJECT_SOURCE_DIR}"
-  "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-
-option(DMUSIC_STATIC "Builds dmusic as a static library (generally only needed on Windows)" OFF)
 option(DMUSIC_BUILD_UTILS "Build various DirectMusic utilities" ON)
 option(DMUSIC_TRACE "Enable tracing messages" OFF)
 option(DMUSIC_TRACE_VERBOSE "Enable verbose tracing messages" OFF)
 
-add_library(dmusic STATIC
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/Articulator.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/decode.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/DlsPlayer.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/DownloadableSound.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/DummyPlayer.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/Exceptions.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/Instrument.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/MusicMessages.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/PlayingContext.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/Region.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/Riff.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/SoundFontPlayer.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/Wave.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/Forms/Band.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/Forms/Chordmap.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/Forms/ReferenceList.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/Forms/Segment.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/Forms/Style.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/Forms/Tracks.cpp
-  
-  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/file.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/file_writer.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/generator_item.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/instrument.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/instrument_zone.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/modulator.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/modulator_key.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/modulator_item.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/preset.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/preset_zone.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/riff.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/riff_ibag_chunk.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/riff_igen_chunk.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/riff_imod_chunk.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/riff_inst_chunk.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/riff_pbag_chunk.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/riff_pgen_chunk.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/riff_phdr_chunk.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/riff_pmod_chunk.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/riff_shdr_chunk.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/riff_smpl_chunk.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/sample.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/sf2cute/src/sf2cute/zone.cpp)
+find_package(sf2cute CONFIG REQUIRED)
 
-target_include_directories(dmusic PRIVATE sf2cute/include)
+find_path(LIBSNDFILE_H sndfile.h)
+find_library(LIBSNDFILE_LIB NAMES sndfile sndfile-1 libsndfile-1 libsndfile)
 
-add_library(dmusic::dmusic ALIAS dmusic)
+add_library(dmusic "")
+target_sources(dmusic
+  PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Articulator.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/decode.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/DlsPlayer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/DownloadableSound.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/DummyPlayer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Exceptions.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Instrument.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/MusicMessages.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/PlayingContext.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Region.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Riff.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/SoundFontPlayer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Wave.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Forms/Band.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Forms/Chordmap.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Forms/ReferenceList.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Forms/Segment.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Forms/Style.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Forms/Tracks.cpp)
+
 target_compile_features(dmusic PUBLIC cxx_std_14)
-
-set_target_properties(dmusic PROPERTIES
-  ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
-  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
-  RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
-)
-
-if (DMUSIC_BUILD_UTILS)
-  add_subdirectory(utils)
-endif ()
-
-if(DMUSIC_STATIC)
-  find_package(SndfileStatic REQUIRED)
-  target_link_libraries(dmusic PRIVATE Sndfile::SndfileStatic)
-  set(SndfileConfig FindSndfileStatic)
-else()
-  find_package(Sndfile REQUIRED)
-  target_link_libraries(dmusic PRIVATE Sndfile::Sndfile)
-  set(SndfileConfig FindSndfile)
-endif()
+target_link_libraries(dmusic PRIVATE sf2cute::sf2cute ${LIBSNDFILE_LIB})
 
 if(DMUSIC_TRACE)
   target_compile_definitions(dmusic PRIVATE DMUSIC_TRACE=1)
@@ -87,69 +43,64 @@ if(DMUSIC_TRACE)
   endif()
 endif()
 
-target_include_directories(dmusic PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
-  $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>
-  $<INSTALL_INTERFACE:include>)
+target_include_directories(dmusic
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+  PRIVATE
+    ${LIBSNDFILE_H})
+
+add_library(dmusic::dmusic ALIAS dmusic)
 
 include(GNUInstallDirs)
 
-install(TARGETS dmusic
-  EXPORT dmusic-targets
-  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-  INCLUDES DESTINATION ${LIBLEGACY_INCLUDE_DIRS})
+option(UTILS_DESTINATION "Utilities install directory" ${CMAKE_INSTALL_BINDIR})
 
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/include
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/../
+# install library files needed for linking
+install(
+    TARGETS dmusic
+    EXPORT dmusic-targets
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
-install(EXPORT dmusic-targets
-  FILE dmusic-targets.cmake
-  NAMESPACE dmusic::
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/dmusic
+# install the public header files
+install(
+    DIRECTORY ${CMAKE_SOURCE_DIR}/include/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+if (DMUSIC_BUILD_UTILS)
+  add_subdirectory(utils)
+endif ()
+
+# installs the *cmake files in share directory
+install(
+    EXPORT dmusic-targets
+    FILE dmusic-targets.cmake
+    NAMESPACE dmusic::
+    DESTINATION share/dmusic
 )
 
 include(CMakePackageConfigHelpers)
 
-if(DMUSIC_STATIC)
-  configure_package_config_file(
-    ${CMAKE_SOURCE_DIR}/cmake/dmusic-config_static.cmake.in
-    ${CMAKE_BINARY_DIR}/cmake/dmusic-config.cmake
-    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/dmusic
-  )
-else()
-  configure_package_config_file(
-    ${CMAKE_SOURCE_DIR}/cmake/dmusic-config.cmake.in
-    ${CMAKE_BINARY_DIR}/cmake/dmusic-config.cmake
-    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/dmusic
-  )
-endif()
-
 write_basic_package_version_file(
-  ${CMAKE_BINARY_DIR}/cmake/dmusic-config-version.cmake
-  VERSION ${DMUSIC_VERSION}
-  COMPATIBILITY AnyNewerVersion
+    ${CMAKE_BINARY_DIR}/cmake/dmusic-config-version.cmake
+    VERSION ${SF2CUTE_VERSION}
+    COMPATIBILITY AnyNewerVersion
+)
+
+configure_package_config_file(
+    ${CMAKE_CURRENT_LIST_DIR}/cmake/dmusic-config.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/cmake/dmusic-config.cmake
+    INSTALL_DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/dmusic
 )
 
 install(
-  FILES
-    ${CMAKE_BINARY_DIR}/cmake/dmusic-config.cmake
-    ${CMAKE_BINARY_DIR}/cmake/dmusic-config-version.cmake
-    ${CMAKE_CURRENT_LIST_DIR}/cmake/${SndfileConfig}.cmake
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/dmusic
+    FILES
+        ${CMAKE_BINARY_DIR}/cmake/dmusic-config.cmake
+        ${CMAKE_BINARY_DIR}/cmake/dmusic-config-version.cmake
+    DESTINATION share/dmusic
 )
-
-# Packaging support
-set(CPACK_PACKAGE_VENDOR "Francesco Bertolaccini")
-set(CPACK_PACKAGE_CONTACT "bertolaccinifrancesco@gmail.com")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "DirectMusic file loading utilities")
-set(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
-set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
-set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
-set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
-set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libsndfile1 (>= 1.0.25-9.1)")
-
-include(CPack)
