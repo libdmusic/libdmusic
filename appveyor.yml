@@ -18,7 +18,9 @@ for:
     - vcpkg
 
   install:
-    - sudo apt install libasound2-dev libsndfile1-dev
+    - sudo apt install -y libasound2-dev libsndfile1-dev
+    - git config --global user.name "Anonymous"
+    - git config --global user.email "anon@example.org"
     - git clone https://github.com/REGoth-project/vcpkg.git
     - cd vcpkg
     - git merge -m "" origin/sf2cute origin/rtaudio
@@ -40,6 +42,8 @@ for:
     - vcpkg
 
   install:
+    - git config --global user.name "Anonymous"
+    - git config --global user.email "anon@example.org"
     - git clone https://github.com/REGoth-project/vcpkg.git
     - cd vcpkg
     - git merge -m "" origin/sf2cute origin/rtaudio
