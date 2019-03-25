@@ -1,52 +1,57 @@
 version: 0.1.5.{build}
-image: Visual Studio 2017
+image:
+- Visual Studio 2017
+- Ubuntu1804
 
-cache:
-  - C:\build_libsndfile_x86
-  - C:\build_libsndfile_x86-64
-  - C:\build_rtaudio_x86
-  - C:\build_rtaudio_x86-64
-  - C:\install_prefix_x86
-  - C:\install_prefix_x86-64
+platform:
+  - x86
+  - x64
 
-install:
-  - git submodule update --init --recursive
-  - .\ci\build_libsndfile.bat
-  - .\ci\build_rtaudio.bat
+for:
+-
+  matrix:
+    only:
+      - image: Ubuntu1804
+      - platform: x64
   
-build_script:
-  - mkdir build_x86
-  - cd build_x86
-  - cmake -DCMAKE_PREFIX_PATH=C:/install_prefix_x86 -DDMUSIC_STATIC=ON -DCMAKE_INSTALL_PREFIX=C:/install_libdmusic_x86 ..
-  - cmake --build . --config RelWithDebInfo --target INSTALL
-  - cpack -G ZIP -C RelWithDebInfo
-  - cd ..
-  - mkdir build_x86-64
-  - cd build_x86-64
-  - cmake -G "Visual Studio 15 2017 Win64" -DCMAKE_PREFIX_PATH=C:/install_prefix_x86-64 -DDMUSIC_STATIC=ON -DCMAKE_INSTALL_PREFIX=C:/install_libdmusic_x86-64 ..
-  - cmake --build . --config RelWithDebInfo --target INSTALL
-  - cpack -G ZIP -C RelWithDebInfo
+  cache:
+    - vcpkg
 
-artifacts:
-  - path: 'build_x86/*.zip'
-  - path: 'build_x86-64/*.zip'
+  install:
+    - sudo apt install libasound2-dev libsndfile1-dev
+    - git clone https://github.com/REGoth-project/vcpkg.git
+    - cd vcpkg
+    - git merge -m "" origin/sf2cute origin/rtaudio
+    - ./bootstrap-vcpkg.sh
+    - ./vcpkg install args rtaudio sf2cute
+    - cd ..
 
-notifications:
-  - provider: Webhook
-    url: https://webhooks.gitter.im/e/5020e3cf2a1bbb5c8247
-    on_build_success: true
-    on_build_failure: true
-    on_build_status_changed: true
+  build_script:
+    - mkdir build
+    - cd build
+    - cmake .. -DCMAKE_TOOLCHAIN_FILE=../vcpkg/scripts/buildsystems/vcpkg.cmake
+    - cmake --build .
+-
+  matrix:
+    only:
+      - image: Visual Studio 2017
+  
+  cache:
+    - vcpkg
 
-deploy:
-  release: libdmusic-v$(appveyor_build_version)
-  description: 'Automated build release'
-  provider: GitHub
-  auth_token:
-    secure: PKQ8wyiF5mNTAWbKepUrcnec7bucnXJ/T+Ip1NfxblviD6BqamxMuSQI1Kk5mCm+
-  artifact: /.*\.zip/
-  draft: true
-  prerelease: false
-  force_update: true
-  on:
-    appveyor_repo_tag: true        # deploy on tag push only
+  install:
+    - git clone https://github.com/REGoth-project/vcpkg.git
+    - cd vcpkg
+    - git merge -m "" origin/sf2cute origin/rtaudio
+    - .\bootstrap-vcpkg.bat
+    - .\vcpkg.exe install args rtaudio sf2cute libsndfile
+    - cd ..
+
+  build_script:
+    - mkdir build
+    - cd build
+    - if %PLATFORM%==x86 ( cmake -DCMAKE_TOOLCHAIN_FILE=../vcpkg/scripts/buildsystems/vcpkg.cmake .. )
+    - if %PLATFORM%==x64 ( cmake -DCMAKE_TOOLCHAIN_FILE=../vcpkg/scripts/buildsystems/vcpkg.cmake -G "Visual Studio 15 2017 Win64" .. )
+    - cmake --build . --config Release
+    - cmake --build . --config Debug
+    - cmake --build . --config RelWithDebInfo
