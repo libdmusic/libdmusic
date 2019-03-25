@@ -12,7 +12,6 @@ for:
   matrix:
     only:
       - image: Ubuntu1804
-      - platform: x64
   
   cache:
     - vcpkg
@@ -21,9 +20,9 @@ for:
     - sudo apt install -y libasound2-dev libsndfile1-dev
     - git config --global user.name "Anonymous"
     - git config --global user.email "anon@example.org"
-    - git clone https://github.com/REGoth-project/vcpkg.git
+    - git clone https://github.com/REGoth-project/vcpkg.git || true
     - cd vcpkg
-    - git merge --no-edit origin/sf2cute origin/rtaudio
+    - git merge --no-edit origin/sf2cute origin/rtaudio || true
     - ./bootstrap-vcpkg.sh
     - ./vcpkg install args rtaudio sf2cute
     - cd ..
@@ -42,12 +41,7 @@ for:
     - vcpkg
 
   install:
-    - git config --global user.name "Anonymous"
-    - git config --global user.email "anon@example.org"
-    - git clone https://github.com/REGoth-project/vcpkg.git
-    - cd vcpkg
-    - git merge --no-edit origin/sf2cute origin/rtaudio
-    - .\bootstrap-vcpkg.bat
+    - IF NOT EXIST vcpkg ( ./ci/configure_vcpkg.bat )
     - .\vcpkg.exe install args rtaudio sf2cute libsndfile
     - cd ..
 
