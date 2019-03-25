@@ -55,7 +55,7 @@ add_library(dmusic::dmusic ALIAS dmusic)
 
 include(GNUInstallDirs)
 
-option(UTILS_DESTINATION "Utilities install directory" "bin")
+set(UTILS_DESTINATION "bin" CACHE "PATH" "Utilities install directory")
 
 # install library files needed for linking
 install(
