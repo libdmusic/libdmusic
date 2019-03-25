@@ -2,7 +2,6 @@
 #include <dmusic/SoundFontPlayer.h>
 #include <memory>
 #include <cmath>
-#define TSF_IMPLEMENTATION
 #include "../utils/common/tsf.h"
 using namespace DirectMusic;
 using namespace DirectMusic::DLS;

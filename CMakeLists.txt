@@ -36,6 +36,8 @@ target_sources(dmusic
 target_compile_features(dmusic PUBLIC cxx_std_14)
 target_link_libraries(dmusic PRIVATE sf2cute::sf2cute ${LIBSNDFILE_LIB})
 
+set_target_properties(dmusic PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
+
 if(DMUSIC_TRACE)
   target_compile_definitions(dmusic PRIVATE DMUSIC_TRACE=1)
   if(DMUSIC_TRACE_VERBOSE)
