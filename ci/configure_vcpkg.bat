@@ -3,4 +3,5 @@ git config --global user.email "anon@example.org"
 git clone https://github.com/REGoth-project/vcpkg.git
 cd vcpkg
 git merge --no-edit origin/sf2cute origin/rtaudio
+.\bootstrap-vcpkg.bat
 cd ..

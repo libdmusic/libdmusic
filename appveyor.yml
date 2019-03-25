@@ -39,7 +39,7 @@ for:
       - image: Visual Studio 2017
   
   cache:
-    - vcpkg
+    #- vcpkg
 
   install:
     - IF NOT EXIST vcpkg ( .\ci\configure_vcpkg.bat )
