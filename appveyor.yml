@@ -23,7 +23,7 @@ for:
     - git config --global user.email "anon@example.org"
     - git clone https://github.com/REGoth-project/vcpkg.git
     - cd vcpkg
-    - git merge -m "" origin/sf2cute origin/rtaudio
+    - git merge --no-edit origin/sf2cute origin/rtaudio
     - ./bootstrap-vcpkg.sh
     - ./vcpkg install args rtaudio sf2cute
     - cd ..
@@ -46,7 +46,7 @@ for:
     - git config --global user.email "anon@example.org"
     - git clone https://github.com/REGoth-project/vcpkg.git
     - cd vcpkg
-    - git merge -m "" origin/sf2cute origin/rtaudio
+    - git merge --no-edit origin/sf2cute origin/rtaudio
     - .\bootstrap-vcpkg.bat
     - .\vcpkg.exe install args rtaudio sf2cute libsndfile
     - cd ..
