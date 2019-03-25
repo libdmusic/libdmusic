@@ -42,7 +42,7 @@ for:
     - vcpkg
 
   install:
-    - IF NOT EXIST vcpkg ( ./ci/configure_vcpkg.bat )
+    - IF NOT EXIST vcpkg ( .\ci\configure_vcpkg.bat )
     - cd vcpkg
     - if %PLATFORM%==x86 ( .\vcpkg.exe install --triplet x86-windows args rtaudio sf2cute libsndfile )
     - if %PLATFORM%==x64 ( .\vcpkg.exe install --triplet x86-windows args rtaudio sf2cute libsndfile )
