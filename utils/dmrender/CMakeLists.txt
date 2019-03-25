@@ -1,5 +1,5 @@
 find_path(LIBSNDFILE_H sndfile.h)
-find_library(LIBSNDFILE_LIB NAMES libsndfile-1 libsndfile)
+find_library(LIBSNDFILE_LIB NAMES sndfile sndfile-1 libsndfile-1 libsndfile)
 find_path(ARGS_HXX args.hxx)
 
 add_executable(dmrender ${CMAKE_CURRENT_SOURCE_DIR}/src/dmrender.cpp)
