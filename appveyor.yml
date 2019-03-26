@@ -70,7 +70,7 @@ for:
     - git config --global user.email "anon@example.org"
     - cd C:\tools\vcpkg
     - git remote add regoth https://github.com/REGoth-project/vcpkg.git
-    - git fetch
+    - git fetch regoth
     - git merge --no-edit regoth/sf2cute regoth/rtaudio
     - .\bootstrap-vcpkg.bat
     - cd %APPVEYOR_BUILD_FOLDER%
