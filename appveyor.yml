@@ -63,10 +63,25 @@ for:
       - image: Visual Studio 2017
   
   cache:
-    - vcpkg
+    - c:\tools\vcpkg\installed\
 
   install:
-    - .\ci\configure_vcpkg.bat
+    - git config --global user.name "Anonymous"
+    - git config --global user.email "anon@example.org"
+    - cd C:\tools\vcpkg
+    - git remote add regoth https://github.com/REGoth-project/vcpkg.git
+    - git fetch
+    - git merge --no-edit regoth/sf2cute regoth/rtaudio
+    - .\bootstrap-vcpkg.bat
+    - cd %APPVEYOR_BUILD_FOLDER%
+    - set TRIPLET=%PLATFORM%-windows
+    - IF "%LINKING%"=="static" ( set TRIPLET=%TRIPLET%-static )
+    - vcpkg install --triplet %TRIPLET% args rtaudio sf2cute libsndfile
 
   build_script:
-    - .\ci\build.bat
+    - set GENERATOR=Visual Studio 15 2017
+    - IF %PLATFORM%==x64 ( set GENERATOR=%GENERATOR% Win64 )
+    - mkdir build
+    - cd build
+    - cmake -DVCPKG_TRIPLET=%TRIPLET% -DCMAKE_TOOLCHAIN_FILE=../vcpkg/scripts/buildsystems/vcpkg.cmake .. -G "%GENERATOR%"
+    - cmake --build . --config %CONFIGURATION%
