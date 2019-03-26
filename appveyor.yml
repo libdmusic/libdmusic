@@ -80,8 +80,10 @@ for:
 
   build_script:
     - set GENERATOR=Visual Studio 15 2017
+    - set SHARED=OFF
     - IF %PLATFORM%==x64 ( set GENERATOR=%GENERATOR% Win64 )
+    - IF "%LINKING%"=="shared" ( set SHARED=ON )
     - mkdir build
     - cd build
-    - cmake -DVCPKG_TRIPLET=%TRIPLET% -DCMAKE_TOOLCHAIN_FILE=C:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake .. -G "%GENERATOR%"
+    - cmake -DBUILD_SHARED_LIBS=%SHARED% -DVCPKG_TARGET_TRIPLET=%TRIPLET% -DCMAKE_TOOLCHAIN_FILE=C:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake .. -G "%GENERATOR%"
     - cmake --build . --config %CONFIGURATION%
