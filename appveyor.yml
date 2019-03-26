@@ -83,5 +83,5 @@ for:
     - IF %PLATFORM%==x64 ( set GENERATOR=%GENERATOR% Win64 )
     - mkdir build
     - cd build
-    - cmake -DVCPKG_TRIPLET=%TRIPLET% -DCMAKE_TOOLCHAIN_FILE=../vcpkg/scripts/buildsystems/vcpkg.cmake .. -G "%GENERATOR%"
+    - cmake -DVCPKG_TRIPLET=%TRIPLET% -DCMAKE_TOOLCHAIN_FILE=C:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake .. -G "%GENERATOR%"
     - cmake --build . --config %CONFIGURATION%
