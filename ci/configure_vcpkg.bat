@@ -7,13 +7,15 @@ IF NOT EXIST vcpkg (
     .\bootstrap-vcpkg.bat
     cd ..
 )
+
+IF "%LINKING%"=="static" (
+    set TRIPLET=%PLATFORM%-windows-static
+)
+
+IF "%LINKING%"=="shared" (
+    set TRIPLET=%PLATFORM%-windows
+)
+
 cd vcpkg
-IF %PLATFORM%==x86 (
-    .\vcpkg.exe install --triplet x86-windows args rtaudio sf2cute libsndfile
-    .\vcpkg.exe install --triplet x86-windows-static args rtaudio sf2cute libsndfile
-)
-IF %PLATFORM%==x64 (
-    .\vcpkg.exe install --triplet x64-windows args rtaudio sf2cute libsndfile
-    .\vcpkg.exe install --triplet x64-windows-static args rtaudio sf2cute libsndfile
-)
+.\vcpkg.exe install --triplet %TRIPLET% args rtaudio sf2cute libsndfile
 cd ..

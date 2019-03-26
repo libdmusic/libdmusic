@@ -1,11 +1,35 @@
 version: 0.1.5.{build}
 image:
-- Visual Studio 2017
-- Ubuntu1804
+  - Visual Studio 2017
+  - Ubuntu1804
+
+configuration:
+  - Debug
+  - Release
+  - RelWithDebInfo
 
 platform:
   - x86
   - x64
+
+environment:
+  matrix:
+    - LINKING: static
+    - LINKING: shared
+
+matrix:
+  exclude:
+    - image: Ubuntu1804
+      platform: x86
+
+    - image: Ubuntu1804
+      LINKING: static
+
+    - image: Ubuntu1804
+      configuration: Debug
+
+    - image: Ubuntu1804
+      configuration: RelWithDebInfo
 
 for:
 -
