@@ -81,7 +81,7 @@ for:
   build_script:
     - set GENERATOR=Visual Studio 15 2017
     - set SHARED=OFF
-    - IF %PLATFORM%==x64 ( set GENERATOR=%GENERATOR% Win64 )
+    - IF %PLATFORM%==x64 (set GENERATOR=%GENERATOR% Win64)
     - IF "%LINKING%"=="shared" ( set SHARED=ON )
     - mkdir build
     - cd build
