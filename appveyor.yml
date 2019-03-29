@@ -80,7 +80,7 @@ for:
     - cd %APPVEYOR_BUILD_FOLDER%
     - set TRIPLET=%PLATFORM%-windows
     - IF "%LINKING%"=="static" ( set TRIPLET=%TRIPLET%-static )
-    - vcpkg install --triplet %TRIPLET% args rtaudio sf2cute libsndfile
+    - vcpkg install --triplet %TRIPLET% args rtaudio sf2cute libsndfile[core]
 
   build_script:
     - set GENERATOR=Visual Studio 15 2017
