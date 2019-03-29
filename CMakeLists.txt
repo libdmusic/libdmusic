@@ -5,6 +5,22 @@ option(DMUSIC_BUILD_UTILS "Build various DirectMusic utilities" ON)
 option(DMUSIC_TRACE "Enable tracing messages" OFF)
 option(DMUSIC_TRACE_VERBOSE "Enable verbose tracing messages" OFF)
 
+option(DMUSIC_FORCE_STATIC_CRT "Force the use of static runtime on Windows" OFF)
+
+if(DMUSIC_FORCE_STATIC_CRT)
+  set(CompilerFlags
+          CMAKE_CXX_FLAGS
+          CMAKE_CXX_FLAGS_DEBUG
+          CMAKE_CXX_FLAGS_RELEASE
+          CMAKE_C_FLAGS
+          CMAKE_C_FLAGS_DEBUG
+          CMAKE_C_FLAGS_RELEASE
+          )
+  foreach(CompilerFlag ${CompilerFlags})
+    string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
+  endforeach()
+endif()
+
 find_package(sf2cute CONFIG REQUIRED)
 
 find_path(LIBSNDFILE_H sndfile.h)

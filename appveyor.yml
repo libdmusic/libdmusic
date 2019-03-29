@@ -45,9 +45,13 @@ for:
     - sudo apt install -y libasound2-dev libsndfile1-dev
     - git config --global user.name "Anonymous"
     - git config --global user.email "anon@example.org"
-    - git clone https://github.com/REGoth-project/vcpkg.git || true
+    - git clone https://github.com/Microsoft/vcpkg.git || true
     - cd vcpkg
-    - git merge --no-edit origin/sf2cute origin/rtaudio || true
+    - git fetch
+    - git pull
+    - git remote add regoth https://github.com/REGoth-project/vcpkg.git || true
+    - git fetch regoth
+    - git merge --no-edit regoth/rtaudio || true
     - ./bootstrap-vcpkg.sh
     - ./vcpkg install args rtaudio sf2cute
     - cd ..
@@ -80,10 +84,10 @@ for:
 
   build_script:
     - set GENERATOR=Visual Studio 15 2017
-    - set SHARED=OFF
     - IF %PLATFORM%==x64 (set GENERATOR=%GENERATOR% Win64)
-    - IF "%LINKING%"=="shared" ( set SHARED=ON )
+    - IF "%LINKING%"=="shared" ( set ADDITIONAL=-DBUILD_SHARED_LIBS=ON )
+    - IF "%LINKING%"=="static" ( set ADDITIONAL=-DDMUSIC_FORCE_STATIC_CRT=ON )
     - mkdir build
     - cd build
-    - cmake -DBUILD_SHARED_LIBS=%SHARED% -DVCPKG_TARGET_TRIPLET=%TRIPLET% -DCMAKE_TOOLCHAIN_FILE=C:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake .. -G "%GENERATOR%"
+    - cmake %ADDITIONAL% -DVCPKG_TARGET_TRIPLET=%TRIPLET% -DCMAKE_TOOLCHAIN_FILE=C:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake .. -G "%GENERATOR%"
     - cmake --build . --config %CONFIGURATION%
