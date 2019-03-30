@@ -82,7 +82,7 @@ for:
     - .\bootstrap-vcpkg.bat
     - cd %APPVEYOR_BUILD_FOLDER%
     - set TRIPLET=%PLATFORM%-windows
-    - IF "%LINKING%"=="static" ( set TRIPLET=%TRIPLET%-static )
+    - IF "%LINKING%"=="static" (set TRIPLET=%TRIPLET%-static)
     - vcpkg install --triplet %TRIPLET% args rtaudio sf2cute libsndfile[core]
 
   build_script:
@@ -96,7 +96,7 @@ for:
     - cmake %ADDITIONAL% -DVCPKG_TARGET_TRIPLET=%TRIPLET% -DCMAKE_TOOLCHAIN_FILE=C:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake .. -G "%GENERATOR%"
     - cmake --build . --config %CONFIGURATION% --target INSTALL
     - robocopy C:/Tools/vcpkg/installed/%TRIPLET%/bin %APPVEYOR_BUILD_FOLDER%/install/bin *.dll
-    
+
   after_build:
     - 7z a %APPVEYOR_BUILD_FOLDER%/libdmusic.zip %APPVEYOR_BUILD_FOLDER%/install/*
     - appveyor PushArtifact %APPVEYOR_BUILD_FOLDER%/libdmusic.zip
