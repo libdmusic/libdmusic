@@ -95,11 +95,8 @@ for:
     - cd build
     - cmake %ADDITIONAL% -DVCPKG_TARGET_TRIPLET=%TRIPLET% -DCMAKE_TOOLCHAIN_FILE=C:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake .. -G "%GENERATOR%"
     - cmake --build . --config %CONFIGURATION% --target INSTALL
-    - powershell -noprofile -executionpolicy Bypass -file C:/Tools/vcpkg/scripts/buildsystems/msbuild/applocal.ps1 -targetBinary %APPVEYOR_BUILD_FOLDER%/install/bin/dls2sf.exe -installedDir C:/Tools/vcpkg/installed/%TRIPLET%/bin
-    - powershell -noprofile -executionpolicy Bypass -file C:/Tools/vcpkg/scripts/buildsystems/msbuild/applocal.ps1 -targetBinary %APPVEYOR_BUILD_FOLDER%/install/bin/dmplay.exe -installedDir C:/Tools/vcpkg/installed/%TRIPLET%/bin
-    - powershell -noprofile -executionpolicy Bypass -file C:/Tools/vcpkg/scripts/buildsystems/msbuild/applocal.ps1 -targetBinary %APPVEYOR_BUILD_FOLDER%/install/bin/dmrender.exe -installedDir C:/Tools/vcpkg/installed/%TRIPLET%/bin
-    - powershell -noprofile -executionpolicy Bypass -file C:/Tools/vcpkg/scripts/buildsystems/msbuild/applocal.ps1 -targetBinary %APPVEYOR_BUILD_FOLDER%/install/bin/sampledump.exe -installedDir C:/Tools/vcpkg/installed/%TRIPLET%/bin
-
+    - robocopy C:/Tools/vcpkg/installed/%TRIPLET%/bin %APPVEYOR_BUILD_FOLDER%/install/bin *.dll
+    
   after_build:
     - 7z a %APPVEYOR_BUILD_FOLDER%/libdmusic.zip %APPVEYOR_BUILD_FOLDER%/install/*
     - appveyor PushArtifact %APPVEYOR_BUILD_FOLDER%/libdmusic.zip
