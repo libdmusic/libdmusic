@@ -31,6 +31,9 @@ matrix:
     - image: Ubuntu1804
       configuration: RelWithDebInfo
 
+    - configuration: RelWithDebInfo
+      LINKING: static
+
 for:
 -
   matrix:
@@ -87,7 +90,12 @@ for:
     - IF %PLATFORM%==x64 (set GENERATOR=%GENERATOR% Win64)
     - IF "%LINKING%"=="shared" ( set ADDITIONAL=-DBUILD_SHARED_LIBS=ON )
     - IF "%LINKING%"=="static" ( set ADDITIONAL=-DDMUSIC_FORCE_STATIC_CRT=ON )
+    - set ADDITIONAL=%ADDITIONAL% -DCMAKE_INSTALL_PREFIX=%APPVEYOR_BUILD_FOLDER%/install
     - mkdir build
     - cd build
     - cmake %ADDITIONAL% -DVCPKG_TARGET_TRIPLET=%TRIPLET% -DCMAKE_TOOLCHAIN_FILE=C:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake .. -G "%GENERATOR%"
-    - cmake --build . --config %CONFIGURATION%
+    - cmake --build . --config %CONFIGURATION% --target INSTALL
+
+  after_build:
+    - 7z a %APPVEYOR_BUILD_FOLDER%/libdmusic.zip %APPVEYOR_BUILD_FOLDER%/install/*
+    - appveyor PushArtifact %APPVEYOR_BUILD_FOLDER%/libdmusic.zip
