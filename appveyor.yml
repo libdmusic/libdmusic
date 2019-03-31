@@ -95,7 +95,7 @@ for:
     - cd build
     - cmake %ADDITIONAL% -DVCPKG_TARGET_TRIPLET=%TRIPLET% -DCMAKE_TOOLCHAIN_FILE=C:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake .. -G "%GENERATOR%"
     - cmake --build . --config %CONFIGURATION% --target INSTALL
-    - robocopy C:/Tools/vcpkg/installed/%TRIPLET%/bin %APPVEYOR_BUILD_FOLDER%/install/bin *.dll || echo
+    - IF "%LINKING%"=="shared" ( (robocopy C:/Tools/vcpkg/installed/%TRIPLET%/bin %APPVEYOR_BUILD_FOLDER%/install/bin *.dll) ^& exit 0)
 
   after_build:
     - 7z a %APPVEYOR_BUILD_FOLDER%/libdmusic.zip %APPVEYOR_BUILD_FOLDER%/install/*
