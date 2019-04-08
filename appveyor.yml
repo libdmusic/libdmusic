@@ -45,7 +45,7 @@ for:
 
   install:
     - sudo apt update
-    - sudo apt install -y libasound2-dev libsndfile1-dev
+    - sudo apt install -y libasound2-dev
     - git config --global user.name "Anonymous"
     - git config --global user.email "anon@example.org"
     - git clone https://github.com/Microsoft/vcpkg.git || true
@@ -78,18 +78,18 @@ for:
     - cd C:\tools\vcpkg
     - git remote add regoth https://github.com/REGoth-project/vcpkg.git
     - git fetch regoth
-    - git merge --no-edit regoth/sf2cute regoth/rtaudio
+    - git merge --no-edit regoth/rtaudio
     - .\bootstrap-vcpkg.bat
     - cd %APPVEYOR_BUILD_FOLDER%
     - set TRIPLET=%PLATFORM%-windows
     - IF "%LINKING%"=="static" (set TRIPLET=%TRIPLET%-static)
-    - vcpkg install --triplet %TRIPLET% args rtaudio sf2cute libsndfile[core]
+    - vcpkg install --triplet %TRIPLET% args rtaudio sf2cute
 
   build_script:
     - set GENERATOR=Visual Studio 15 2017
     - IF %PLATFORM%==x64 (set GENERATOR=%GENERATOR% Win64)
-    - IF "%LINKING%"=="shared" ( set ADDITIONAL=-DBUILD_SHARED_LIBS=ON )
-    - IF "%LINKING%"=="static" ( set ADDITIONAL=-DDMUSIC_FORCE_STATIC_CRT=ON )
+    - IF "%LINKING%"=="shared" (set ADDITIONAL=-DBUILD_SHARED_LIBS=ON)
+    - IF "%LINKING%"=="static" (set ADDITIONAL=-DDMUSIC_FORCE_STATIC_CRT=ON)
     - set ADDITIONAL=%ADDITIONAL% -DCMAKE_INSTALL_PREFIX=%APPVEYOR_BUILD_FOLDER%/install
     - mkdir build
     - cd build
@@ -98,5 +98,10 @@ for:
     - IF "%LINKING%"=="shared" ( (robocopy C:/Tools/vcpkg/installed/%TRIPLET%/bin %APPVEYOR_BUILD_FOLDER%/install/bin *.dll) ^& exit 0)
 
   after_build:
-    - 7z a %APPVEYOR_BUILD_FOLDER%/libdmusic.zip %APPVEYOR_BUILD_FOLDER%/install/*
-    - appveyor PushArtifact %APPVEYOR_BUILD_FOLDER%/libdmusic.zip
+    - IF %PLATFORM%==x64 (set PLATFORM_NAME=win64)
+    - IF %PLATFORM%==x86 (set PLATFORM_NAME=win32)
+    - set ARCHIVE_NAME=libdmusic-%PLATFORM_NAME%-%LINKING%-%APPVEYOR_BUILD_VERSION%
+    - IF %CONFIGURATION%==Debug (set ARCHIVE_NAME=%ARCHIVE_NAME%-Debug)
+    - IF %CONFIGURATION%==RelWithDebInfo (set ARCHIVE_NAME=%ARCHIVE_NAME%-RelWithDebInfo)
+    - 7z a %APPVEYOR_BUILD_FOLDER%/%ARCHIVE_NAME%.zip %APPVEYOR_BUILD_FOLDER%/install/*
+    - appveyor PushArtifact %APPVEYOR_BUILD_FOLDER%/%ARCHIVE_NAME%.zip

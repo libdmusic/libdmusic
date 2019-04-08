@@ -23,9 +23,6 @@ endif()
 
 find_package(sf2cute CONFIG REQUIRED)
 
-find_path(LIBSNDFILE_H sndfile.h)
-find_library(LIBSNDFILE_LIB NAMES sndfile sndfile-1 libsndfile-1 libsndfile)
-
 add_library(dmusic "")
 target_sources(dmusic
   PRIVATE
@@ -50,7 +47,7 @@ target_sources(dmusic
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Forms/Tracks.cpp)
 
 target_compile_features(dmusic PUBLIC cxx_std_14)
-target_link_libraries(dmusic PRIVATE sf2cute::sf2cute ${LIBSNDFILE_LIB})
+target_link_libraries(dmusic PRIVATE sf2cute::sf2cute)
 
 set_target_properties(dmusic PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
@@ -66,8 +63,7 @@ target_include_directories(dmusic
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
     $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>
     $<INSTALL_INTERFACE:include>
-  PRIVATE
-    ${LIBSNDFILE_H})
+)
 
 add_library(dmusic::dmusic ALIAS dmusic)
 

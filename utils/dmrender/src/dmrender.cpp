@@ -8,9 +8,10 @@
 #include <dmusic/InstrumentPlayer.h>
 #include <dmusic/Tracks.h>
 #include <dmusic/dls/DownloadableSound.h>
-#include <sndfile.h>
 #include <cmath>
 #include <args.hxx>
+
+#include "../../../src/dr_wav.h"
 
 using namespace DirectMusic;
 using namespace DirectMusic::DLS;
@@ -21,7 +22,6 @@ int main(int argc, char **argv) {
     args::ValueFlag<unsigned int> chunkLength(parser, "length", "The length in seconds of the audio to render", { 'l', "length" });
     args::ValueFlag<unsigned int> samplingRate(parser, "sampling rate", "The sampling rate to use", { 's', "sample" });
     args::ValueFlag<unsigned int> numChannels(parser, "channels", "The number of channels to use", { 'c', "channels" });
-    args::Flag vorbis(parser, "ogg vorbis", "The output file is going to be an Ogg/Vorbis file instead of an uncompressed Microsoft WAVE file", { 'O', "ogg" });
     args::Positional<std::string> segmentName(parser, "segment", "The segment to render");
     args::Positional<std::string> outputFile(parser, "output", "The output file");
 
@@ -72,22 +72,19 @@ int main(int argc, char **argv) {
         std::cout << "\rProgress: " <<  ceil((i / (float)length) * 100) << "%";
     }
 
-    SF_INFO info;
-    info.channels = channels;
-    info.format = vorbis ? SF_FORMAT_OGG | SF_FORMAT_VORBIS : SF_FORMAT_WAV | SF_FORMAT_PCM_16;
-    info.samplerate = sampleRate;
-    info.frames = 0;
-    info.sections = 0;
-    info.seekable = 0;
-    SNDFILE* sndfile = sf_open(args::get(outputFile).c_str(), SFM_WRITE, &info);
-    if (sndfile == nullptr) {
-        std::string err = std::string(sf_strerror(sndfile));
-        std::cerr << "Error encountered while opening file: " << err << std::endl;
-        return 1;
-    }
-    sf_write_short(sndfile, buffer, length);
-    sf_close(sndfile);
-    delete buffer;
+    drwav_data_format format;
+    format.container = drwav_container_riff;
+    format.format = DR_WAVE_FORMAT_PCM;
+    format.channels = channels;
+    format.sampleRate = sampleRate;
+    format.bitsPerSample = 16;
+
+    drwav* dr = drwav_open_file_write(args::get(outputFile).c_str(), &format);
+    drwav_write_pcm_frames(dr, length, buffer);
+    drwav_close(dr);
+
+    delete[] buffer;
+
     std::cout << "\nRendering done.";
     return 0;
 }

@@ -74,7 +74,7 @@ Many thanks to [Mirza Zulfan](https://github.com/mirzazulfan) for kindly donatin
 
 `dmrender` and `dmplay` use [TinySoundFont](https://github.com/schellingb/TinySoundFont) for SoundFont rendering and [args](https://github.com/Taywee/args).
 
-`dls2sf` and `dmrender` use [libsndfile](http://www.mega-nerd.com/libsndfile/) for wave output and conversion.
+`dls2sf` and `dmrender` use [dr_wav.h](https://github.com/mackron/dr_libs/blob/master/dr_wav.h) for wave output and conversion.
 
 `dls2sf` uses [sf2cute](https://github.com/gocha/sf2cute) for SoundFont output.
 
