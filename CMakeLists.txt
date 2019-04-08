@@ -7,6 +7,8 @@ option(DMUSIC_TRACE_VERBOSE "Enable verbose tracing messages" OFF)
 
 option(DMUSIC_FORCE_STATIC_CRT "Force the use of static runtime on Windows" OFF)
 
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
 if(DMUSIC_FORCE_STATIC_CRT)
   set(CompilerFlags
           CMAKE_CXX_FLAGS

@@ -1,4 +1,4 @@
-find_package(RtAudio CONFIG REQUIRED)
+find_package(RtAudio 5 REQUIRED)
 
 find_path(ARGS_HXX args.hxx)
 
