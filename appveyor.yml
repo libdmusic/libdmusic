@@ -76,6 +76,8 @@ for:
     - git config --global user.name "Anonymous"
     - git config --global user.email "anon@example.org"
     - cd C:\tools\vcpkg
+    - git fetch
+    - git pull
     - git remote add regoth https://github.com/REGoth-project/vcpkg.git
     - git fetch regoth
     - git merge --no-edit regoth/rtaudio
