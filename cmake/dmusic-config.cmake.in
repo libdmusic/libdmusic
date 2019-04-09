@@ -1,6 +1,6 @@
 @PACKAGE_INIT@
 
-find_package(sf2cute REQUIRED)
+find_dependency(sf2cute)
 
 if(NOT TARGET dmusic::dmusic)
     include(${CMAKE_CURRENT_LIST_DIR}/dmusic-targets.cmake)

@@ -57,6 +57,9 @@ for:
     - cd build
     - cmake .. -DCMAKE_TOOLCHAIN_FILE=../vcpkg/scripts/buildsystems/vcpkg.cmake
     - cmake --build .
+
+  after_build:
+    - cpack -G DEB -C Release
 -
   matrix:
     only:
@@ -97,3 +100,16 @@ for:
     - IF %CONFIGURATION%==RelWithDebInfo (set ARCHIVE_NAME=%ARCHIVE_NAME%-RelWithDebInfo)
     - 7z a %APPVEYOR_BUILD_FOLDER%/%ARCHIVE_NAME%.zip %APPVEYOR_BUILD_FOLDER%/install/*
     - appveyor PushArtifact %APPVEYOR_BUILD_FOLDER%/%ARCHIVE_NAME%.zip
+
+deploy:
+  release: libdmusic-v$(appveyor_build_version)
+  description: 'Automated build release'
+  provider: GitHub
+  auth_token:
+    secure: PKQ8wyiF5mNTAWbKepUrcnec7bucnXJ/T+Ip1NfxblviD6BqamxMuSQI1Kk5mCm+
+  artifact: /.*/
+  draft: true
+  prerelease: false
+  force_update: true
+  on:
+appveyor_repo_tag: true        # deploy on tag push only
