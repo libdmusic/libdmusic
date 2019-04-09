@@ -44,19 +44,12 @@ for:
     - vcpkg
 
   install:
-    - sudo apt update
-    - sudo apt install -y libasound2-dev
     - git config --global user.name "Anonymous"
     - git config --global user.email "anon@example.org"
     - git clone https://github.com/Microsoft/vcpkg.git || true
     - cd vcpkg
-    - git fetch
-    - git pull
-    - git remote add regoth https://github.com/REGoth-project/vcpkg.git || true
-    - git fetch regoth
-    - git merge --no-edit regoth/rtaudio || true
     - ./bootstrap-vcpkg.sh
-    - ./vcpkg install args rtaudio sf2cute
+    - ./vcpkg install args sf2cute
     - cd ..
 
   build_script:
@@ -78,14 +71,11 @@ for:
     - cd C:\tools\vcpkg
     - git fetch
     - git pull
-    - git remote add regoth https://github.com/REGoth-project/vcpkg.git
-    - git fetch regoth
-    - git merge --no-edit regoth/rtaudio
     - .\bootstrap-vcpkg.bat
     - cd %APPVEYOR_BUILD_FOLDER%
     - set TRIPLET=%PLATFORM%-windows
     - IF "%LINKING%"=="static" (set TRIPLET=%TRIPLET%-static)
-    - vcpkg install --triplet %TRIPLET% args rtaudio sf2cute
+    - vcpkg install --triplet %TRIPLET% args sf2cute
 
   build_script:
     - set GENERATOR=Visual Studio 15 2017

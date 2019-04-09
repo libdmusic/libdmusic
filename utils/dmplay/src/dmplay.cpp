@@ -7,29 +7,26 @@
 #include <dmusic/DlsPlayer.h>
 #include <dmusic/Tracks.h>
 #include <dmusic/dls/DownloadableSound.h>
-#include <RtAudio.h>
 #include <cmath>
 #include <cstdio>
 #include <args.hxx>
+
+#define MINIAUDIO_IMPLEMENTATION
+#include "miniaudio.h"
 
 using namespace DirectMusic;
 using namespace DirectMusic::DLS;
 
 static int streamChannels = 2;
 
-static int audioCallback(void* outputBuffer,
-                      void* /*inputBuffer*/,
-                      unsigned int framesPerBuffer,
-                      double /*streamTime*/,
-                      RtAudioStreamStatus /*status*/,
-                      void* userData) {
+static void audioCallback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount) {
     /* Cast data passed through stream to our structure. */
-    PlayingContext* data = (PlayingContext*)userData;
-    std::int16_t *out = (std::int16_t*)outputBuffer;
-    int samples = framesPerBuffer * data->getAudioChannels();
+    PlayingContext* data = (PlayingContext*)pDevice->pUserData;
+    std::int16_t *out = (std::int16_t*)pOutput;
+    int samples = frameCount * data->getAudioChannels();
 
     if(streamChannels > 2) {
-        for(std::size_t i = 0; i < framesPerBuffer; i++) {
+        for(std::size_t i = 0; i < frameCount; i++) {
             data->renderBlock(out, 2, 1);
             std::fill(out + 2, out + streamChannels, 0);
             out += streamChannels;
@@ -37,7 +34,6 @@ static int audioCallback(void* outputBuffer,
     } else {
         data->renderBlock(out, samples, 1);
     }
-    return 0;
 }
 
 int main(int argc, char **argv) {
@@ -45,8 +41,6 @@ int main(int argc, char **argv) {
     args::HelpFlag help(parser, "help", "Display this help menu", { 'h', "help" });
     args::ValueFlag<unsigned int> samplingRate(parser, "sampling rate", "The sampling rate to use", { 's', "sample" });
     args::ValueFlag<unsigned int> numChannels(parser, "channels", "The number of channels to use", { 'c', "channels" });
-    args::Flag listDevices(parser, "list devices", "Lists the available sound devices", { 'l', "list-devices" });
-    args::ValueFlag<unsigned int> device(parser, "device", "Use a specific sound device for playback", {'d', "device"});
     args::Positional<std::string> segmentName(parser, "segment", "The segment to render");
 
     try {
@@ -64,49 +58,35 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    RtAudio dac;
-    if (dac.getDeviceCount() < 1) {
-        std::cout << "No audio devices found!\n";
-        return 1;
-    }
-
-    if(listDevices) {
-        for (unsigned int i = 0; i < dac.getDeviceCount(); i++) {
-            std::cout << i << ')';
-            const auto& info = dac.getDeviceInfo(i);
-            if (info.isDefaultOutput) std::cout << " (default output)";
-            if (info.isDefaultInput) std::cout << " (default input)";
-            std::cout << ' ' << info.name << '\n';
-        }
-        return 0;
-    }
-
     if (!segmentName) {
         std::cerr << "dmplay: No input specified." << std::endl;
         return 1;
     }
 
+
     int sampleRate = samplingRate ? args::get(samplingRate) : 44100;
     int channels = numChannels ? args::get(numChannels) : 2;
-
-    RtAudio::StreamParameters parameters;
-    parameters.deviceId = device ? args::get(device) : dac.getDefaultOutputDevice();
-    parameters.nChannels = channels;
-    parameters.firstChannel = 0;
-
-    unsigned int bufferFrames = 256;
 
     PlayingContext ctx(sampleRate, channels > 2 ? 2 : channels, DlsPlayer::createFactory());
     streamChannels = channels;
 
-    std::cout << "Opening audio device... ";
-    try {
-        dac.openStream(&parameters, nullptr, RTAUDIO_SINT16,
-            sampleRate, &bufferFrames, &audioCallback, (void *)&ctx);
-        dac.startStream();
-    } catch (const RtAudioError& e) {
-        std::cerr << e.what() << '\n';
-        return 1;
+    ma_device_config config = ma_device_config_init(ma_device_type_playback);
+    config.playback.format   = ma_format_s16;
+    config.playback.channels = channels;
+    config.sampleRate        = sampleRate;
+    config.dataCallback      = audioCallback;
+    config.pUserData         = &ctx;
+
+    ma_device device;
+    if (ma_device_init(NULL, &config, &device) != MA_SUCCESS) {
+        std::cerr << "Failed to open playback device.\n";
+        return -3;
+    }
+
+    if (ma_device_start(&device) != MA_SUCCESS) {
+        std::cerr << "Failed to start playback device.\n";
+        ma_device_uninit(&device);
+        return -4;
     }
 
     std::cout << " done.\nLoading segment...";
@@ -145,14 +125,8 @@ int main(int argc, char **argv) {
         }
         std::cout << " done.\nBegin rendering... ";
     }
-    
-    try {
-        // Stop the stream
-        dac.stopStream();
-    } catch (RtAudioError& e) {
-        e.printMessage();
-    }
-    if ( dac.isStreamOpen() ) dac.closeStream();
+
+    ma_device_uninit(&device);
 
     return 0;
 }

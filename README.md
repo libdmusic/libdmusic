@@ -17,45 +17,19 @@ Compiling
 
 Pre-compiled binaries are available for both 32- and 64-bit windows in the [Releases](https://github.com/frabert/libdmusic/releases) section
 
-Currently, `libsndfile` needs to be present on the system at the moment of compilation (also `rtaudio` if you want to build `dmplay`):
-this can be ensured on Linux and macOS by installing the correct packages (e.g. `libsndfile1-dev` and `librtaudio-dev` on Debian/Ubuntu),
-while on Windows it needs to be compiled manually:
+The easiest way to build `libdmusic` is to use [vcpkg](https://github.com/Microsoft/vcpkg).
+Once vcpkg is installed, you can retrieve the needed dependencies:
 
-````batch
-REM Building libsndfile
-$ git clone https://github.com/erikd/libsndfile
-$ cd libsndfile
-$ mkdir build
-$ cd build
-$ cmake -D CMAKE_INSTALL_PREFIX=%HOMEPATH%/libs ..
-$ cmake --build .. --target INSTALL
-$ cd ..
+    ./vcpkg install args sf2cute
 
-REM Building RtAudio (optional)
-$ git clone https://github.com/thestk/rtaudio
-$ cd rtaudio
-$ mkdir build
-$ cd build
-$ cmake -D BUILD_TESTING=OFF -D CMAKE_INSTALL_PREFIX=%HOMEPATH%/libs ..
-$ cmake --build .. --target INSTALL
-$ cd ..
+Then configure and build the cmake project:
 
-REM Building libdmusic
-REM Add -D DMUSIC_BUILD_UTILS=OFF to disable building utilities
-REM Disabling the utilities removes the need for RtAudio
-$ git clone --recursive https://github.com/frabert/libdmusic
-$ cmake -D CMAKE_PREFIX_PATH=%HOMEPATH/libs .
-$ cmake --build .
-````
-
-On *nix systems, building is simpler (once you have installed libsndfile and rtaudio):
-
-````sh
-$ git clone --recursive https://github.com/frabert/libdmusic
-$ cd libdmusic
-$ cmake . # Add -D DMUSIC_BUILD_UTILS=OFF to disable building utilities and remove the dependency on RtAudio
-$ make
-````
+    git clone https://github.com/frabert/libdmusic
+    cd libdmusic
+    mkdir build
+    cd build
+    cmake -DCMAKE_TOOLCHAIN_FILE=path/to/vcpkg/scripts/buildsystems/vcpkg.cmake ..
+    cmake --build .
 
 Usage
 -----
@@ -78,4 +52,4 @@ Many thanks to [Mirza Zulfan](https://github.com/mirzazulfan) for kindly donatin
 
 `dls2sf` uses [sf2cute](https://github.com/gocha/sf2cute) for SoundFont output.
 
-`dmplay` uses [RtAudio](http://www.music.mcgill.ca/~gary/rtaudio/) for realtime audio playback.
+`dmplay` uses [miniaudio](https://github.com/dr-soft/miniaudio) for realtime audio playback.
