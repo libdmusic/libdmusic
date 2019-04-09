@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 3.10)
-project (dmusic VERSION 0.1.5 LANGUAGES CXX)
+project (dmusic VERSION 0.1.6 LANGUAGES CXX)
 
 option(DMUSIC_BUILD_UTILS "Build various DirectMusic utilities" ON)
 option(DMUSIC_TRACE "Enable tracing messages" OFF)
