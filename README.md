@@ -1,10 +1,10 @@
 <h4 align="center">
   <br>
-  <img width="128" src="https://cdn.rawgit.com/frabert/libdmusic/3ea57d5/media/logo.svg">
+  <img width="128" src="https://rawcdn.githack.com/frabert/libdmusic/4d70914185a8ab042bcb7cfb9d6c6379baaf4aaf/media/logo.svg">
   <br>
 </h4>
 
-<img width="256" src="https://cdn.rawgit.com/frabert/libdmusic/3ea57d5/media/logo_full.svg"> [![Build status](https://ci.appveyor.com/api/projects/status/7t7ral8wos4p7idc?svg=true)](https://ci.appveyor.com/project/frabert/libdmusic) [![Gitter chat](https://badges.gitter.im/frabert/libdmusic.png)](https://gitter.im/frabert/libdmusic)
+<img width="256" src="https://rawcdn.githack.com/frabert/libdmusic/4d70914185a8ab042bcb7cfb9d6c6379baaf4aaf/media/logo_full.svg"> [![Build status](https://ci.appveyor.com/api/projects/status/7t7ral8wos4p7idc?svg=true)](https://ci.appveyor.com/project/frabert/libdmusic) [![Gitter chat](https://badges.gitter.im/frabert/libdmusic.png)](https://gitter.im/frabert/libdmusic)
 =========
 
 Project goals
