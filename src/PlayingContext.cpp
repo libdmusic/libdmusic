@@ -1,5 +1,6 @@
 #include <dmusic/PlayingContext.h>
 #include <dmusic/Tracks.h>
+#include <dmusic/Midi.h>
 #include "MusicMessages.h"
 #include <exception>
 #include <cassert>
@@ -211,6 +212,28 @@ static void loadChordTrack(const TrackForm& track, std::vector<std::shared_ptr<M
     }
 }
 
+static void loadSequenceTrack(const TrackForm& track, std::vector<std::shared_ptr<MusicMessage>>& messageVector) {
+    auto sequenceTrack = std::static_pointer_cast<SequenceTrack>(track.getData());
+    for(const auto& item : sequenceTrack->getSequenceItems()) {
+        Midi::Message msg = (Midi::Message)(item.bStatus >> 4);
+        if(msg == Midi::Message::NoteOn) {
+            // Currently NotOn messages are the only type of sequence item known
+            auto note = item.bByte1;
+            auto velocity = item.bByte2;
+
+            auto noteOn = std::make_shared<NoteOnMessage>(item.mtTime, note, velocity, 0, item.dwPChannel, item.dwPChannel);
+            auto noteOff = std::make_shared<NoteOffMessage>(item.mtTime + item.mtDuration, note, item.dwPChannel, item.dwPChannel);
+
+            messageVector.push_back(noteOn);
+            messageVector.push_back(noteOff);
+        }
+    }
+
+    for(const auto& item : sequenceTrack->getCurveItems()) {
+        // TODO: Load curves
+    }
+}
+
 std::shared_ptr<SegmentInfo> PlayingContext::prepareSegment(const SegmentForm& segment) {
     TRACE("Preparing segment");
     auto newSegment = std::make_shared<SegmentInfo>();
@@ -233,6 +256,8 @@ std::shared_ptr<SegmentInfo> PlayingContext::prepareSegment(const SegmentForm& s
             loadTempoTrack(track, newSegment->messages);
         } else if (ckid == "cmnd") {
             loadCommandTrack(track, newSegment->messages);
+        } else if(ckid == "seqt") {
+            loadSequenceTrack(track, newSegment->messages);
         } else if (*header.ckid == 0 && fccType == "sttr") {
             auto styleTrack = std::static_pointer_cast<StyleTrack>(track.getData());
             for (const auto& style : styleTrack->getStyles()) {

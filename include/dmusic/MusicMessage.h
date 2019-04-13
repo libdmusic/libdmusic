@@ -19,7 +19,8 @@ namespace DirectMusic {
         NoteOff,
         SegmentEnd,
         PatternEnd,
-        ControlChange
+        ControlChange,
+        TimeSignatureChange
     };
 
     class MusicMessage {
@@ -52,6 +53,7 @@ namespace DirectMusic {
         void enqueueNextSegment(PlayingContext& ctx);
         bool isNextSegmentAvailable(PlayingContext& ctx);
         SegmentTiming getNextSegmentTiming(PlayingContext& ctx);
+        void changeTimeSignature(PlayingContext& ctx, DMUS_IO_TIMESIG timeSig);
     };
 
     struct MusicMessageComparer {

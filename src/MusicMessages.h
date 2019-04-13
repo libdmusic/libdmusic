@@ -182,4 +182,21 @@ namespace DirectMusic {
         std::uint32_t m_channel, m_channelAlt;
         DirectMusic::Midi::Control m_control;
     };
+
+    class TimeSignatureChangeMessage : public MusicMessage {
+    public:
+        TimeSignatureChangeMessage(std::uint32_t time, DMUS_IO_TIMESIG timeSig)
+            : MusicMessage(time)
+            , m_timeSig(timeSig) {}
+
+        virtual std::shared_ptr<MusicMessage> Clone(std::uint32_t newTime) {
+            return std::make_shared<TimeSignatureChangeMessage>(newTime, m_timeSig);
+        }
+
+        virtual MusicMessageType getMessageType() const { return MusicMessageType::TimeSignatureChange; }
+
+        virtual void Execute(PlayingContext& ctx);
+    private:
+        DMUS_IO_TIMESIG m_timeSig;
+    };
 }

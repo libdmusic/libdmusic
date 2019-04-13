@@ -63,6 +63,8 @@ TrackForm::TrackForm(const Chunk& c)
             m_data = std::make_shared<SysexTrack>(subchunk);
         } else if (id == "tetr") {
             m_data = std::make_shared<TempoTrack>(subchunk);
+        } else if(id == "seqt") {
+            m_data = std::make_shared<SequenceTrack>(subchunk);
         }
     }
 }

@@ -369,6 +369,10 @@ void MusicMessage::changeChord(PlayingContext& ctx, std::uint32_t chord, const s
     ctx.m_subchords = std::move(subchords);
 }
 
+void MusicMessage::changeTimeSignature(PlayingContext& ctx, DMUS_IO_TIMESIG timeSig) {
+    ctx.m_signature = timeSig;
+}
+
 void MusicMessage::enqueueNextSegment(PlayingContext& ctx) {
     if (ctx.m_nextSegment != nullptr) {
         TRACE("New segment enqueued");
@@ -497,4 +501,9 @@ void ControlChangeMessage::Execute(PlayingContext& ctx) {
         player->controlChange(m_control, m_value);
     }
     assert(player != nullptr);
+}
+
+void TimeSignatureChangeMessage::Execute(PlayingContext& ctx) {
+    TRACE("Time signature change");
+    changeTimeSignature(ctx, m_timeSig);
 }
