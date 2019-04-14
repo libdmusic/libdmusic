@@ -245,11 +245,23 @@ void DlsPlayer::channelPressure(std::uint8_t val) {}
 /// Sends a "polyphonic aftertouch" message to a note
 void DlsPlayer::polyAftertouch(std::uint8_t note, std::uint8_t val) {}
 
+static void doNothing() {
+
+}
+
 /// Sends a "control change" message
 void DlsPlayer::controlChange(DirectMusic::Midi::Control control, float val) {
     if (control == DirectMusic::Midi::Control::ChannelVolume || control == DirectMusic::Midi::Control::ExpressionCtl) {
         m_volume = val;
         m_soundfont->setPresetGain(m_preset, gainToDecibels(m_volume * m_volume * m_volume * m_volume));
+    } else if(control == DirectMusic::Midi::Control::Pan) {
+        m_pan = val;
+        float volFactorRight = sqrt((m_pan + 1) / 2);
+        float volFactorLeft = sqrt((-m_pan + 1) / 2);
+
+        m_soundfont->setPresetPanning(m_preset, volFactorLeft, volFactorRight);
+    } else {
+        doNothing();
     }
 }
 

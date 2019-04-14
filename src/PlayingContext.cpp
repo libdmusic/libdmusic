@@ -212,7 +212,13 @@ static void loadChordTrack(const TrackForm& track, std::vector<std::shared_ptr<M
     }
 }
 
+template<typename T>
+static T lerp(float x, T start, T end) {
+    return (1 - x) * start + x * end;
+}
+
 static void loadSequenceTrack(const TrackForm& track, std::vector<std::shared_ptr<MusicMessage>>& messageVector) {
+    constexpr double PI = 3.14159265359;
     auto sequenceTrack = std::static_pointer_cast<SequenceTrack>(track.getData());
     for(const auto& item : sequenceTrack->getSequenceItems()) {
         Midi::Message msg = (Midi::Message)(item.bStatus >> 4);
@@ -230,7 +236,25 @@ static void loadSequenceTrack(const TrackForm& track, std::vector<std::shared_pt
     }
 
     for(const auto& item : sequenceTrack->getCurveItems()) {
-        // TODO: Load curves
+        if (item.nStartValue > 127 || item.nEndValue > 127) continue;
+
+        float startValue = (float)item.nStartValue / 127, endValue = (float)item.nEndValue / 127;
+        auto control = (DirectMusic::Midi::Control)item.bCCData;
+        std::array<std::function<float(float, float, float)>, 5> curves;
+        curves[DMUS_CURVES_LINEAR] = [](float x, auto start, auto end) { return lerp(x, start, end); };
+        curves[DMUS_CURVES_INSTANT] = [](float x, auto start, auto end) { return end; };
+        curves[DMUS_CURVES_EXP] = [](float x, auto start, auto end) { return lerp(x*x*x*x, start, end); };
+        curves[DMUS_CURVES_LOG] = [](float x, auto start, auto end) { return lerp(sqrtf(x), start, end); };
+        curves[DMUS_CURVES_SINE] = [&](float x, auto start, auto end) { return lerp((sinf((x - 0.5) * PI) + 1) * 0.5, start, end); };
+        for (std::uint32_t i = 0; i < item.mtDuration; i++) {
+            float phase = (float)i / item.mtDuration;
+            assert(item.bCurveShape < 5);
+            auto curveFunction = curves[item.bCurveShape];
+            float value = curveFunction(phase, startValue, endValue);
+            auto msg = std::make_shared<ControlChangeMessage>(item.mtStart, item.dwPChannel, item.dwPChannel, control, value);
+            assert(msg != nullptr);
+            messageVector.push_back(msg);
+        }
     }
 }
 

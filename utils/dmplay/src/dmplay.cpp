@@ -41,6 +41,7 @@ int main(int argc, char **argv) {
     args::HelpFlag help(parser, "help", "Display this help menu", { 'h', "help" });
     args::ValueFlag<unsigned int> samplingRate(parser, "sampling rate", "The sampling rate to use", { 's', "sample" });
     args::ValueFlag<unsigned int> numChannels(parser, "channels", "The number of channels to use", { 'c', "channels" });
+    args::ValueFlag<std::string> gmDls(parser, "GeneralMidi font", "The DLS to use when playing GeneralMidi instruments", { "gm" });
     args::Positional<std::string> segmentName(parser, "segment", "The segment to render");
 
     try {
@@ -67,7 +68,14 @@ int main(int argc, char **argv) {
     int sampleRate = samplingRate ? args::get(samplingRate) : 44100;
     int channels = numChannels ? args::get(numChannels) : 2;
 
-    PlayingContext ctx(sampleRate, channels > 2 ? 2 : channels, DlsPlayer::createFactory());
+    DirectMusic::GMPlayerFactory gmFactory = nullptr;
+    std::unique_ptr<DownloadableSound> dls = nullptr;
+    if(gmDls) {
+        dls = std::make_unique<DownloadableSound>(args::get(gmDls));
+        gmFactory = DlsPlayer::createGMFactory(*dls);
+    }
+
+    PlayingContext ctx(sampleRate, channels > 2 ? 2 : channels, DlsPlayer::createFactory(), gmFactory);
     streamChannels = channels;
 
     ma_device_config config = ma_device_config_init(ma_device_type_playback);

@@ -329,7 +329,7 @@ void MusicMessage::playPattern(PlayingContext& ctx) {
                         curves[DMUS_CURVES_LOG] = [](float x, auto start, auto end) { return lerp(sqrtf(x), start, end); };
                         curves[DMUS_CURVES_SINE] = [](float x, auto start, auto end) { return lerp((sinf((x - 0.5) * PI) + 1) * 0.5, start, end); };
 
-                        for (uint32_t i = 0; i < duration / DMUSIC_CURVE_MESSAGE_SPACING; i++) {
+                        for (std::uint32_t i = 0; i < duration / DMUSIC_CURVE_MESSAGE_SPACING; i++) {
                             std::uint32_t offset = i * DMUSIC_CURVE_MESSAGE_SPACING;
                             float phase = (float)offset / duration;
 
